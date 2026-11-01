@@ -1,0 +1,2240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Layover Logbook: plan rest, explore, track money and fatigue on every layover.">
+<meta name="theme-color" content="#14223a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Layover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script src="config.js"></script>
+<script>
+/* Phone website: talks straight to free map, weather and currency services (no keys needed). */
+window.LAYOVER_WEB=true;
+(()=>{
+  const net=window.fetch.bind(window);
+  const CATS={
+    groc:'nwr["shop"~"^(supermarket|convenience|greengrocer|bakery)$"]',
+    food:'nwr["amenity"~"^(restaurant|fast_food|food_court)$"]',
+    cafe:'nwr["amenity"="cafe"]',
+    night:'nwr["amenity"~"^(bar|pub|nightclub)$"]',
+    shop:'nwr["shop"~"^(mall|department_store|clothes|cosmetics|perfumery|shoes|gift|jewelry)$"]',
+    pharm:'nwr["amenity"="pharmacy"]',
+    money:'nwr["amenity"~"^(atm|bureau_de_change|bank)$"]',
+    sight:'nwr["tourism"~"^(attraction|museum|viewpoint|gallery)$"]'
+  };
+  const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+  const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{"Content-Type":"application/json"}});
+  async function first(urls,init){
+    for(const u of urls){ try{ const r=await net(u,init); if(r.ok) return r; }catch(e){} }
+    return json({error:"unavailable"},502);
+  }
+  const coord=(q)=>{const la=+q.get("lat"),lo=+q.get("lon");return (isFinite(la)&&isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180)?[la,lo]:null};
+  window.fetch=async(input,init)=>{
+    const url=typeof input==="string"?input:input.url;
+    if(!url.startsWith("/api/")) return net(input,init);
+    const u=new URL(url,location.href), q=u.searchParams;
+    switch(u.pathname){
+      case "/api/geocode":{
+        const s=(q.get("q")||"").trim().slice(0,200); if(!s) return json([],400);
+        return first(["https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&accept-language=en&q="+encodeURIComponent(s)]);
+      }
+      case "/api/weather":{
+        const c=coord(q); if(!c) return json({},400);
+        return first([`https://api.open-meteo.com/v1/forecast?latitude=${c[0].toFixed(4)}&longitude=${c[1].toFixed(4)}&timezone=auto&current=temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1`]);
+      }
+      case "/api/places":{
+        const c=coord(q), sel=CATS[q.get("cat")]; if(!c||!sel) return json({},400);
+        const r=Math.min(5000,Math.max(200,parseInt(q.get("r"),10)||1000));
+        const ql=`[out:json][timeout:25];(${sel}(around:${r},${c[0].toFixed(6)},${c[1].toFixed(6)}););out center 150;`;
+        return first(OVERPASS,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(ql)});
+      }
+      case "/api/rates":{
+        try{ const r=await net("https://open.er-api.com/v6/latest/QAR"); if(r.ok) return r; }catch(e){}
+        try{
+          const r=await net("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/qar.json");
+          if(r.ok){ const d=await r.json(), out={}; for(const k in d.qar) out[k.toUpperCase()]=d.qar[k]; return json({result:"success",rates:out}); }
+        }catch(e){}
+        return json({},502);
+      }
+    }
+    return json({error:"not found"},404);
+  };
+  if("serviceWorker" in navigator && location.protocol==="https:" || location.hostname==="localhost")
+    addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+})();
+</script>
+<title>Layover Logbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a crew phone app. Compact app bar, a boarding-pass hero on Today, five sections in a bottom bar,
+   sub-pages as segmented controls, and long explanations folded into "How this works" disclosures. */
+:root{
+  --bg:#edf1f5; --surface:#ffffff; --sub:#e2e8ef; --ink:#14223a; --muted:#5b6b82; --line:#dbe2ea;
+  --accent:#c9741a; --accent-ink:#1a1206; --accent-soft:#fbead6;
+  --board:#14223a; --board-2:#1d2f4d; --board-ink:#f4f7fb; --board-muted:#a9b8ce; --board-line:#34486b;
+  --good:#2f7d4f; --warn:#b4570b; --navy:#3b5683; --mod:#a87b00; --bad:#b3261e;
+  --shadow:0 1px 2px rgba(20,34,58,.06),0 4px 14px rgba(20,34,58,.06);
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Source Sans 3",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1220; --surface:#141e33; --sub:#1c2840; --ink:#e7edf6; --muted:#9aa9bf; --line:#253350;
+  --accent:#f0a24c; --accent-ink:#1a1206; --accent-soft:#3a2a17;
+  --board:#0f1a2e; --board-2:#18284a; --board-ink:#f4f7fb; --board-muted:#a9b8ce; --board-line:#34486b;
+  --good:#5cc489; --warn:#f0a24c; --navy:#8fa8d8; --mod:#e3b341; --bad:#f2766b;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1220; --surface:#141e33; --sub:#1c2840; --ink:#e7edf6; --muted:#9aa9bf; --line:#253350;
+  --accent:#f0a24c; --accent-ink:#1a1206; --accent-soft:#3a2a17;
+  --board:#0f1a2e; --board-2:#18284a; --board-ink:#f4f7fb; --board-muted:#a9b8ce; --board-line:#34486b;
+  --good:#5cc489; --warn:#f0a24c; --navy:#8fa8d8; --mod:#e3b341; --bad:#f2766b;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--board)}
+select,input,button{font:inherit;color:inherit}
+button,summary,[data-go],[data-goto]{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* app bar */
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--board);color:var(--board-ink)}
+.appbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:baseline;gap:8px;font-family:var(--display);font-weight:700;letter-spacing:.14em;font-size:1rem;text-transform:uppercase}
+.brand b{color:var(--accent);font-weight:700}
+.ver{font-family:var(--mono);font-size:.68rem;letter-spacing:0;color:var(--board-muted);font-weight:500}
+.brand{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.destbtn{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;background:var(--board-2);border:1px solid var(--board-line);color:var(--board-ink);border-radius:999px;padding:5px 12px 5px 14px;font-size:.88rem}
+.destbtn #hChip{font-family:var(--mono);color:var(--accent);letter-spacing:.06em}
+.destbtn svg{width:12px;height:12px;opacity:.8}
+
+@media (max-width:420px){.brand{letter-spacing:.08em;font-size:.95rem}.brand .ver{display:none}}
+@media (max-width:360px){.destbtn .lbl{display:none}.destbtn{padding:5px 10px}}
+.avatar{flex-shrink:0;width:32px;height:32px;border-radius:50%;border:1px solid var(--board-line);background:var(--board-2);color:var(--accent);font-weight:700;font-size:.9rem;display:grid;place-items:center;padding:0}
+.barright{display:flex;align-items:center;gap:8px;flex-shrink:0}
+/* login screen */
+.login{position:fixed;inset:0;z-index:60;overflow:auto;background:var(--board);color:var(--board-ink);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.login .wrap{min-height:100%;display:grid;align-content:center;gap:20px;padding-block:32px}
+.login-hero{display:grid;gap:10px}
+.login-hero .brand{font-size:1.05rem}
+.login-hero h1{font-size:2.3rem;color:var(--board-ink)}
+.login-hero p{margin:0;color:var(--board-muted);max-width:34ch}
+.login-route{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;color:var(--board-muted)}
+.login-route i{flex:1;border-top:2px dashed var(--board-line);max-width:160px}
+.login-route b{color:var(--accent);font-weight:500}
+.login .card{color:var(--ink)}
+.login form{display:grid;gap:12px}
+.pw{position:relative}
+.pw input{padding-right:64px}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);font-size:.82rem;font-weight:600;padding:6px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-weight:600;font-size:.9rem;justify-self:start}
+.authmsg{margin:0;font-size:.9rem;border-radius:10px;padding:9px 12px}
+.authmsg.err{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+.authmsg.ok{background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--good)}
+.guestbtn{background:none;border:1px solid var(--board-line);color:var(--board-ink);border-radius:10px;padding:11px 16px;font-weight:600}
+.login .fine{color:var(--board-muted);font-size:.82rem;margin:0}
+.setup{background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:.88rem;margin:0}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--muted)}
+.sync::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted))}
+.sync.ok{--c:var(--good);color:var(--good)}.sync.wait{--c:var(--mod)}.sync.off{--c:var(--muted)}.sync.bad{--c:var(--bad);color:var(--bad)}
+.toast{position:fixed;z-index:45;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));width:min(520px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 14px;font-size:.92rem;box-shadow:0 8px 24px rgba(8,14,26,.3)}
+.when{display:grid;gap:12px}
+.whenrow{display:grid;gap:5px;min-width:0}
+.whenrow input{-webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:48px;margin:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--ink);font-family:var(--body);font-size:1.02rem;font-weight:600;text-align:left}
+.whenrow input::-webkit-date-and-time-value{text-align:left;margin:0}
+.whenrow input::-webkit-calendar-picker-indicator{opacity:.6}
+#groundH{margin-top:-2px}
+@media (max-width:420px){.appbar:has(#joinBtn:not([hidden])) .brand b{display:none}}
+.joinbtn{flex-shrink:0;background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:.88rem}
+#tour{position:fixed;inset:0;z-index:70}
+.tour-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,14,26,.62);outline:2px solid var(--accent);pointer-events:none;transition:all .25s ease}
+.tour-card{position:fixed;background:var(--surface);color:var(--ink);border-radius:16px;padding:18px;display:grid;gap:8px;box-shadow:0 14px 40px rgba(8,14,26,.4)}
+.tour-card h2{font-size:1.35rem}
+.tour-card p{margin:0;color:var(--muted)}
+.tour-step{font-family:var(--mono);font-size:.75rem;color:var(--accent);letter-spacing:.06em}
+.tour-btns{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+body.touring{overflow:hidden}
+@media (prefers-reduced-motion:reduce){.tour-spot{transition:none}}
+.rulebox{display:grid;gap:2px;border-radius:12px;padding:12px 14px;border:1px solid var(--line);font-size:.9rem}
+.rulebox span:last-child{color:var(--muted)}
+.rulebox.ok{border-color:var(--good)}.rulebox.ok b{color:var(--good)}
+.rulebox.mod{border-color:var(--mod)}.rulebox.mod b{color:var(--mod)}
+.rulebox.bad{border-color:var(--bad)}.rulebox.bad b{color:var(--bad)}
+.arealink{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.arealink:hover{text-decoration-color:var(--accent)}
+/* destination sheet */
+.backdrop{position:fixed;inset:0;background:rgba(8,14,26,.5);z-index:30}
+.sheet{position:fixed;z-index:31;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 58px);margin:0 auto;width:min(528px,calc(100% - 32px));background:var(--surface);border-radius:16px;padding:18px;display:grid;gap:12px;box-shadow:0 12px 40px rgba(8,14,26,.35);max-height:calc(100% - 120px);overflow:auto}
+.sheet .row input{font-size:1.05rem}
+
+/* main + bottom bar */
+main .wrap{padding-block:16px calc(96px + env(safe-area-inset-bottom,0px));display:grid;gap:16px}
+.panel{display:grid;gap:16px}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabbar .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.tabbar button{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabbar button{background:none;border:0;display:grid;justify-items:center;gap:2px;padding:9px 2px 8px;color:var(--muted);font-size:.74rem;font-weight:600;letter-spacing:.02em;position:relative}
+.tabbar svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-selected="true"]{color:var(--ink)}
+.tabbar button[aria-selected="true"] svg{stroke:var(--accent)}
+.tabbar button[aria-selected="true"]::before{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+
+/* page heads + segmented controls */
+.pagehead{display:grid;gap:10px}
+h1{font-family:var(--display);font-weight:700;font-size:1.9rem;line-height:1.05;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1 .dn{color:var(--muted);font-weight:600}
+.seg{display:flex;background:var(--sub);border-radius:12px;padding:4px;gap:4px;overflow-x:auto}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:7px 10px;font-weight:600;font-size:.92rem;color:var(--muted);white-space:nowrap}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+/* cards and type */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:14px;min-width:0;box-shadow:var(--shadow)}
+h2{font-family:var(--display);font-weight:700;font-size:1.3rem;letter-spacing:.02em;margin:0;line-height:1.15;text-wrap:balance}
+.cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.label{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.hint{color:var(--muted);font-size:.9rem;margin:0}
+.big{font-family:var(--mono);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.empty{color:var(--muted);font-size:.92rem}
+.note{border-left:3px solid var(--accent);padding-left:12px;font-size:.9rem;color:var(--muted);margin:0}
+.divider{height:1px;background:var(--line)}
+
+/* forms */
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.field{display:grid;gap:5px;align-content:start}
+.field input,.field select,.row input,.row select,.sheet input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row > input{flex:1 1 160px}
+.row > select{flex:0 1 auto;width:auto}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 16px;font-weight:700}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.wide{width:100%}
+.check{display:flex;align-items:center;gap:8px}
+details.more{border-top:1px solid var(--line);padding-top:10px}
+details.more summary{list-style:none;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.9rem;font-weight:600}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+details.more[open] summary::before{transform:rotate(45deg)}
+details.more > :not(summary){margin-top:12px}
+
+/* boarding pass */
+.pass{background:var(--board);color:var(--board-ink);border-radius:18px;padding:18px;display:grid;gap:14px;position:relative;overflow:hidden}
+.route{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:12px}
+.leg{display:grid;gap:2px}
+.leg.right{text-align:right}
+.leg .code{font-family:var(--mono);font-size:2.5rem;line-height:1;letter-spacing:.06em}
+.leg.right .code{color:var(--accent)}
+.leg .from{font-size:1.4rem;color:var(--board-muted)}
+.leg .city{font-family:var(--display);font-weight:600;font-size:1.25rem;line-height:1.1}
+.leg .ctry{font-size:.8rem;color:var(--board-muted)}
+.flight{align-self:center;color:var(--board-muted);min-width:0}
+.flight svg{display:block;width:100%;height:18px}
+.perf{border-top:2px dashed var(--board-line);margin:0 -18px;position:relative}
+.perf::before,.perf::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg)}
+.perf::before{left:-10px}.perf::after{right:-10px}
+.times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.times div{display:grid;gap:2px}
+.times .lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--board-muted);font-weight:700}
+.times .t{font-family:var(--mono);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.bodyline{display:grid;gap:4px}
+.bodyline p{margin:0;color:var(--board-muted);font-size:.9rem}
+.status{display:inline-flex;align-items:center;gap:6px;justify-self:start;padding:3px 10px;border-radius:999px;font-size:.82rem;font-weight:700;background:var(--accent-soft);color:var(--warn)}
+.status.ok{background:transparent;border:1px solid var(--good);color:var(--good)}
+.pass .status{background:rgba(240,162,76,.16);color:#f4b26b}
+.pass .status.ok{background:transparent;border-color:#5cc489;color:#5cc489}
+.wxline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--board-2);border-radius:10px;padding:8px 12px;font-size:.9rem}
+.wxline b{font-family:var(--mono);font-weight:500}
+.wxline span{color:var(--board-muted)}
+
+/* planner */
+.timeline{display:flex;height:30px;border-radius:8px;overflow:hidden;font-family:var(--mono);font-size:.7rem}
+.timeline div{display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;overflow:hidden;white-space:nowrap}
+.t-transfer,.t-ready{background:#7b879a}.t-rest{background:#3b5683}.t-free{background:var(--good)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.freebox{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* quick tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:left;display:grid;gap:2px}
+.tile b{font-weight:700;font-size:.95rem}
+.tile span{color:var(--muted);font-size:.78rem}
+.tile:hover{border-color:var(--accent)}
+@media (max-width:380px){.tiles{grid-template-columns:repeat(2,1fr)}}
+
+/* chips and lists */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 13px;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{display:grid;margin:0;padding:0;list-style:none}
+.list li{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.list li:first-child{border-top:0;padding-top:2px}
+.list .t{font-weight:600}
+.list .m{color:var(--muted);font-size:.86rem;grid-column:1/-1}
+.tag{font-family:var(--mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
+.x{background:none;border:0;color:var(--muted);font-size:1.15rem;padding:0 4px;line-height:1}
+.x.armed{color:#fff;background:#b3261e;border-radius:6px;font-size:.78rem;padding:3px 7px}
+.done .t{text-decoration:line-through;color:var(--muted)}
+.went{background:none;border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:.8rem;color:var(--ink);white-space:nowrap}
+.went:hover{border-color:var(--good);color:var(--good)}
+.saved{font-size:.82rem;color:var(--good);font-weight:600}
+.amt{font-family:var(--mono);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.amt.in{color:var(--good)}
+.pill{display:inline-block;font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid var(--good);color:var(--good);margin-left:6px;vertical-align:1px}
+.banner{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:8px 12px;font-size:.88rem}
+.banner .btn{padding:5px 10px;font-size:.85rem}
+
+/* explore */
+#map{height:280px;border-radius:12px;border:1px solid var(--line);z-index:0}
+.matches{display:grid;gap:6px}
+.match{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:.9rem}
+.match:hover{border-color:var(--accent)}
+.base{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:8px 12px;font-size:.92rem}
+.base .btn{padding:5px 10px;font-size:.85rem}
+.place a{color:var(--accent);font-weight:600;font-size:.86rem;text-decoration:none;white-space:nowrap}
+.place a:hover{text-decoration:underline}
+.opts{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.opts select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.links a{display:block;padding:11px 12px;border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;background:var(--bg)}
+.links a:hover{border-color:var(--accent)}
+.pack{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.pack div{display:grid;gap:2px}
+.pack b{font-weight:600}
+
+/* money */
+.wallet{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.wallet div{background:var(--bg);border-radius:12px;padding:10px 12px;display:grid;gap:1px}
+.wallet .big{font-size:1.2rem}
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(80px,120px) 1fr auto;gap:10px;align-items:center;font-size:.88rem}
+.bar > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .track{display:block;height:10px;background:var(--sub);border-radius:5px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--accent);border-radius:5px}
+.bar .v{font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+.months{display:flex;align-items:stretch;gap:8px;height:130px;padding-top:6px;border-bottom:1px solid var(--line)}
+.months div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+.months i{display:block;width:100%;max-width:38px;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.months i.zero{background:var(--line)}
+.months span{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.months b{font-size:.7rem;font-family:var(--mono);font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.pairs{display:flex;align-items:flex-end;gap:10px;height:140px;border-bottom:1px solid var(--line);padding-top:6px}
+.pairs > div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.pairs .pb{display:flex;align-items:flex-end;gap:3px;justify-content:center;width:100%}
+.pairs .pb i{display:block;width:42%;max-width:18px;border-radius:3px 3px 0 0;min-height:2px}
+.pairs .a{background:var(--navy)}.pairs .s{background:var(--accent)}
+.pairs span{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.trio{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:14px}
+.trio > div{display:grid;gap:2px;align-content:start}
+.trio .big{font-size:1.35rem}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.insights{margin:0;padding-left:18px;display:grid;gap:7px}
+.typeseg{display:grid;grid-template-columns:1fr 1fr;background:var(--sub);border-radius:12px;padding:4px;gap:4px}
+.typeseg .chip{border:0;border-radius:9px;background:transparent;font-weight:600;color:var(--muted);padding:8px}
+.typeseg .chip[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+/* rest / fatigue charts */
+.chartbox{overflow-x:auto}
+.chartbox svg{display:block;width:100%;height:auto;min-width:420px}
+.c-axis{stroke:var(--line);stroke-width:1}
+.c-zero{stroke:var(--muted);stroke-width:1}
+.c-txt{fill:var(--muted);font:11px var(--mono)}
+.c-code{fill:var(--ink);font:600 10px var(--mono)}
+.lv-low{fill:var(--good)}.lv-mod{fill:var(--mod)}.lv-high{fill:var(--bad)}
+.c-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round}
+.c-area{fill:var(--accent);opacity:.14}
+.c-band{stroke-dasharray:4 4;stroke-width:1;fill:none}
+.c-band.mod{stroke:var(--mod)}.c-band.high{stroke:var(--bad)}
+.c-bandtxt{font:600 10px var(--body)}
+.c-bandtxt.mod{fill:var(--mod)}.c-bandtxt.high{fill:var(--bad)}
+.c-ptitle{fill:var(--ink);font:600 11px var(--body)}
+.c-duty{fill:var(--navy)}.c-est{opacity:.4}
+.c-rest{fill:var(--good)}.c-rest-bad{fill:var(--bad)}
+.c-mintick{stroke:var(--ink);stroke-width:1.5}
+.c-allow{fill:var(--navy);opacity:.28}.c-spent{fill:var(--accent)}.c-over{fill:var(--bad)}
+.c-pt{stroke:var(--surface);stroke-width:1.5}
+#dash svg{display:block;width:100%;height:auto}
+.c-badtxt{fill:var(--bad);font-weight:600}
+.c-dot{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.lvl{display:inline-block;font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px;border:1px solid currentColor;vertical-align:1px}
+.lvl.low{color:var(--good)}.lvl.mod{color:var(--mod)}.lvl.high{color:var(--bad)}
+.fgnow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-radius:12px;padding:14px;background:var(--bg)}
+.fgnow .big{font-size:1.3rem}
+
+@media (prefers-reduced-motion:no-preference){.timeline div{transition:flex-grow .3s}.seg button,.tabbar button{transition:color .15s,background .15s}}
+</style>
+
+<div class="login" id="login" hidden>
+  <div class="wrap">
+    <div class="login-hero">
+      <div class="brand">Layover <b>Logbook</b></div>
+      <div class="login-route" aria-hidden="true">DOH <i></i> <b>ANY</b></div>
+      <h1 id="authTitle">Welcome back</h1>
+      <p id="authSub">Sign in to get your layovers, money and journal on any phone.</p>
+    </div>
+    <div class="card">
+      <div class="seg" id="authSeg">
+        <button type="button" data-view="signin" aria-selected="true">Sign in</button>
+        <button type="button" data-view="signup" aria-selected="false">Create account</button>
+      </div>
+      <p class="setup" id="authSetup" hidden>Accounts aren't switched on yet. Add your Supabase details to config.js, as described in the setup guide. Until then, use the app without an account.</p>
+      <form id="authForm" novalidate>
+        <div class="field" id="fEmail"><label class="label" for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required></div>
+        <div class="field" id="fPass"><label class="label" for="authPass" id="authPassLbl">Password</label>
+          <div class="pw"><input id="authPass" type="password" autocomplete="current-password" minlength="8" required><button type="button" id="authShow">Show</button></div></div>
+        <p class="authmsg" id="authMsg" hidden role="status"></p>
+        <button class="btn wide" type="submit" id="authGo">Sign in</button>
+        <button class="linkbtn" type="button" id="authForgot">Forgot password?</button>
+        <button class="linkbtn" type="button" id="authBack" hidden>Back to sign in</button>
+      </form>
+    </div>
+    <button class="guestbtn" type="button" id="authGuest">Continue as guest</button>
+    <p class="fine">As a guest, your data stays on this phone only. You can sign up any time from the button at the top. With one, only you can see your data. Hotel names and locations are never saved.</p>
+  </div>
+</div>
+
+<div class="appbar">
+  <div class="wrap">
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v2.6</span></div>
+    <div class="barright">
+    <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
+    <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
+    <button class="destbtn" type="button" id="destToggle" aria-expanded="false" aria-controls="destForm">
+      <span id="hChip">LHR</span><span class="lbl">Change</span>
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+    </button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="destBackdrop" hidden></div>
+<form class="sheet" id="destForm" hidden aria-label="Change destination">
+  <h2>Where are you?</h2>
+  <div class="row">
+    <input id="destQ" list="destList" placeholder="City or airport code, e.g. Nairobi or NBO" aria-label="Destination" autocomplete="off" maxlength="80">
+    <button class="btn" type="submit">Go</button>
+  </div>
+  <datalist id="destList"></datalist>
+  <div class="matches" id="destMatches"></div>
+  <p class="hint" id="destHint"></p>
+  <button class="btn ghost" type="button" id="destClose">Cancel</button>
+</form>
+
+<main><div class="wrap">
+
+<!-- ===================== TODAY ===================== -->
+<section class="panel" id="tab-today">
+  <div class="banner" id="installTip" hidden>
+    <span id="installText">Add this app to your home screen. iPhone: tap Share, then Add to Home Screen. Android: tap the ⋮ menu, then Install app.</span>
+    <span class="row"><button class="btn" type="button" id="installBtn" hidden>Install</button><button class="btn ghost" type="button" id="installClose">Got it</button></span>
+  </div>
+  <div class="pass">
+    <div class="route">
+      <div class="leg"><span class="code from">DOH</span><span class="ctry">Doha</span></div>
+      <div class="flight" aria-hidden="true">
+        <svg viewBox="0 0 200 18" preserveAspectRatio="none"><line x1="2" y1="9" x2="198" y2="9" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 5"/></svg>
+      </div>
+      <div class="leg right"><span class="code" id="hCode">LHR</span><span class="city" id="hName">London</span><span class="ctry" id="hCountry">United Kingdom</span></div>
+    </div>
+    <div class="perf"></div>
+    <div class="times">
+      <div><span class="lbl">Local time</span><span class="t" id="hLocal">--:--</span></div>
+      <div><span class="lbl">Doha / body</span><span class="t" id="hBody">--:--</span></div>
+      <div><span class="lbl">Vs Doha</span><span class="t" id="hDiff">–</span></div>
+    </div>
+    <div class="bodyline"><span id="bodyStatus"></span><p id="bodyAdvice"></p></div>
+    <div class="wxline" id="wxCard" hidden><span id="wx"></span><span id="wxTip"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead"><h2>Your free time</h2><span class="hint">Rest comes first</span></div>
+    <div class="when">
+      <label class="whenrow" for="arr"><span class="label">Arrival, local time</span><input id="arr" type="datetime-local"></label>
+      <label class="whenrow" for="pick"><span class="label">Pickup, local time</span><input id="pick" type="datetime-local"></label>
+      <p class="hint" id="groundH"></p>
+    </div>
+    <div class="timeline" id="tl" aria-hidden="true"></div>
+    <div class="legend"><span style="--c:#7b879a">Transfer and getting ready</span><span style="--c:#3b5683">Rest</span><span style="--c:var(--good)">Free</span></div>
+    <div class="freebox">
+      <div><div class="label">Free window</div><div class="big" id="freeH">–</div><p class="hint" id="freeRange"></p></div>
+      <button class="btn ghost" type="button" data-goto="ideas">Ideas that fit</button>
+    </div>
+    <details class="more">
+      <summary>Rest settings</summary>
+      <div class="fields">
+        <div class="field"><label class="label" for="rest">Minimum rest (h)</label><input id="rest" type="number" min="0" max="24" step="0.5" value="10"></div>
+        <div class="field"><label class="label" for="xfer">Hotel transfer (h)</label><input id="xfer" type="number" min="0" max="4" step="0.25" value="1"></div>
+        <div class="field"><label class="label" for="ready">Getting ready (h)</label><input id="ready" type="number" min="0" max="4" step="0.25" value="1.5"></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="cardhead"><h2>Fatigue check</h2><span class="hint">Updates as you type</span></div>
+    <div id="fgCheck"></div>
+    <div class="divider"></div>
+    <div class="label">Save this layover</div>
+    <div class="fields">
+      <div class="field"><label class="label" for="trDest">Destination</label><input id="trDest" list="destList" autocomplete="off" placeholder="City or airport code"></div>
+      <div class="field"><label class="label" for="trAllow">Allowance</label><input id="trAllow" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label class="label" for="trCur">Currency</label><select id="trCur"></select></div>
+      <div class="field"><label class="label" for="trDuty">Duty before, hours (optional)</label><input id="trDuty" type="number" min="0" max="24" step="0.25" placeholder="e.g. 9.5"></div>
+    </div>
+    <div class="row" style="align-items:center"><button class="btn" type="button" id="trSave">Save layover</button><span class="hint" id="trMsg" aria-live="polite"></span></div>
+    <details class="more">
+      <summary>How this works</summary>
+      <p class="hint">The check uses the destination's time difference with Doha and the arrival and pickup times above. Save the layover to add it to your fatigue history in Rest and your allowance in Money. To add a past layover, change the dates first, then save.</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Quick finds near you</h2>
+    <div class="tiles">
+      <button class="tile" type="button" data-go="food"><b>Food</b><span>Restaurants</span></button>
+      <button class="tile" type="button" data-go="groc"><b>Groceries</b><span>Supermarkets</span></button>
+      <button class="tile" type="button" data-go="pharm"><b>Pharmacy</b><span>Open nearby</span></button>
+      <button class="tile" type="button" data-go="cafe"><b>Coffee</b><span>Cafés</span></button>
+      <button class="tile" type="button" data-go="money"><b>Cash</b><span>ATM, exchange</span></button>
+      <button class="tile" type="button" data-go="sight"><b>Sights</b><span>Things to see</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EXPLORE ===================== -->
+<section class="panel" id="tab-explore" hidden>
+  <div class="pagehead">
+    <h1>Explore <span class="dn">London</span></h1>
+    <div class="seg" role="tablist" aria-label="Explore">
+      <button type="button" data-sub="nearby" aria-selected="true">Nearby</button>
+      <button type="button" data-sub="ideas" aria-selected="false">Ideas</button>
+    </div>
+  </div>
+
+  <div data-panel="nearby" class="panel">
+    <div class="card">
+      <h2>What's around you</h2>
+      <form class="row" id="nbForm">
+        <input id="nbQ" placeholder="Your hotel or an address" aria-label="Hotel or address" maxlength="150" autocomplete="off">
+        <button class="btn" type="submit">Find</button>
+      </form>
+      <button class="btn ghost" type="button" id="nbCentre" style="justify-self:start">Use the city centre instead</button>
+      <div class="matches" id="nbMatches"></div>
+      <div class="base" id="nbBase" hidden></div>
+      <div class="chips" id="nbCats" aria-label="Looking for"></div>
+      <div class="opts">
+        <label class="check"><span class="label">Within</span>
+          <select id="nbR"><option value="500">500 m · 6 min walk</option><option value="1000" selected>1 km · 12 min walk</option><option value="2000">2 km · 25 min walk</option><option value="5000">5 km · taxi</option></select></label>
+        <label class="check" id="nbHalalWrap"><input type="checkbox" id="nbHalal"> Halal only</label>
+      </div>
+      <p class="hint">Your hotel stays on this device and is never saved or shared.</p>
+    </div>
+    <div class="card" id="nbResults" hidden>
+      <div id="map" hidden></div>
+      <p class="hint" id="nbCount"></p>
+      <ul class="list" id="nbList"></ul>
+      <p class="hint" style="font-size:.8rem">Map data © OpenStreetMap contributors. Hours and halal tags can be missing, so check before you go.</p>
+    </div>
+  </div>
+
+  <div data-panel="ideas" class="panel" hidden>
+    <div class="card">
+      <h2 id="ideasTitle">What fits your layover</h2>
+      <div class="field"><div class="label">Free time</div>
+        <div class="chips" id="lenChips">
+          <button class="chip" type="button" data-len="4" aria-pressed="false">Up to 4h</button>
+          <button class="chip" type="button" data-len="8" aria-pressed="true">Up to 8h</button>
+          <button class="chip" type="button" data-len="24" aria-pressed="false">A full day</button>
+        </div></div>
+      <ul class="list" id="ideaList"></ul>
+      <button class="btn ghost" type="button" id="ideasSights" style="justify-self:start">See real sights on the map</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <h2>City essentials</h2>
+      <div class="pack" id="pack"></div>
+      <p class="hint" id="packHint"></p>
+    </div>
+    <div class="card" id="areasCard">
+      <h2>Good areas and late food</h2>
+      <ul class="list" id="areas"></ul>
+    </div>
+    <p class="note">Guides cover cities and neighbourhoods only. Crew hotel names and locations are never stored or shown.</p>
+  </div>
+</section>
+
+<!-- ===================== MONEY ===================== -->
+<section class="panel" id="tab-money" hidden>
+  <div class="pagehead">
+    <h1>Money</h1>
+    <div class="seg" role="tablist" aria-label="Money">
+      <button type="button" data-sub="add" aria-selected="true">Add</button>
+      <button type="button" data-sub="summary" aria-selected="false">Summary</button>
+    </div>
+    <div class="chips" id="spPeriod" hidden>
+      <button class="chip" type="button" data-p="week" aria-pressed="false">This week</button>
+      <button class="chip" type="button" data-p="month" aria-pressed="true">This month</button>
+      <button class="chip" type="button" data-p="lastmonth" aria-pressed="false">Last month</button>
+      <button class="chip" type="button" data-p="year" aria-pressed="false">This year</button>
+      <button class="chip" type="button" data-p="all" aria-pressed="false">All time</button>
+    </div>
+  </div>
+
+  <div data-panel="add" class="panel">
+    <div class="card">
+      <form id="walForm" style="display:grid;gap:12px">
+        <div class="fields">
+          <div class="field"><label class="label" for="walAmt">Amount</label><input id="walAmt" type="number" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="field"><label class="label" for="walCur">Currency</label><select id="walCur"></select></div>
+          <div class="field spendOnly"><label class="label" for="walCat">Category</label><select id="walCat"><option>Food</option><option>Transport</option><option>Shopping</option><option>Activities</option><option>Beauty &amp; health</option><option>Other</option></select></div>
+          <div class="field spendOnly"><label class="label" for="walPay">Paid by</label><select id="walPay"><option value="cash">Cash</option><option value="card">Card</option></select></div>
+        </div>
+        <div class="field"><label class="label" for="walNote">Note</label><input id="walNote" placeholder="What for? e.g. Dinner with the crew (optional)" maxlength="80"></div>
+        <details class="more">
+          <summary>Different date</summary>
+          <div class="field"><label class="label" for="walDate">Date</label><input id="walDate" type="date"></div>
+        </details>
+        <button class="btn wide" type="submit" id="walSave">Save spending</button>
+        <p class="hint" id="walMsg" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <div data-panel="summary" class="panel" hidden>
+    <div class="card">
+      <div><div class="label" id="spLabel">Spent this month</div><div class="big" id="spTotal">QAR 0</div><p class="hint" id="spSub"></p></div>
+      <div id="spCatWrap" class="field"><div class="label">By category</div><div class="bars" id="spCat"></div></div>
+      <div id="spDestWrap" class="field"><div class="label">By destination</div><div class="bars" id="spDest"></div></div>
+    </div>
+    <div class="card">
+      <h2>Allowance vs spending</h2>
+      <div class="banner exBanner" hidden><span>Showing example layovers.</span><button class="btn ghost exRemove" type="button">Remove examples</button></div>
+      <div id="alEmpty" class="field" hidden>
+        <p class="hint">Save your layovers with their allowance on the Today screen to see how much of each allowance you spend and keep.</p>
+        <div class="row"><button class="btn goPlan" type="button">Save a layover</button><button class="btn ghost exAdd" type="button">See an example</button></div>
+      </div>
+      <div id="alBody" class="field" style="gap:18px">
+        <div class="trio" id="alTrio"></div>
+        <div class="field"><div class="label">Last 6 months, in QAR</div><div class="pairs" id="alMonths"></div>
+          <div class="legend"><span style="--c:var(--navy)">Allowance</span><span style="--c:var(--accent)">Spent on layovers</span></div></div>
+        <div class="field"><div class="label">What this tells you</div><ul class="insights" id="alInsights"></ul></div>
+      </div>
+    </div>
+    <div class="card" id="costCard">
+      <h2>Cost of each layover</h2>
+      <div class="field"><div class="label">Average per layover, by destination</div><div class="bars" id="costDest"></div></div>
+      <div class="field"><div class="label">Layovers</div><ul class="list" id="costList"></ul></div>
+    </div>
+    <div class="card">
+      <h2>Entries</h2>
+      <ul class="list" id="spList"></ul>
+      <div class="row"><button class="btn ghost" type="button" id="spExport">Export to Excel (CSV)</button></div>
+      <p class="hint" id="spNote"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== REST ===================== -->
+<section class="panel" id="tab-rest" hidden>
+  <div class="pagehead">
+    <h1>Rest</h1>
+    <div class="chips" id="fgPeriod">
+      <button class="chip" type="button" data-d="7" aria-pressed="false">Last 7 days</button>
+      <button class="chip" type="button" data-d="30" aria-pressed="true">Last 30 days</button>
+      <button class="chip" type="button" data-d="90" aria-pressed="false">Last 90 days</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="banner exBanner" hidden><span>Showing example layovers.</span><button class="btn ghost exRemove" type="button">Remove examples</button></div>
+    <div id="fgEmpty" class="field" hidden>
+      <h2>Your fatigue and time-zone load</h2>
+      <p class="hint">Save each layover on the Today screen, including past ones, and you'll see how hard your schedule is on your body clock.</p>
+      <div class="row"><button class="btn goPlan" type="button">Save a layover</button><button class="btn ghost exAdd" type="button">See an example</button></div>
+    </div>
+    <div id="fgTop" class="field" style="gap:16px">
+      <div class="fgnow" id="fgNow"></div>
+      <div class="trio" id="fgTrio"></div>
+    </div>
+  </div>
+  <div class="card fgCard">
+    <div class="cardhead"><h2>Route check, by the rules</h2><span class="hint">Up = east, down = west</span></div>
+    <p class="hint">Each bar is one trip from Doha, its height the time difference. The colour shows the result of the flight time rule checks. Under the chart: nights of rest at home between trips, had / needed. Swipe sideways to see older trips.</p>
+    <div class="chartbox" id="fgShift"></div>
+    <div class="legend"><span style="--c:var(--good)">Within the rules</span><span style="--c:var(--mod)">Body clock in unknown state</span><span style="--c:var(--bad)">Not enough rest, away or at home</span></div>
+  </div>
+  <div class="card fgCard">
+    <div class="cardhead"><h2>7-day load</h2><span class="hint">Dashed lines mark moderate and heavy weeks</span></div>
+    <div class="chartbox" id="fgLoad"></div>
+  </div>
+  <div class="card fgCard">
+    <div class="cardhead"><h2>Trip by trip: rest, fatigue and money</h2><span class="hint" id="dashN"></span></div>
+    <div id="dash"></div>
+    <div class="legend"><span style="--c:var(--navy)">Duty</span><span style="--c:var(--good)">Rest</span><span style="--c:var(--bad)">Below minimum rest</span><span style="--c:var(--accent)">Spent</span><span style="--c:color-mix(in srgb,var(--navy) 30%,transparent)">Allowance</span></div>
+    <p class="hint">The tick on each rest bar is the minimum rest; faded duty bars are estimates (10 hours). Dashed lines in fatigue mark moderate (5) and heavy (10) trips.</p>
+    <div class="field"><div class="label">What the data shows</div><ul class="insights" id="dashIns"></ul></div>
+  </div>
+  <div class="card fgCard">
+    <h2>Layover by layover</h2>
+    <ul class="list" id="fgList"></ul>
+  </div>
+  <div class="card">
+    <div class="cardhead"><h2>Saved layovers</h2><span class="hint">Added from Today</span></div>
+    <ul class="list" id="trList"></ul>
+  </div>
+  <div class="card">
+    <details class="more" style="border:0;padding:0">
+      <summary>How the rule check works</summary>
+      <ul class="insights">
+        <li><b>Rest at the outstation:</b> at least 10 hours, or as long as the duty before it if that was longer. It must include an 8-hour sleep opportunity. The app counts arrival to pickup.</li>
+        <li><b>Body clock state at pickup:</b> crew stay acclimatised to Doha time for the first 48 hours. After that, with a time difference of 4 hours or more, the rules treat the body clock as being in an unknown state until enough days pass at the destination (3 to 5 days, depending on the difference).</li>
+        <li><b>Rest at home after the trip:</b> after a trip with a time difference of 4 hours or more, 2 to 5 local nights at home are needed before the next trip, depending on the difference and the length of the trip. Switching between an eastbound and a westbound trip of 4+ hours needs at least 3 local nights. A local night is 8 hours between 22:00 and 08:00 Doha time.</li>
+        <li>Without your duty hours, the app assumes 10 hours of duty each way. Enter them when saving a layover for a more exact check.</li>
+      </ul>
+      <p class="hint">Based on the European EASA flight time rules (EU regulation 83/2014: ORO.FTL.105, ORO.FTL.235 and CS FTL.1.235), which apply to cabin crew too. Qatar's QCAA rules and your company's scheme can differ, and your roster and company rules always come first.</p>
+    </details>
+    <details class="more" style="border:0;padding:0">
+      <summary>How the fatigue points are worked out</summary>
+      <ul class="insights">
+        <li>Each hour of difference with Doha adds 1 point. Flying east adds 1.5 per hour, because the body adjusts more slowly to it.</li>
+        <li>A layover under 24 hours adds 2 points, and under 15 hours adds 4.</li>
+        <li>Landing between midnight and 6am Doha time adds 3 points.</li>
+        <li>Starting a layover less than 48 hours after the previous pickup adds 2 points.</li>
+        <li>A layover is light below 5 points, moderate from 5, heavy from 10. A week is moderate from 10 and heavy from 20.</li>
+      </ul>
+    </details>
+    <p class="note">A personal guide to plan rest, not a medical tool or your company's flight time limits. If you feel unfit to fly, follow your company's fatigue reporting process.</p>
+  </div>
+</section>
+
+<!-- ===================== NOTEBOOK ===================== -->
+<section class="panel" id="tab-notebook" hidden>
+  <div class="pagehead">
+    <h1>Notebook</h1>
+    <div class="seg" role="tablist" aria-label="Notebook">
+      <button type="button" data-sub="journal" aria-selected="true">Journal</button>
+      <button type="button" data-sub="notes" aria-selected="false">Notes</button>
+    </div>
+  </div>
+
+  <div data-panel="journal" class="panel">
+    <div class="card">
+      <div class="cardhead"><h2>Places I've been</h2></div>
+      <div class="chips" id="jFilter">
+        <button class="chip" type="button" data-f="here" aria-pressed="true">This destination</button>
+        <button class="chip" type="button" data-f="all" aria-pressed="false">Everywhere</button>
+      </div>
+      <p class="hint" id="jStats"></p>
+      <ul class="list" id="jList"></ul>
+      <details class="more">
+        <summary>Add a place yourself</summary>
+        <form id="jForm" style="display:grid;gap:10px">
+          <div class="row">
+            <input id="jName" placeholder="Place name, e.g. Grand Bazaar" maxlength="100" aria-label="Place name">
+            <input id="jDate" type="date" aria-label="Date" style="flex:0 1 170px">
+          </div>
+          <div class="row">
+            <input id="jNote" placeholder="Note (optional)" maxlength="150" aria-label="Note">
+            <button class="btn" type="submit">Add place</button>
+          </div>
+        </form>
+      </details>
+    </div>
+  </div>
+
+  <div data-panel="notes" class="panel" hidden>
+    <div class="card">
+      <div class="cardhead"><h2 id="notesTitle">My notes</h2><span class="hint">Only you can see these</span></div>
+      <form class="row" id="tipForm">
+        <input id="tipText" placeholder="e.g. Pharmacy by the station opens at 7am" aria-label="New note" maxlength="200">
+        <select id="tipCat" aria-label="Category"><option>Food</option><option>Transport</option><option>Shopping</option><option>Safety</option><option>Other</option></select>
+        <button class="btn" type="submit">Save</button>
+      </form>
+      <ul class="list" id="tipList"></ul>
+      <details class="more">
+        <summary>How notes work</summary>
+        <p class="hint">Write down anything useful you learn on a layover. Notes are kept per destination and come back the next time you fly there. They're saved only on this device. Notes marked "example" are samples you can delete.</p>
+      </details>
+    </div>
+  </div>
+
+
+  <div class="card">
+    <div class="cardhead"><h2>New to the app?</h2></div>
+    <p class="hint">A one-minute tour of the main screens.</p>
+    <button class="btn ghost" type="button" id="tourAgain" style="justify-self:start">Show the tour again</button>
+  </div>
+  <div class="card" id="dataCard" hidden>
+    <div class="cardhead"><h2>Account and data</h2><span class="sync" id="syncState"></span></div>
+    <p class="hint" id="acctLine"></p>
+    <div class="row" id="acctBtns">
+      <button class="btn" type="button" id="acctSignin" hidden>Sign in or create account</button>
+      <button class="btn ghost" type="button" id="acctOut" hidden>Sign out</button>
+      <button class="btn ghost" type="button" id="acctDel" hidden>Delete account</button>
+    </div>
+    <div class="banner" id="delConfirm" hidden><span>This permanently deletes your account and everything saved in it.</span><span class="row"><button class="btn" type="button" id="delYes" style="background:var(--bad);color:#fff">Delete forever</button><button class="btn ghost" type="button" id="delNo">Cancel</button></span></div>
+    <details class="more">
+      <summary>Backup file</summary>
+      <p class="hint">Download a copy of your data, or restore one. Useful without an account, or before deleting it.</p>
+      <div class="row"><button class="btn ghost" type="button" id="bkSave">Download backup</button><button class="btn ghost" type="button" id="bkLoad">Restore backup</button></div>
+    <input type="file" id="bkFile" accept=".json,application/json" hidden>
+    <div class="banner" id="bkConfirm" hidden><span id="bkInfo"></span><span class="row"><button class="btn" type="button" id="bkYes">Replace my data</button><button class="btn ghost" type="button" id="bkNo">Cancel</button></span></div>
+    <p class="hint" id="bkMsg" aria-live="polite"></p>
+    </details>
+  </div>
+</section>
+
+</div></main>
+
+<nav class="tabbar" role="tablist" aria-label="Sections">
+  <div class="in">
+    <button type="button" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Today</button>
+    <button type="button" data-tab="explore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explore</button>
+    <button type="button" data-tab="money" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="17" height="13" rx="2.5"/><path d="M3.5 10h17"/><circle cx="16.5" cy="14.5" r="1.2"/></svg>Money</button>
+    <button type="button" data-tab="rest" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10z"/></svg>Rest</button>
+    <button type="button" data-tab="notebook" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5H6z"/><path d="M6 3.5v17M9.5 8h5.5M9.5 11.5h5.5"/></svg>Notebook</button>
+  </div>
+</nav>
+
+<script>
+const DESKTOP = location.hostname==="127.0.0.1";
+const WEBAPP = window.LAYOVER_WEB===true;   /* phone website build */
+const LIVE = DESKTOP||WEBAPP;               /* live maps, places, weather and rates */
+const HERE = DESKTOP?"this computer":"this phone";
+const HOME_TZ = "Asia/Qatar";
+
+/* Built-in destinations: code|city|country|timezone|lat|lon. Any other place can be searched in the desktop app. */
+const DEST_DATA = `DOH|Doha|QA|Asia/Qatar|25.286|51.533;DXB|Dubai|AE|Asia/Dubai|25.205|55.271;LHR|London|GB|Europe/London|51.507|-0.128;MAN|Manchester|GB|Europe/London|53.481|-2.243;BHX|Birmingham|GB|Europe/London|52.486|-1.890;EDI|Edinburgh|GB|Europe/London|55.953|-3.189;DUB|Dublin|IE|Europe/Dublin|53.350|-6.260;CDG|Paris|FR|Europe/Paris|48.857|2.352;NCE|Nice|FR|Europe/Paris|43.710|7.262;FRA|Frankfurt|DE|Europe/Berlin|50.110|8.682;MUC|Munich|DE|Europe/Berlin|48.137|11.576;BER|Berlin|DE|Europe/Berlin|52.520|13.405;DUS|Düsseldorf|DE|Europe/Berlin|51.227|6.773;AMS|Amsterdam|NL|Europe/Amsterdam|52.370|4.895;BRU|Brussels|BE|Europe/Brussels|50.850|4.352;ZRH|Zurich|CH|Europe/Zurich|47.377|8.541;GVA|Geneva|CH|Europe/Zurich|46.204|6.143;VIE|Vienna|AT|Europe/Vienna|48.208|16.373;FCO|Rome|IT|Europe/Rome|41.903|12.496;MXP|Milan|IT|Europe/Rome|45.464|9.190;VCE|Venice|IT|Europe/Rome|45.441|12.316;MAD|Madrid|ES|Europe/Madrid|40.417|-3.704;BCN|Barcelona|ES|Europe/Madrid|41.385|2.173;LIS|Lisbon|PT|Europe/Lisbon|38.722|-9.139;ATH|Athens|GR|Europe/Athens|37.984|23.728;IST|Istanbul|TR|Europe/Istanbul|41.008|28.978;CPH|Copenhagen|DK|Europe/Copenhagen|55.676|12.568;OSL|Oslo|NO|Europe/Oslo|59.913|10.752;ARN|Stockholm|SE|Europe/Stockholm|59.329|18.069;HEL|Helsinki|FI|Europe/Helsinki|60.170|24.938;WAW|Warsaw|PL|Europe/Warsaw|52.230|21.012;PRG|Prague|CZ|Europe/Prague|50.075|14.438;BUD|Budapest|HU|Europe/Budapest|47.498|19.040;OTP|Bucharest|RO|Europe/Bucharest|44.427|26.103;SOF|Sofia|BG|Europe/Sofia|42.698|23.322;TBS|Tbilisi|GE|Asia/Tbilisi|41.716|44.783;GYD|Baku|AZ|Asia/Baku|40.409|49.867;EVN|Yerevan|AM|Asia/Yerevan|40.179|44.499;ALA|Almaty|KZ|Asia/Almaty|43.238|76.946;TAS|Tashkent|UZ|Asia/Tashkent|41.299|69.240;JFK|New York|US|America/New_York|40.713|-74.006;BOS|Boston|US|America/New_York|42.360|-71.059;IAD|Washington|US|America/New_York|38.907|-77.037;PHL|Philadelphia|US|America/New_York|39.953|-75.165;MIA|Miami|US|America/New_York|25.762|-80.192;ATL|Atlanta|US|America/New_York|33.749|-84.388;ORD|Chicago|US|America/Chicago|41.878|-87.630;DFW|Dallas|US|America/Chicago|32.777|-96.797;IAH|Houston|US|America/Chicago|29.760|-95.370;LAX|Los Angeles|US|America/Los_Angeles|34.052|-118.244;SFO|San Francisco|US|America/Los_Angeles|37.775|-122.419;SEA|Seattle|US|America/Los_Angeles|47.606|-122.332;YUL|Montreal|CA|America/Toronto|45.502|-73.567;YYZ|Toronto|CA|America/Toronto|43.653|-79.383;GRU|São Paulo|BR|America/Sao_Paulo|-23.551|-46.633;EZE|Buenos Aires|AR|America/Argentina/Buenos_Aires|-34.604|-58.382;BOG|Bogotá|CO|America/Bogota|4.711|-74.072;CAI|Cairo|EG|Africa/Cairo|30.044|31.236;CMN|Casablanca|MA|Africa/Casablanca|33.573|-7.589;RAK|Marrakech|MA|Africa/Casablanca|31.629|-7.981;TUN|Tunis|TN|Africa/Tunis|36.806|10.181;ALG|Algiers|DZ|Africa/Algiers|36.754|3.059;NBO|Nairobi|KE|Africa/Nairobi|-1.292|36.822;ADD|Addis Ababa|ET|Africa/Addis_Ababa|9.030|38.740;DAR|Dar es Salaam|TZ|Africa/Dar_es_Salaam|-6.792|39.208;ZNZ|Zanzibar|TZ|Africa/Dar_es_Salaam|-6.165|39.199;EBB|Entebbe|UG|Africa/Kampala|0.051|32.443;KGL|Kigali|RW|Africa/Kigali|-1.944|30.062;LOS|Lagos|NG|Africa/Lagos|6.524|3.379;ABV|Abuja|NG|Africa/Lagos|9.077|7.399;ACC|Accra|GH|Africa/Accra|5.604|-0.187;JNB|Johannesburg|ZA|Africa/Johannesburg|-26.204|28.047;CPT|Cape Town|ZA|Africa/Johannesburg|-33.925|18.424;DUR|Durban|ZA|Africa/Johannesburg|-29.858|31.022;MPM|Maputo|MZ|Africa/Maputo|-25.969|32.573;LUN|Lusaka|ZM|Africa/Lusaka|-15.388|28.322;HRE|Harare|ZW|Africa/Harare|-17.829|31.053;WDH|Windhoek|NA|Africa/Windhoek|-22.560|17.066;SEZ|Mahé|SC|Indian/Mahe|-4.620|55.455;MRU|Mauritius|MU|Indian/Mauritius|-20.161|57.501;RUH|Riyadh|SA|Asia/Riyadh|24.713|46.675;JED|Jeddah|SA|Asia/Riyadh|21.486|39.193;MED|Medina|SA|Asia/Riyadh|24.467|39.611;DMM|Dammam|SA|Asia/Riyadh|26.420|50.089;KWI|Kuwait City|KW|Asia/Kuwait|29.376|47.977;BAH|Bahrain|BH|Asia/Bahrain|26.228|50.586;MCT|Muscat|OM|Asia/Muscat|23.588|58.383;AMM|Amman|JO|Asia/Amman|31.954|35.911;BEY|Beirut|LB|Asia/Beirut|33.894|35.502;BGW|Baghdad|IQ|Asia/Baghdad|33.315|44.366;EBL|Erbil|IQ|Asia/Baghdad|36.191|44.009;IKA|Tehran|IR|Asia/Tehran|35.689|51.389;KHI|Karachi|PK|Asia/Karachi|24.861|67.010;LHE|Lahore|PK|Asia/Karachi|31.520|74.359;ISB|Islamabad|PK|Asia/Karachi|33.684|73.048;DEL|Delhi|IN|Asia/Kolkata|28.614|77.209;BOM|Mumbai|IN|Asia/Kolkata|19.076|72.878;BLR|Bengaluru|IN|Asia/Kolkata|12.972|77.595;MAA|Chennai|IN|Asia/Kolkata|13.083|80.271;HYD|Hyderabad|IN|Asia/Kolkata|17.385|78.487;COK|Kochi|IN|Asia/Kolkata|9.931|76.267;CCU|Kolkata|IN|Asia/Kolkata|22.573|88.364;CMB|Colombo|LK|Asia/Colombo|6.927|79.861;MLE|Malé|MV|Indian/Maldives|4.175|73.509;KTM|Kathmandu|NP|Asia/Kathmandu|27.717|85.324;DAC|Dhaka|BD|Asia/Dhaka|23.811|90.413;BKK|Bangkok|TH|Asia/Bangkok|13.756|100.502;HKT|Phuket|TH|Asia/Bangkok|7.880|98.392;KUL|Kuala Lumpur|MY|Asia/Kuala_Lumpur|3.139|101.687;SIN|Singapore|SG|Asia/Singapore|1.290|103.852;CGK|Jakarta|ID|Asia/Jakarta|-6.208|106.846;DPS|Bali|ID|Asia/Makassar|-8.650|115.216;MNL|Manila|PH|Asia/Manila|14.599|120.984;SGN|Ho Chi Minh City|VN|Asia/Ho_Chi_Minh|10.823|106.630;HAN|Hanoi|VN|Asia/Ho_Chi_Minh|21.028|105.854;PNH|Phnom Penh|KH|Asia/Phnom_Penh|11.556|104.928;HKG|Hong Kong|HK|Asia/Hong_Kong|22.319|114.169;PVG|Shanghai|CN|Asia/Shanghai|31.230|121.474;PEK|Beijing|CN|Asia/Shanghai|39.904|116.407;CAN|Guangzhou|CN|Asia/Shanghai|23.129|113.264;TPE|Taipei|TW|Asia/Taipei|25.033|121.565;ICN|Seoul|KR|Asia/Seoul|37.566|126.978;NRT|Tokyo|JP|Asia/Tokyo|35.681|139.767;KIX|Osaka|JP|Asia/Tokyo|34.694|135.502;SYD|Sydney|AU|Australia/Sydney|-33.869|151.209;MEL|Melbourne|AU|Australia/Melbourne|-37.814|144.963;BNE|Brisbane|AU|Australia/Brisbane|-27.470|153.026;PER|Perth|AU|Australia/Perth|-31.951|115.861;ADL|Adelaide|AU|Australia/Adelaide|-34.929|138.601;AKL|Auckland|NZ|Pacific/Auckland|-36.849|174.763`;
+const DESTS = DEST_DATA.split(";").map(s=>{const [code,name,cc,tz,lat,lon]=s.split("|");return {code,name,cc,tz,lat:+lat,lon:+lon}});
+
+/* Country basics: currency code, currency name, plug types, voltage, emergency numbers (null = confirm locally) */
+const COUNTRY = {
+QA:["QAR","Qatari riyal","G","240V","999"],AE:["AED","UAE dirham","G","230V","999 police, 998 ambulance"],
+GB:["GBP","Pound sterling","G","230V","999 or 112"],IE:["EUR","Euro","G","230V","112 or 999"],FR:["EUR","Euro","E","230V","112"],
+DE:["EUR","Euro","F","230V","112"],NL:["EUR","Euro","F","230V","112"],BE:["EUR","Euro","E","230V","112"],CH:["CHF","Swiss franc","J","230V","112"],
+AT:["EUR","Euro","F","230V","112"],IT:["EUR","Euro","F, L","230V","112"],ES:["EUR","Euro","F","230V","112"],PT:["EUR","Euro","F","230V","112"],
+GR:["EUR","Euro","F","230V","112"],TR:["TRY","Turkish lira","F","230V","112"],DK:["DKK","Danish krone","K, F","230V","112"],
+NO:["NOK","Norwegian krone","F","230V","112"],SE:["SEK","Swedish krona","F","230V","112"],FI:["EUR","Euro","F","230V","112"],
+PL:["PLN","Polish złoty","E","230V","112"],CZ:["CZK","Czech koruna","E","230V","112"],HU:["HUF","Hungarian forint","F","230V","112"],
+RO:["RON","Romanian leu","F","230V","112"],BG:["EUR","Euro","F","230V","112"],GE:["GEL","Georgian lari","F","220V","112"],
+AZ:["AZN","Azerbaijani manat","F","220V","112"],AM:["AMD","Armenian dram","F","230V","112"],KZ:["KZT","Kazakh tenge","F","220V","112"],
+UZ:["UZS","Uzbek som","F","220V","112"],US:["USD","US dollar","A, B","120V","911"],CA:["CAD","Canadian dollar","A, B","120V","911"],
+BR:["BRL","Brazilian real","N","127V / 220V","190 police, 192 ambulance"],AR:["ARS","Argentine peso","I","220V","911"],
+CO:["COP","Colombian peso","A, B","110V","123"],EG:["EGP","Egyptian pound","C, F","220V","122 police, 123 ambulance"],
+MA:["MAD","Moroccan dirham","E","220V","19 police, 15 ambulance"],TN:["TND","Tunisian dinar","E","230V","197 police, 190 ambulance"],
+DZ:["DZD","Algerian dinar","F","230V","17 police, 14 ambulance"],KE:["KES","Kenyan shilling","G","240V","999 or 112"],
+ET:["ETB","Ethiopian birr","C, F","220V","991 police, 907 ambulance"],TZ:["TZS","Tanzanian shilling","G, D","230V","112"],
+UG:["UGX","Ugandan shilling","G","240V","999 or 112"],RW:["RWF","Rwandan franc","C, J","230V","112"],NG:["NGN","Nigerian naira","G, D","230V","112"],
+GH:["GHS","Ghanaian cedi","G, D","230V","112"],ZA:["ZAR","South African rand","M, N","230V","10111 police, 10177 ambulance, 112 from mobiles"],
+MZ:["MZN","Mozambican metical","C, F, M","220V","119 police, 117 ambulance"],ZM:["ZMW","Zambian kwacha","G","230V","999 or 112"],
+ZW:["ZWG","Zimbabwe gold (US dollar widely used)","G, D","220V","999"],NA:["NAD","Namibian dollar","M, D","220V","10111"],
+SC:["SCR","Seychelles rupee","G","240V","999"],MU:["MUR","Mauritian rupee","G, C","230V","999 police, 114 ambulance"],
+SA:["SAR","Saudi riyal","G","230V","911"],KW:["KWD","Kuwaiti dinar","G","240V","112"],BH:["BHD","Bahraini dinar","G","230V","999"],
+OM:["OMR","Omani rial","G","240V","9999"],JO:["JOD","Jordanian dinar","F, G","230V","911"],LB:["LBP","Lebanese pound (US dollar widely used)","C, G","230V","112"],
+IQ:["IQD","Iraqi dinar","C, G","230V",null],IR:["IRR","Iranian rial","C, F","220V","110 police, 115 ambulance"],
+PK:["PKR","Pakistani rupee","C, D","230V","15 police, 1122 ambulance"],IN:["INR","Indian rupee","C, D, M","230V","112"],
+LK:["LKR","Sri Lankan rupee","D, G","230V","119 police, 1990 ambulance"],MV:["MVR","Maldivian rufiyaa (US dollar widely used)","G","230V","119 police, 102 ambulance"],
+NP:["NPR","Nepalese rupee","C, D, M","230V","100 police, 102 ambulance"],BD:["BDT","Bangladeshi taka","C, D, G","220V","999"],
+TH:["THB","Thai baht","A, B, C, O","220V","191 police, 1669 ambulance, 1155 tourist police"],MY:["MYR","Malaysian ringgit","G","240V","999"],
+SG:["SGD","Singapore dollar","G","230V","999 police, 995 ambulance"],ID:["IDR","Indonesian rupiah","C, F","230V","112"],
+PH:["PHP","Philippine peso","A, B, C","220V","911"],VN:["VND","Vietnamese dong","A, C","220V","113 police, 115 ambulance"],
+KH:["KHR","Cambodian riel (US dollar widely used)","A, C","230V","117 police, 119 ambulance"],HK:["HKD","Hong Kong dollar","G","220V","999"],
+CN:["CNY","Chinese yuan","A, C, I","220V","110 police, 120 ambulance"],TW:["TWD","New Taiwan dollar","A, B","110V","110 police, 119 ambulance"],
+KR:["KRW","South Korean won","C, F","220V","112 police, 119 ambulance"],JP:["JPY","Japanese yen","A, B","100V","110 police, 119 ambulance"],
+AU:["AUD","Australian dollar","I","230V","000"],NZ:["NZD","New Zealand dollar","I","230V","111"]
+};
+
+/* Detailed crew guides for some cities; every other place gets general ideas plus live search */
+const GUIDES = {
+  LHR:{tipping:"10–12.5% if not on the bill",transport:"Contactless card on Tube & buses",apps:"Citymapper, TfL Go",
+    areas:[["South Kensington","Museums, safe and walkable"],["Soho","Food open late, busy until 2am"],["Brick Lane","24h bagel bakeries"]],
+    ideas:[["Hyde Park walk",2,"low","Gentle loop, good for daylight after a night flight"],["Natural History Museum",3,"low","Free entry, lots of seating"],["Borough Market lunch",3,"high","Weekdays and Saturdays only"],["Thames Clipper ride",2,"low","Sit and see the city from the river"],["Day trip to Windsor",8,"high","35 min by train from Waterloo"],["Afternoon tea",2,"low","Book ahead"]]},
+  CDG:{tipping:"Service included, round up",transport:"Navigo Easy card for metro",apps:"Bonjour RATP, Citymapper",
+    areas:[["Le Marais","Walkable, cafés, open Sundays"],["Saint-Germain","Calm and central"],["Pigalle","Late food, stay alert at night"]],
+    ideas:[["Café terrace and a croissant",1,"low","Easiest reset after landing"],["Seine walk to Notre-Dame",2,"low","Flat and scenic"],["Musée d'Orsay",3,"high","Closed Mondays"],["Pharmacy skincare run",1,"low","Big pharmacies near Montparnasse"],["Versailles",7,"high","RER C, go early"],["Canal Saint-Martin picnic",2,"low","Good at golden hour"]]},
+  BKK:{tipping:"Round up, 20–50 THB for massages",transport:"BTS Skytrain, Grab",apps:"Grab, Bolt",
+    areas:[["Sukhumvit","Malls, food courts, BTS access"],["Silom","Night food, 24h convenience stores"],["Riverside","Temples and ferries"]],
+    ideas:[["Thai massage",2,"low","Perfect when the body clock is off"],["Chatuchak Market",4,"high","Weekends only, go early"],["Wat Pho and river ferry",3,"high","Cover shoulders and knees"],["Night market street food",2,"high","Most stalls open after 6pm"],["Mall food court",1,"low","Air conditioned and cheap"],["Ayutthaya day trip",9,"high","Hire a driver for the day"]]},
+  IST:{tipping:"5–10% in restaurants",transport:"Istanbulkart for tram & ferry",apps:"BiTaksi, Moovit",
+    areas:[["Sultanahmet","Sights, busy but safe in daytime"],["Karaköy","Cafés, ferries, halal food everywhere"],["Kadıköy","Asian side, relaxed and local"]],
+    ideas:[["Bosphorus ferry",2,"low","Cheapest scenic ride in the city"],["Hammam",2,"low","Resets you after a long sector"],["Grand Bazaar",3,"high","Closed Sundays"],["Breakfast in Kadıköy",2,"low","Turkish breakfast spreads"],["Hagia Sophia & Blue Mosque",3,"high","Check prayer times"],["Princes' Islands",7,"high","Ferry from Kabataş"]]},
+  NRT:{tipping:"Not expected",transport:"Suica / Pasmo IC card",apps:"Google Maps, Japan Transit",
+    areas:[["Shinjuku","Open very late, huge station"],["Asakusa","Traditional, quiet at night"],["Ginza","Shopping, department store food halls"]],
+    ideas:[["Konbini breakfast",1,"low","Open 24h, great at 4am body time"],["Onsen or sento",2,"low","Best sleep reset"],["Senso-ji at dawn",2,"low","Empty if you're awake early"],["Depachika food hall",2,"high","Basement floors of department stores"],["Shibuya and Harajuku",4,"high","Busy afternoons"],["Kamakura day trip",8,"high","Great Buddha, 1h by train"]]},
+  CMB:{tipping:"10% often on the bill",transport:"PickMe or tuk-tuk with meter",apps:"PickMe, Uber",
+    areas:[["Galle Face","Seafront, street food at sunset"],["Colombo 7","Leafy, cafés, quieter"],["Pettah","Markets, daytime only"]],
+    ideas:[["Galle Face sunset",2,"low","Kottu and isso vadai stalls"],["Ayurvedic massage",2,"low","Gentle on a tired body"],["Gangaramaya Temple",2,"high","Dress modestly"],["Tea shopping",1,"low","Good gifts to bring home"],["Galle Fort day trip",9,"high","Expressway, about 2h each way"],["Rooftop dinner",2,"low","Cooler in the evening"]]}
+};
+const GENERIC_IDEAS = [
+  ["Café with a view",1,"low","An easy first outing to get daylight and reset"],
+  ["Supermarket run for local snacks",1,"low","Explore → Nearby finds the closest one"],
+  ["Spa, massage or hammam",2,"low","Good when your body clock says it's night"],
+  ["Park or waterfront walk",2,"low","Gentle movement helps with jet lag"],
+  ["Old town or main square",2,"low","Most cities have a walkable historic centre"],
+  ["Sunset viewpoint",1,"low","Explore → Nearby → Sights shows viewpoints"],
+  ["Local market or food hall",2,"high","Best for trying local food cheaply"],
+  ["The city's main museum",3,"high","Check closing days before you go"],
+  ["Guided walking tour",3,"high","Free tip-based tours run in many cities"],
+  ["Day trip out of the city",8,"high","Only with a long layover, and plan your return early"]
+];
+
+/* Storage: the desktop app saves everything to a data file on the computer
+   (%APPDATA%\LayoverLogbook\data.json). The browser keeps a copy as backup. */
+const DB_KEYS=["dest","city","tips","wish","wallet","plan","tx","visits","rates","trips"];
+const DB={data:null,timer:null,cloud:null};   /* cloud = signed-in user {uid,email} */
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const store = {
+  get(k,d){
+    if(DB.data){ if(k in DB.data) return DB.data[k]; if(DB.cloud) return d; }
+    try{const v=localStorage.getItem("lay."+k);return v?JSON.parse(v):d}catch(e){return d}
+  },
+  set(k,v){
+    if(DB.data) DB.data[k]=v;
+    if(DB.cloud){ Cloud.touch(); return; }          /* account data never goes into this phone's guest storage */
+    try{localStorage.setItem("lay."+k,JSON.stringify(v))}catch(e){}
+    if(DESKTOP&&DB.data){ clearTimeout(DB.timer); DB.timer=setTimeout(()=>saveDB(false),300); }
+  }
+};
+function saveDB(keep){
+  clearTimeout(DB.timer); DB.timer=null;
+  return fetch("/api/data",{method:"PUT",keepalive:!!keep,headers:{"Content-Type":"application/json","X-Layover":"1"},body:JSON.stringify(DB.data)}).catch(()=>{});
+}
+async function loadDB(){
+  if(!DESKTOP) return;
+  try{
+    const r=await fetch("/api/data",{cache:"no-store"}); if(!r.ok) return;
+    const d=await r.json();
+    if(d&&typeof d==="object"&&Object.keys(d).length){ DB.data=d; }
+    else { /* first run with the data file: move over anything saved in the browser */
+      DB.data={}; DB_KEYS.forEach(k=>{try{const v=localStorage.getItem("lay."+k);if(v)DB.data[k]=JSON.parse(v)}catch(e){}});
+      saveDB(false);
+    }
+  }catch(e){}
+}
+addEventListener("pagehide",()=>{ if(DESKTOP&&DB.data&&DB.timer) saveDB(true); });
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+let regionNames; try{regionNames=new Intl.DisplayNames(["en"],{type:"region"})}catch(e){}
+const countryName = cc => { try{return regionNames?regionNames.of(cc):cc}catch(e){return cc} };
+
+let state = {dest:DESTS.find(d=>d.code==="LHR"),len:8,en:"any",tips:{},wish:{},wallet:{},tx:[],visits:[],rates:null,trips:[]};
+function loadState(){
+  state = {
+    dest: store.get("dest",null) || (()=>{const old=store.get("city","LHR");return DESTS.find(d=>d.code===old)||DESTS.find(d=>d.code==="LHR")})(),
+    len: 8, en: "any",
+    tips: store.get("tips",{LHR:[{t:"Contactless is cheaper than paper tickets, with daily price caps",c:"Transport",ex:1}],BKK:[{t:"Grab is cheaper than hotel taxis, pickup points are clearly marked",c:"Transport",ex:1}]}),
+    wish: store.get("wish",{CDG:[{t:"Pharmacy sunscreen",d:false,ex:1},{t:"Macarons for home",d:false,ex:1}]}),
+    wallet: store.get("wallet",{}),
+    tx: store.get("tx",[]),
+    visits: store.get("visits",[]),
+    rates: store.get("rates",null),
+    trips: store.get("trips",[])
+  };
+}
+const destKey = () => state.dest.code || (state.dest.name+"-"+state.dest.cc);
+const guide = () => GUIDES[state.dest.code];
+const country = () => COUNTRY[state.dest.cc];
+
+/* ---------- destination picker ---------- */
+$("destList").innerHTML = DESTS.map(d=>`<option value="${d.code} · ${esc(d.name)}, ${esc(countryName(d.cc))}"></option>`).join("");
+function openDest(){
+  $("destForm").hidden=false; $("destBackdrop").hidden=false; $("destToggle").setAttribute("aria-expanded","true");
+  $("destQ").value=""; $("destMatches").innerHTML="";
+  $("destHint").textContent=LIVE?"Type any city in the world. Airport codes work too.":"Pick from the list, or type a city or airport code.";
+  $("destQ").focus();
+}
+function closeDest(){ $("destForm").hidden=true; $("destBackdrop").hidden=true; $("destToggle").setAttribute("aria-expanded","false"); $("destHint").textContent=""; }
+$("destToggle").addEventListener("click",()=>$("destForm").hidden?openDest():closeDest());
+$("destClose").addEventListener("click",closeDest);
+$("destBackdrop").addEventListener("click",closeDest);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("destForm").hidden) closeDest(); });
+function findLocal(q){
+  const s=q.trim().toLowerCase(); if(!s) return [];
+  const code=s.split(/[\s·]/)[0].toUpperCase();
+  const byCode=DESTS.find(d=>d.code===code); if(byCode) return [byCode];
+  const name=s.replace(/^[a-z]{3}\s*·\s*/,"").split(",")[0].trim();
+  const exact=DESTS.filter(d=>d.name.toLowerCase()===name); if(exact.length) return exact;
+  return DESTS.filter(d=>d.name.toLowerCase().includes(name)||countryName(d.cc).toLowerCase()===name);
+}
+$("destForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const q=$("destQ").value.trim(); if(!q) return;
+  const local=findLocal(q);
+  if(local.length===1) return setDest(local[0]);
+  if(local.length>1){ showDestMatches(local.map(d=>({label:`${d.code} · ${d.name}, ${countryName(d.cc)}`,d}))); return; }
+  if(!LIVE){ $("destHint").textContent="That place isn't in the built-in list. The full app can search any city in the world."; return; }
+  $("destHint").textContent="Searching…";
+  try{
+    const res=await (await fetch("/api/geocode?q="+encodeURIComponent(q))).json();
+    if(!res.length){ $("destHint").textContent=`No place called "${q}" found. Check the spelling or add the country.`; return; }
+    $("destHint").textContent="";
+    showDestMatches(res.map(m=>({label:m.display_name,m})));
+  }catch(err){ $("destHint").textContent="Couldn't reach the map service. Check your internet connection and try again."; }
+});
+function showDestMatches(items){
+  state.destItems=items;
+  $("destMatches").innerHTML=`<div class="hint">Which one?</div>`+items.map((it,i)=>`<button class="match" type="button" data-i="${i}">${esc(it.label)}</button>`).join("");
+}
+$("destMatches").addEventListener("click",async e=>{
+  const b=e.target.closest(".match"); if(!b) return;
+  const it=state.destItems[+b.dataset.i];
+  if(it.d) return setDest(it.d);
+  const m=it.m, a=m.address||{};
+  const lat=+m.lat, lon=+m.lon;
+  const d={code:"",name:m.name||a.city||a.town||a.village||m.display_name.split(",")[0],cc:(a.country_code||"").toUpperCase(),lat,lon,tz:null};
+  $("destHint").textContent="Getting local time…";
+  try{ const w=await (await fetch(`/api/weather?lat=${lat}&lon=${lon}`)).json(); d.tz=w.timezone; }catch(err){}
+  if(!d.tz){ const off=Math.round(lon/15); d.tz=off===0?"Etc/GMT":`Etc/GMT${off>0?"-":"+"}${Math.abs(off)}`; d.tzApprox=true; }
+  setDest(d);
+});
+function setDest(d){
+  state.dest=d; store.set("dest",d); walTouched=false; trDestTouched=false;
+  closeDest();
+  nb.base=null; $("nbBase").hidden=true; $("nbResults").hidden=true; $("nbMatches").innerHTML="";
+  renderAll();
+}
+
+/* ---------- tabs ---------- */
+/* Five sections in the bottom bar; some have sub-pages chosen with a segmented control */
+const TAB_ALIAS={plan:["today"],near:["explore","nearby"],ideas:["explore","ideas"],pack:["explore","nearby"],
+  tips:["notebook","notes"],lists:["notebook","notes"],journal:["notebook","journal"],fatigue:["rest"],layovers:["rest"],
+  spending:["money","summary"],allowance:["money","summary"]};
+const on=(id,ev,fn)=>{ const el=$(id); if(el) el.addEventListener(ev,fn); };
+function showSub(tab,sub){
+  const sec=$("tab-"+tab); if(!sec) return;
+  sec.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-selected",x.dataset.sub===sub));
+  sec.querySelectorAll(":scope [data-panel]").forEach(p=>p.hidden=p.dataset.panel!==sub);
+  if(tab==="money") $("spPeriod").hidden=sub==="add";
+  if(sub==="nearby"&&nb.map) setTimeout(()=>nb.map.invalidateSize(),50);
+}
+function showTab(name,sub){
+  if(TAB_ALIAS[name]) [name,sub]=TAB_ALIAS[name];
+  document.querySelectorAll(".tabbar button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===name));
+  document.querySelectorAll("section.panel[id^='tab-']").forEach(p=>p.hidden=p.id!=="tab-"+name);
+  if(sub) showSub(name,sub);
+  else if(name==="explore"&&nb.map) setTimeout(()=>nb.map.invalidateSize(),50);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tabbar button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+document.querySelectorAll(".seg").forEach(seg=>seg.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-sub]"); if(!b) return;
+  showSub(seg.closest("section").id.slice(4),b.dataset.sub);
+}));
+
+/* ---------- clocks + body clock ---------- */
+function hm(tz,d=new Date()){try{return new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:tz}).format(d)}catch(e){return "--:--"}}
+function hourIn(tz,d=new Date()){try{return +new Intl.DateTimeFormat("en-GB",{hour:"numeric",hour12:false,timeZone:tz}).format(d)%24}catch(e){return d.getUTCHours()}}
+function fmtH(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return hh+"h "+String(mm).padStart(2,"0")+"m"}
+function renderHeader(){
+  const d=state.dest;
+  $("hCode").textContent=d.code||d.cc||"—"; $("hName").textContent=d.name; $("hCountry").textContent=d.cc?countryName(d.cc):"";
+  $("hChip").textContent=d.code||d.name;
+  document.querySelectorAll(".dn").forEach(e=>e.textContent=d.name);
+}
+function renderClocks(){
+  const d=state.dest;
+  $("hLocal").textContent=hm(d.tz)+(d.tzApprox?" ≈":""); $("hBody").textContent=hm(HOME_TZ);
+  { const df=offH(d.tz,new Date())-offH(HOME_TZ,new Date()); $("hDiff").textContent=df?fmtShift(df):"Same"; }
+  const bh=hourIn(HOME_TZ), lh=hourIn(d.tz);
+  let s,a;
+  if(bh<6){s=`<span class="status">Body clock: night (${hm(HOME_TZ)} in Doha)</span>`;a="Your body expects sleep. Pick low-energy ideas, get daylight if it's day locally, and avoid caffeine within 6 hours of your rest.";}
+  else if(bh>=13&&bh<16){s=`<span class="status">Body clock: afternoon dip</span>`;a="A short nap of 20–30 minutes helps. Keep it short so it doesn't eat into your main rest.";}
+  else {s=`<span class="status ok">Body clock: awake</span>`;a=lh>=22||lh<6?"You're alert but it's night locally. Stick to 24h spots near busy areas.":"Good time for the higher-energy ideas.";}
+  $("bodyStatus").innerHTML=s; $("bodyAdvice").textContent=a;
+}
+
+/* ---------- weather (desktop) ---------- */
+async function renderWeather(){
+  $("wxCard").hidden=true; if(!LIVE) return;
+  const d=state.dest, key=destKey();
+  try{
+    const w=await (await fetch(`/api/weather?lat=${d.lat}&lon=${d.lon}`)).json();
+    if(destKey()!==key||!w.current) return;
+    const now=Math.round(w.current.temperature_2m), max=Math.round(w.daily.temperature_2m_max[0]), min=Math.round(w.daily.temperature_2m_min[0]);
+    const rain=w.daily.precipitation_probability_max?.[0];
+    $("wx").innerHTML=`<b>${now}°C</b> now · ${min}° to ${max}°${rain!=null?` · rain ${rain}%`:""}`;
+    const tips=[];
+    if(max<=12) tips.push("Bring a warm jacket."); else if(max<=18) tips.push("Bring a light jacket.");
+    if(max>=33) tips.push("Very hot. Plan indoor time around midday and carry water.");
+    if(rain>=50) tips.push("Take an umbrella.");
+    $("wxTip").textContent=tips.join(" ")||"Nice weather for being outside.";
+    $("wxCard").hidden=false;
+    if(d.tzApprox&&w.timezone){ d.tz=w.timezone; delete d.tzApprox; store.set("dest",d); renderClocks(); }
+  }catch(err){}
+}
+
+/* ---------- rest planner ---------- */
+function initPlanner(){
+  const saved=store.get("plan",null);
+  const now=new Date(); const pad=n=>String(n).padStart(2,"0");
+  const local=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const a=new Date(now); a.setHours(7,30,0,0);
+  const p=new Date(a.getTime()+30*3600e3);
+  $("arr").value=saved?.arr||local(a); $("pick").value=saved?.pick||local(p);
+  if(saved){$("rest").value=saved.rest;$("xfer").value=saved.xfer;$("ready").value=saved.ready}
+  ["arr","pick","rest","xfer","ready"].forEach(id=>$(id).addEventListener("input",renderPlanner));
+}
+function renderPlanner(){
+  const arr=new Date($("arr").value), pick=new Date($("pick").value);
+  const rest=+$("rest").value||0, xfer=+$("xfer").value||0, ready=+$("ready").value||0;
+  store.set("plan",{arr:$("arr").value,pick:$("pick").value,rest,xfer,ready});
+  const total=(pick-arr)/3600e3;
+  $("groundH").textContent=total>0?"On the ground for "+fmtH(total):"";
+  if(!(total>0)){$("tl").innerHTML="";$("freeH").textContent="Check times";$("freeRange").textContent="Pickup must be after arrival.";return}
+  const free=total-xfer-rest-ready;
+  const seg=(cls,h,lab)=>h>0?`<div class="${cls}" style="flex-grow:${h}">${h/total>.12?lab:""}</div>`:"";
+  if(free<0){
+    $("tl").innerHTML=seg("t-transfer",xfer,"xfer")+seg("t-rest",total-xfer,"rest");
+    $("freeH").textContent="0h 00m";$("freeRange").textContent=`This layover is ${fmtH(-free)} short of your planned rest and prep. Rest only.`;
+    state.len=4; syncChips(); renderIdeas(); return;
+  }
+  $("tl").innerHTML=seg("t-transfer",xfer,"xfer")+seg("t-rest",rest,"rest")+seg("t-free",free,"free")+seg("t-ready",ready,"ready");
+  const fs=new Date(arr.getTime()+(xfer+rest)*3600e3), fe=new Date(fs.getTime()+free*3600e3);
+  const o={weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false};
+  $("freeH").textContent=fmtH(free);
+  $("freeRange").textContent=`${fs.toLocaleString("en-GB",o)} → ${fe.toLocaleString("en-GB",o)} local`;
+  state.len=free<=4?4:free<=8?8:24; syncChips(); renderIdeas();
+}
+
+/* ---------- ideas ---------- */
+function syncChips(){
+  document.querySelectorAll("#lenChips .chip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.len===state.len));
+  document.querySelectorAll("#enChips .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.en===state.en));
+}
+$("lenChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;state.len=+b.dataset.len;syncChips();renderIdeas()});
+on("enChips","click",e=>{const b=e.target.closest(".chip");if(!b)return;state.en=b.dataset.en;syncChips();renderIdeas()});
+function renderIdeas(){
+  const g=guide();
+  $("ideasTitle").textContent=g?`What fits your layover in ${state.dest.name}`:`Layover ideas for ${state.dest.name}`;
+  const list=(g?g.ideas:GENERIC_IDEAS).filter(([,h,en])=>h<=state.len&&(state.en==="any"||en===state.en));
+  $("ideaList").innerHTML=list.length?list.map(([t,h,en,m])=>{
+    const v=visitedHere(t);
+    return `<li><span class="t">${esc(t)}</span><span class="tag">${h}h · ${en==="low"?"easy":"active"}</span><span class="m">${esc(m)}</span><span style="grid-column:1/-1">${v?`<span class="saved">✓ You went here on ${esc(fmtDate(v.date))}</span>`:`<button class="went" type="button" data-went="${esc(t)}">I went here</button>`}</span></li>`;
+  }).join("")
+    :`<li class="empty">Nothing fits that combination. Try a longer window or "Any" energy.</li>`;
+  $("ideasSights").hidden=!LIVE;
+}
+$("ideaList").addEventListener("click",e=>{const b=e.target.closest("[data-went]");if(!b)return;logVisit(b.dataset.went,"Layover idea");renderIdeas()});
+$("ideasSights").addEventListener("click",()=>{nb.cat="sight";nbSync();nbUseCentre();showTab("near")});
+
+/* ---------- city pack ---------- */
+function renderPack(){
+  const c=country(), g=guide(), d=state.dest;
+  const rows=[];
+  if(c){
+    rows.push(["Currency",`${c[1]} (${c[0]})`],["Plug",`Type ${c[2]}, ${c[3]}`],["Emergency",c[4]||"Confirm with hotel reception on arrival"]);
+  }
+  rows.push(["Time difference",tzDiff(d.tz)]);
+  if(g) rows.push(["Tipping",g.tipping],["Transport",g.transport],["Apps",g.apps]);
+  $("pack").innerHTML=rows.map(([k,v])=>`<div><span class="label">${k}</span><b>${esc(v)}</b></div>`).join("");
+  $("packHint").textContent = !c ? "No country details stored for this place yet. Check currency, plugs and emergency numbers locally."
+    : !g ? "No tipping or transport details for this city yet. Save what you learn in Notebook → Notes." : "";
+  $("areasCard").hidden=!g;
+  if(g) $("areas").innerHTML=g.areas.map(([a,m])=>`<li class="place"><a class="t arealink" href="${gmaps(a+", "+placeText())}" target="_blank" rel="noopener">${esc(a)}</a><a href="${gmaps(a+", "+placeText())}" target="_blank" rel="noopener" aria-label="Open ${esc(a)} in Google Maps">Map →</a><span class="m">${esc(m)}</span></li>`).join("");
+}
+function tzDiff(tz){
+  try{
+    const now=new Date(), off=z=>{const p=new Intl.DateTimeFormat("en-US",{timeZone:z,timeZoneName:"longOffset"}).formatToParts(now).find(x=>x.type==="timeZoneName").value.match(/GMT([+-]\d+)?:?(\d+)?/);return p&&p[1]?(+p[1])+(p[1][0]==="-"?-1:1)*(+(p[2]||0))/60:0};
+    const diff=off(tz)-off(HOME_TZ);
+    if(diff===0) return "Same as Doha";
+    const h=Math.abs(diff), str=Number.isInteger(h)?`${h}h`:`${Math.floor(h)}h ${Math.round((h%1)*60)}m`;
+    return `${str} ${diff>0?"ahead of":"behind"} Doha`;
+  }catch(e){return "—"}
+}
+
+/* ---------- tips ---------- */
+$("tipForm").addEventListener("submit",e=>{e.preventDefault();const t=$("tipText").value.trim();if(!t)return;
+  (state.tips[destKey()]??=[]).unshift({t,c:$("tipCat").value});store.set("tips",state.tips);$("tipText").value="";renderTips()});
+function renderTips(){
+  $("notesTitle").textContent="My notes for "+state.dest.name;
+  const l=state.tips[destKey()]||[];
+  $("tipList").innerHTML=l.length?l.map((x,i)=>`<li><span class="t">${esc(x.t)}</span><span><span class="tag">${esc(x.c)}${x.ex?" · example":""}</span><button class="x" data-i="${i}" aria-label="Delete note">×</button></span></li>`).join("")
+    :`<li class="empty">No notes for ${esc(state.dest.name)} yet. Write your first one above.</li>`;
+}
+$("tipList").addEventListener("click",e=>{const b=e.target.closest(".x");if(!b)return;state.tips[destKey()].splice(+b.dataset.i,1);store.set("tips",state.tips);renderTips()});
+
+/* ---------- wishlist ---------- */
+on("wishForm","submit",e=>{e.preventDefault();const t=$("wishText").value.trim();if(!t)return;
+  (state.wish[destKey()]??=[]).push({t,d:false});store.set("wish",state.wish);$("wishText").value="";renderWish()});
+function renderWish(){
+  if(!$("wishList")) return;
+  const l=state.wish[destKey()]||[];
+  $("wishList").innerHTML=l.length?l.map((x,i)=>`<li class="${x.d?"done":""}"><label class="check"><input type="checkbox" data-i="${i}" ${x.d?"checked":""}><span class="t">${esc(x.t)}</span></label><span>${x.ex?'<span class="tag">example</span>':""}<button class="x" data-del="${i}" aria-label="Delete item">×</button></span></li>`).join("")
+    :`<li class="empty">Nothing on your ${esc(state.dest.name)} list yet.</li>`;
+}
+on("wishList","change",e=>{const i=e.target.dataset.i;if(i==null)return;state.wish[destKey()][i].d=e.target.checked;store.set("wish",state.wish);renderWish()});
+on("wishList","click",e=>{const b=e.target.closest("[data-del]");if(!b)return;state.wish[destKey()].splice(+b.dataset.del,1);store.set("wish",state.wish);renderWish()});
+
+/* ---------- wallet ---------- */
+const POPULAR_CUR=["QAR","USD","EUR","GBP","CNY","AED","SAR","JPY","INR","THB","TRY","CHF","AUD","CAD","TND","MAD","EGP"];
+const ALL_CUR=[...new Set([...POPULAR_CUR,...Object.values(COUNTRY).map(c=>c[0])])].sort();
+let curNames; try{curNames=new Intl.DisplayNames(["en"],{type:"currency"})}catch(e){}
+const CUR_FALLBACK=Object.fromEntries(Object.values(COUNTRY).map(c=>[c[0],c[1].replace(/ \(.*\)$/,"")]));
+const curName=c=>{try{const n=curNames&&curNames.of(c);if(n&&n!==c)return n}catch(e){}return CUR_FALLBACK[c]||c};
+const curSymbol=c=>{try{const p=new Intl.NumberFormat("en",{style:"currency",currency:c,currencyDisplay:"narrowSymbol"}).formatToParts(0).find(x=>x.type==="currency");return p&&p.value!==c?p.value:""}catch(e){return ""}};
+const curOpt=c=>`<option value="${c}">${c} · ${esc(curName(c))}${curSymbol(c)?" ("+esc(curSymbol(c))+")":""}</option>`;
+$("walCur").innerHTML=`<optgroup label="Most used">${POPULAR_CUR.map(curOpt).join("")}</optgroup><optgroup label="All currencies">${ALL_CUR.filter(c=>!POPULAR_CUR.includes(c)).map(curOpt).join("")}</optgroup>`;
+/* ---------- money: spending log, wallet, summaries ---------- */
+const pad2=n=>String(n).padStart(2,"0");
+const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`};
+const isoDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const fmtDate=s=>isoDate(s).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmtMoney=(c,v)=>{const s=curSymbol(c);return (s||c+" ")+(+v).toLocaleString("en-GB",{maximumFractionDigits:2})};
+const fmtQAR=v=>"QAR "+Math.round(v).toLocaleString("en-GB");
+let walType="spend", walTouched=false, spPeriod="month";
+
+/* Converts to QAR. The riyal is pegged to the US dollar, so USD always works. */
+function toQAR(cur,amt){
+  if(cur==="QAR") return amt;
+  const r=state.rates&&state.rates.rates&&state.rates.rates[cur];
+  if(r) return amt/r;
+  if(cur==="USD") return amt*3.64;
+  return null;
+}
+async function loadRates(){
+  if(!LIVE) return;
+  if(state.rates&&Date.now()-state.rates.at<12*3600e3) return;
+  try{
+    const r=await fetch("/api/rates"); if(!r.ok) return;
+    const j=await r.json();
+    if(j&&j.rates&&j.rates.USD){ state.rates={at:Date.now(),rates:j.rates}; store.set("rates",state.rates); fillMissingQAR(); renderMoney(); }
+  }catch(e){}
+}
+/* Entries saved offline get their QAR value once rates are available */
+function fillMissingQAR(){
+  let changed=false;
+  state.tx.forEach(t=>{ if(t.qar==null){ const q=toQAR(t.cur,t.amt); if(q!=null){ t.qar=Math.round(q*100)/100; changed=true; } } });
+  if(changed) store.set("tx",state.tx);
+}
+
+function syncWalType(){
+  document.querySelectorAll("#walType .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.type===walType));
+  document.querySelectorAll(".spendOnly").forEach(el=>el.hidden=walType!=="spend");
+  $("walSave").textContent="Save spending";
+  $("walNote").placeholder="What for? e.g. Dinner with the crew (optional)";
+}
+on("walType","click",e=>{const b=e.target.closest(".chip");if(!b)return;walType=b.dataset.type;syncWalType();$("walMsg").textContent=""});
+$("walCur").addEventListener("change",()=>walTouched=true);
+
+function applyCash(cur,delta){
+  const v=Math.round(((state.wallet[cur]||0)+delta)*100)/100;
+  if(v>0) state.wallet[cur]=v; else delete state.wallet[cur];
+  store.set("wallet",state.wallet);
+}
+$("walForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const amt=Math.abs(parseFloat($("walAmt").value));
+  if(!(amt>0)){ $("walMsg").textContent="Type an amount first."; $("walAmt").focus(); return; }
+  const spend=walType==="spend", cur=$("walCur").value, pay=spend?$("walPay").value:"cash";
+  const q=toQAR(cur,amt);
+  const t={id:newId(),date:$("walDate").value||todayISO(),type:spend?"spend":"add",cur,amt,
+    cat:spend?$("walCat").value:"",pay,note:$("walNote").value.trim(),
+    dest:state.dest.name,code:state.dest.code||"",cc:state.dest.cc||"",qar:q==null?null:Math.round(q*100)/100};
+  state.tx.push(t); store.set("tx",state.tx);
+  if(pay==="cash") applyCash(cur,spend?-amt:amt);
+  $("walAmt").value=""; $("walNote").value="";
+  $("walMsg").textContent=spend?`Saved: ${fmtMoney(cur,amt)} on ${t.cat.toLowerCase()} in ${t.dest}.`:`Added ${fmtMoney(cur,amt)} to your wallet.`;
+  renderMoney();
+});
+
+function periodRange(p){
+  const n=new Date(), y=n.getFullYear(), m=n.getMonth();
+  if(p==="week"){const s=new Date(y,m,n.getDate());s.setDate(s.getDate()-((s.getDay()+6)%7));return [s,null,"this week"]}
+  if(p==="month") return [new Date(y,m,1),null,"this month"];
+  if(p==="lastmonth") return [new Date(y,m-1,1),new Date(y,m,1),"last month"];
+  if(p==="year") return [new Date(y,0,1),null,"this year"];
+  return [null,null,"in total"];
+}
+$("spPeriod").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;spPeriod=b.dataset.p;renderMoney()});
+const qOf=t=>t.qar!=null?t.qar:toQAR(t.cur,t.amt);
+function groupBy(list,key){const g={};list.forEach(t=>{const v=qOf(t);if(v!=null){const k=key(t);g[k]=(g[k]||0)+v}});return Object.entries(g).sort((a,b)=>b[1]-a[1])}
+function bars(id,rows){
+  const mx=Math.max(1,...rows.map(r=>r[1]));
+  $(id).innerHTML=rows.length?rows.map(([k,v])=>`<div class="bar"><span title="${esc(k)}">${esc(k)}</span><span class="track"><span class="fill" style="width:${(v/mx*100).toFixed(1)}%"></span></span><span class="v">${fmtQAR(v)}</span></div>`).join("")
+    :`<p class="empty">Nothing to show yet.</p>`;
+}
+
+function renderMoney(){
+  /* wallet */
+  const e=Object.entries(state.wallet), here=country()?.[0];
+  if($("wallet")) $("wallet").innerHTML=e.length?e.map(([c,v])=>`<div><span class="label">${c}${c===here?" · used here":""}</span><span class="big">${esc(curSymbol(c))}${v.toLocaleString("en-GB")}</span><span class="hint" style="font-size:.8rem">${esc(curName(c))}</span></div>`).join("")
+    :`<p class="empty">No cash yet. Choose "I got cash" above to add what you're carrying.</p>`;
+  let tot=0, unk=[]; e.forEach(([c,v])=>{const q=toQAR(c,v); if(q==null) unk.push(c); else tot+=q});
+  if($("walTotal")) $("walTotal").textContent=e.length?`Total cash ≈ ${fmtQAR(tot)}`+(unk.length?` (not counting ${unk.join(", ")}, no exchange rate yet)`:""):"";
+  if(here&&!walTouched) $("walCur").value=here;
+
+  /* spending */
+  document.querySelectorAll("#spPeriod .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.p===spPeriod));
+  const [from,to,label]=periodRange(spPeriod);
+  const inRange=t=>{const d=isoDate(t.date);return (!from||d>=from)&&(!to||d<to)};
+  const spends=state.tx.filter(t=>t.type==="spend"), inP=spends.filter(inRange);
+  let total=0; const noRate={};
+  inP.forEach(t=>{const v=qOf(t); if(v==null) noRate[t.cur]=(noRate[t.cur]||0)+t.amt; else total+=v});
+  $("spLabel").textContent="Spent "+label;
+  $("spTotal").textContent=fmtQAR(total);
+  const extra=Object.entries(noRate).map(([c,v])=>fmtMoney(c,v)).join(" + ");
+  const cash=inP.filter(t=>t.pay==="cash").reduce((a,t)=>a+(qOf(t)||0),0);
+  $("spSub").textContent=inP.length?`${inP.length} payment${inP.length===1?"":"s"} · ${fmtQAR(cash)} cash, ${fmtQAR(total-cash)} card`+(extra?` · plus ${extra} not converted yet`:""):"No spending saved for this period.";
+  $("spCatWrap").hidden=$("spDestWrap").hidden=!inP.length;
+  bars("spCat",groupBy(inP,t=>t.cat||"Other"));
+  bars("spDest",groupBy(inP,t=>t.dest||"Unknown"));
+
+  const n=new Date(), months=[];
+  for(let i=5;i>=0;i--){
+    const s=new Date(n.getFullYear(),n.getMonth()-i,1), en=new Date(n.getFullYear(),n.getMonth()-i+1,1);
+    months.push([s.toLocaleString("en-GB",{month:"short"}),spends.filter(t=>{const d=isoDate(t.date);return d>=s&&d<en}).reduce((a,t)=>a+(qOf(t)||0),0)]);
+  }
+  const mx=Math.max(1,...months.map(m=>m[1]));
+  if($("spMonths")) $("spMonths").innerHTML=months.map(([m,v])=>`<div><b>${v?Math.round(v).toLocaleString("en-GB"):""}</b><i class="${v?"":"zero"}" style="height:${v?(v/mx*78).toFixed(1):1}%"></i><span>${m}</span></div>`).join("");
+
+  const list=state.tx.filter(inRange).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  $("spList").innerHTML=list.length?list.map(t=>{
+    const q=qOf(t), sp=t.type==="spend";
+    const title=t.note||(sp?t.cat:"Cash added");
+    const meta=[t.ex?"Example":"",fmtDate(t.date),t.dest,sp?t.cat:"Cash added",sp?(t.pay==="card"?"Card":"Cash"):"",t.cur!=="QAR"&&q!=null?"≈ "+fmtQAR(q):""].filter(Boolean).map(esc).join(" · ");
+    return `<li><span class="t">${esc(title)}</span><span><span class="amt ${sp?"":"in"}">${sp?"−":"+"}${esc(fmtMoney(t.cur,t.amt))}</span> <button class="x" type="button" data-tx="${t.id}" aria-label="Delete entry">×</button></span><span class="m">${meta}</span></li>`;
+  }).join(""):`<li class="empty">Nothing saved for this period. Use Record money above.</li>`;
+
+  $("spExport").hidden=!LIVE||!state.tx.length;
+  $("spNote").textContent=LIVE
+    ?"Each payment is converted to QAR with the exchange rate on the day you save it. Everything is saved on "+HERE+"."
+    :"In this web version only QAR and US dollars are converted, and data stays in this browser. The desktop app converts every currency and saves to a file.";
+  renderAllowance();
+}
+
+/* Two-step delete: first press arms the button, second press deletes */
+function armOrRun(btn,run){
+  if(btn.dataset.armed){ run(); return; }
+  btn.dataset.armed="1"; btn.classList.add("armed"); btn.textContent="Delete?";
+  setTimeout(()=>{ if(btn.isConnected){ delete btn.dataset.armed; btn.classList.remove("armed"); btn.textContent="×"; } },3000);
+}
+$("spList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-tx]"); if(!b) return;
+  armOrRun(b,()=>{
+    const i=state.tx.findIndex(t=>t.id===b.dataset.tx); if(i<0) return;
+    const t=state.tx[i];
+    if(t.pay==="cash") applyCash(t.cur,t.type==="spend"?t.amt:-t.amt);
+    state.tx.splice(i,1); store.set("tx",state.tx); renderMoney();
+  });
+});
+
+$("spExport").addEventListener("click",()=>{
+  const cell=v=>{v=String(v??"");if(/^[=+\-@]/.test(v)&&isNaN(+v))v="'"+v;return /[",\r\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v};
+  const rows=[["date","type","destination","country","category","paid_by","currency","amount","amount_qar","note"],
+    ...state.tx.filter(t=>!t.ex).slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>[t.date,t.type,t.dest,t.cc,t.cat,t.pay,t.cur,t.amt,t.qar??"",t.note])];
+  const csv=rows.map(r=>r.map(cell).join(",")).join("\r\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"}));
+  a.download=`layover-spending-${todayISO()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+});
+
+/* ---------- journal: places visited ---------- */
+let jFilter="here";
+const visitedHere=name=>state.visits.find(v=>v.key===destKey()&&v.name.toLowerCase()===name.toLowerCase());
+function logVisit(name,kind,extra){
+  state.visits.push(Object.assign({id:newId(),date:todayISO(),name,kind,note:"",dest:state.dest.name,key:destKey(),cc:state.dest.cc||""},extra||{}));
+  store.set("visits",state.visits); renderJournal();
+}
+$("jForm").addEventListener("submit",e=>{
+  e.preventDefault(); const name=$("jName").value.trim(); if(!name){ $("jName").focus(); return; }
+  logVisit(name,"Added by you",{date:$("jDate").value||todayISO(),note:$("jNote").value.trim()});
+  $("jName").value=""; $("jNote").value="";
+});
+$("jFilter").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;jFilter=b.dataset.f;renderJournal()});
+function renderJournal(){
+  document.querySelectorAll("#jFilter .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===jFilter));
+  const all=state.visits, list=(jFilter==="here"?all.filter(v=>v.key===destKey()):all).slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  const cities=new Set(all.map(v=>v.key)).size;
+  $("jStats").textContent=all.length?`${all.length} place${all.length===1?"":"s"} in ${cities} destination${cities===1?"":"s"} so far.`:"";
+  $("jList").innerHTML=list.length?list.map(v=>{
+    const meta=[fmtDate(v.date),jFilter==="all"?v.dest:"",v.kind,v.note].filter(Boolean).map(esc).join(" · ");
+    return `<li><span class="t">${esc(v.name)}</span><button class="x" type="button" data-v="${v.id}" aria-label="Delete place">×</button><span class="m">${meta}</span></li>`;
+  }).join(""):`<li class="empty">${jFilter==="here"?`No places saved in ${esc(state.dest.name)} yet.`:"No places saved yet."} Press "I went here" on an idea or a nearby place.</li>`;
+}
+$("jList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-v]"); if(!b) return;
+  armOrRun(b,()=>{ state.visits=state.visits.filter(v=>v.id!==b.dataset.v); store.set("visits",state.visits); renderJournal(); renderIdeas(); });
+});
+
+/* ---------- nearby ---------- */
+const NB_CATS = {
+  groc:{l:"Groceries",g:"supermarket",food:0}, food:{l:"Restaurants",g:"restaurants",food:1},
+  cafe:{l:"Cafés",g:"cafes",food:1}, night:{l:"Bars & clubs",g:"bars and nightclubs",food:0},
+  shop:{l:"Shopping",g:"shopping",food:0}, pharm:{l:"Pharmacy",g:"pharmacy",food:0},
+  money:{l:"ATM & exchange",g:"ATM currency exchange",food:0}, sight:{l:"Sights",g:"tourist attractions",food:0}
+};
+const nb = {q:"",base:null,cat:"groc",map:null,layer:null,tiles:null};
+$("nbCats").innerHTML=Object.entries(NB_CATS).map(([k,c])=>`<button class="chip" type="button" data-cat="${k}" aria-pressed="${k===nb.cat}">${c.l}</button>`).join("");
+const gmaps = q => "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+const placeText = () => `${state.dest.name}${state.dest.cc?", "+countryName(state.dest.cc):""}`;
+const near = () => nb.base ? `${nb.base.lat},${nb.base.lon}` : (nb.q?`${nb.q}, `:"")+placeText();
+
+function nbSync(){
+  document.querySelectorAll("#nbCats .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.cat===nb.cat));
+  $("nbHalalWrap").hidden=!NB_CATS[nb.cat].food;
+}
+$("nbCats").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;nb.cat=b.dataset.cat;nbSync();nbRun()});
+$("nbR").addEventListener("change",()=>nbRun());
+$("nbHalal").addEventListener("change",()=>nbRun());
+$("nbCentre").addEventListener("click",()=>nbUseCentre());
+function nbUseCentre(){
+  nb.q=""; if(!LIVE){ nbLinks(); return; }
+  nbSetBase({lat:state.dest.lat,lon:state.dest.lon,display_name:`${state.dest.name} city centre`});
+}
+
+$("nbForm").addEventListener("submit",async e=>{
+  e.preventDefault(); nb.q=$("nbQ").value.trim(); if(!nb.q) return;
+  nb.base=null; $("nbBase").hidden=true;
+  if(!LIVE){ nbLinks(); return; }
+  $("nbMatches").innerHTML=`<p class="hint">Searching…</p>`;
+  try{
+    let res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q+", "+placeText()))).json();
+    if(!res.length) res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q))).json();
+    if(!res.length){ $("nbMatches").innerHTML=`<p class="hint">No match for "${esc(nb.q)}". Try the street address instead.</p>`; return; }
+    if(res.length===1) return nbSetBase(res[0]);
+    nb.matches=res;
+    $("nbMatches").innerHTML=`<div class="label">Which one?</div>`+res.map((m,i)=>`<button class="match" type="button" data-i="${i}">${esc(m.display_name)}</button>`).join("");
+  }catch(err){ $("nbMatches").innerHTML=`<p class="hint">Couldn't reach the map service. Check your internet connection and try again.</p>`; }
+});
+$("nbMatches").addEventListener("click",e=>{const b=e.target.closest(".match");if(b)nbSetBase(nb.matches[+b.dataset.i])});
+
+function nbSetBase(m){
+  nb.base={lat:+m.lat,lon:+m.lon,name:m.display_name.split(",").slice(0,2).join(",")};
+  $("nbMatches").innerHTML="";
+  $("nbBase").hidden=false;
+  $("nbBase").innerHTML=`<span>Searching around <b>${esc(nb.base.name)}</b></span><button class="btn ghost" type="button" id="nbClear">Change</button>`;
+  $("nbClear").onclick=()=>{nb.base=null;$("nbBase").hidden=true;$("nbResults").hidden=true;$("nbQ").focus()};
+  nbRun();
+}
+function nbLinks(){
+  $("nbResults").hidden=false; $("map").hidden=true;
+  $("nbCount").textContent="Live search runs in the desktop app. Here, each button opens Google Maps around you:";
+  $("nbList").innerHTML=`<li style="display:block"><div class="links">${Object.values(NB_CATS).map(c=>`<a href="${gmaps(c.g+" near "+near())}" target="_blank" rel="noopener">${c.l} →</a>`).join("")}</div></li>`;
+}
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  return new Promise((ok,fail)=>{
+    const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(css);
+    const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=ok;s.onerror=fail;document.head.appendChild(s);
+  });
+}
+function distM(a,b){const R=6371e3,t=x=>x*Math.PI/180,dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+const nice = s => s ? s.replace(/_/g," ").replace(/^./,c=>c.toUpperCase()) : "";
+
+async function nbRun(){
+  if(!LIVE){ if(nb.q) nbLinks(); return; }
+  if(!nb.base) return;
+  const r=$("nbR").value, cat=nb.cat;
+  $("nbResults").hidden=false; $("nbCount").textContent="Loading places…"; $("nbList").innerHTML="";
+  let data;
+  try{ const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}`); if(!resp.ok) throw 0; data=await resp.json(); }
+  catch(err){ $("nbCount").textContent="Couldn't load places. Check your internet connection and try again."; return; }
+  if(cat!==nb.cat) return;
+  let places=(data.elements||[]).map(el=>{
+    const t=el.tags||{}, lat=el.lat??el.center?.lat, lon=el.lon??el.center?.lon;
+    return {name:t["name:en"]||t.name,lat,lon,t,type:nice(t.shop||t.amenity||t.tourism),
+      halal:/^(yes|only)$/.test(t["diet:halal"]||""), d:distM(nb.base,{lat,lon})};
+  }).filter(p=>p.name&&p.lat!=null);
+  if($("nbHalal").checked && NB_CATS[cat].food) places=places.filter(p=>p.halal);
+  places.sort((a,b)=>a.d-b.d); places=places.slice(0,60);
+  $("nbCount").textContent=places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.";
+  nb.places=places;
+  $("nbList").innerHTML=places.map((p,i)=>{
+    const walk=Math.max(1,Math.round(p.d/80));
+    const extra=[p.t.cuisine&&nice(p.t.cuisine.split(";")[0]),p.t.opening_hours&&("Hours: "+p.t.opening_hours)].filter(Boolean).map(esc).join(" · ");
+    const dir=`https://www.google.com/maps/dir/?api=1&origin=${nb.base.lat},${nb.base.lon}&destination=${p.lat},${p.lon}&travelmode=walking`;
+    const been=visitedHere(p.name);
+    return `<li class="place"><span class="t">${esc(p.name)}${p.halal?'<span class="pill">Halal</span>':""}</span><span style="display:flex;gap:10px;align-items:center">${been?'<span class="saved">✓ Been</span>':`<button class="went" type="button" data-pi="${i}">I went here</button>`}<a href="${dir}" target="_blank" rel="noopener">Directions →</a></span>
+      <span class="m">${esc(p.type)} · ${p.d<1000?Math.round(p.d)+" m":(p.d/1000).toFixed(1)+" km"} · ${walk} min walk${extra?" · "+extra:""}</span></li>`;
+  }).join("") + `<li class="place"><span class="m"><a href="${gmaps(NB_CATS[cat].g+" near "+near())}" target="_blank" rel="noopener">See more on Google Maps →</a></span></li>`;
+  try{
+    await loadLeaflet(); $("map").hidden=false;
+    if(!nb.map){
+      nb.map=L.map("map");
+      /* Map tiles come through the app itself, so no map key is needed */
+      L.tileLayer(WEBAPP?"https://tile.openstreetmap.org/{z}/{x}/{y}.png":"/tile/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(nb.map);
+      nb.layer=L.layerGroup().addTo(nb.map);
+    }
+    nb.layer.clearLayers();
+    L.circleMarker([nb.base.lat,nb.base.lon],{radius:9,color:"#c9741a",fillColor:"#c9741a",fillOpacity:1}).bindPopup("You are here").addTo(nb.layer);
+    places.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:6,color:"#3b5683",fillColor:"#3b5683",fillOpacity:.8}).bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.type)}`).addTo(nb.layer));
+    nb.map.setView([nb.base.lat,nb.base.lon], r<=500?16:r<=1000?15:r<=2000?14:13);
+    setTimeout(()=>nb.map.invalidateSize(),50);
+  }catch(err){ $("map").hidden=true; }
+}
+$("nbList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-pi]"); if(!b||!nb.places) return;
+  const p=nb.places[+b.dataset.pi]; if(!p) return;
+  logVisit(p.name,p.type||"Nearby place",{lat:p.lat,lon:p.lon});
+  b.outerHTML='<span class="saved">✓ Saved to Journal</span>';
+});
+nbSync();
+
+/* ---------- saved layovers (shared by Money and Fatigue) ---------- */
+let trDestTouched=false;
+const destLabel=d=>d.code?`${d.code} · ${d.name}, ${countryName(d.cc)}`:`${d.name}${d.cc?", "+countryName(d.cc):""}`;
+const txKey=t=>t.code||(t.dest+"-"+t.cc);
+$("trCur").innerHTML=$("walCur").innerHTML; $("trCur").value="QAR";
+$("trDest").addEventListener("input",()=>trDestTouched=true);
+
+/* UTC offset in hours of a time zone at a given moment */
+function offH(tz,date){
+  try{
+    const v=new Intl.DateTimeFormat("en-US",{timeZone:tz,timeZoneName:"longOffset"}).formatToParts(date).find(x=>x.type==="timeZoneName").value;
+    const m=v.match(/GMT(?:([+-])(\d{1,2})(?::?(\d{2}))?)?/);
+    if(!m||!m[1]) return 0;
+    return (m[1]==="-"?-1:1)*((+m[2])+(+(m[3]||0))/60);
+  }catch(e){return 0}
+}
+/* "2026-10-29T07:30" read as local time in tz -> UTC milliseconds */
+function zonedToUTC(str,tz){
+  const [d,t]=str.split("T"), [y,mo,da]=d.split("-").map(Number), [hh,mi]=(t||"00:00").split(":").map(Number);
+  const guess=Date.UTC(y,mo-1,da,hh,mi);
+  let u=guess-offH(tz,new Date(guess))*36e5;
+  return guess-offH(tz,new Date(u))*36e5;
+}
+function localStr(utc,tz){
+  const p={}; new Intl.DateTimeFormat("en-CA",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(utc)).forEach(x=>p[x.type]=x.value);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+const fmtShift=d=>{if(!d)return "same as Doha";const a=Math.abs(d),h=Math.floor(a),m=Math.round((a-h)*60);return `${d>0?"+":"−"}${h}h${m?pad2(m):""}`};
+const shortDate=ms=>new Date(ms).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+
+function resolveTripDest(v){
+  v=v.trim(); if(!v) return null;
+  const cur=state.dest;
+  if(v===destLabel(cur)||v.toLowerCase()===cur.name.toLowerCase()||(cur.code&&v.toUpperCase()===cur.code)) return cur;
+  const l=findLocal(v); return l.length===1?l[0]:null;
+}
+$("trSave").addEventListener("click",()=>{
+  const msg=$("trMsg"), d=resolveTripDest($("trDest").value);
+  if(!d){ msg.textContent="Pick a destination from the list, or set it at the top with Change destination."; return; }
+  const arr=$("arr").value, pick=$("pick").value;
+  if(!arr||!pick){ msg.textContent="Fill in arrival and pickup times above."; return; }
+  const arrUTC=zonedToUTC(arr,d.tz), pickUTC=zonedToUTC(pick,d.tz);
+  if(!(pickUTC>arrUTC)){ msg.textContent="Pickup must be after arrival."; return; }
+  const allow=Math.abs(parseFloat($("trAllow").value))||0, cur=$("trCur").value, q=allow?toQAR(cur,allow):0;
+  const key=d.code||(d.name+"-"+d.cc);
+  const duty=Math.abs(parseFloat($("trDuty").value))||0;
+  const tr={id:newId(),dest:d.name,code:d.code||"",cc:d.cc||"",key,tz:d.tz,arr,pick,arrUTC,pickUTC,rest:+$("rest").value||0,duty:duty&&duty<=24?duty:0,
+    allow,allowCur:cur,allowQAR:q==null?null:Math.round(q*100)/100,diff:offH(d.tz,new Date(arrUTC))-offH(HOME_TZ,new Date(arrUTC))};
+  const i=state.trips.findIndex(x=>!x.ex&&x.key===key&&x.arr.slice(0,10)===arr.slice(0,10));
+  if(i>=0){ tr.id=state.trips[i].id; state.trips[i]=tr; } else state.trips.push(tr);
+  store.set("trips",state.trips);
+  msg.textContent=`${i>=0?"Updated":"Saved"}: ${d.name}, ${fmtDate(arr.slice(0,10))}.`;
+  $("trAllow").value=""; $("trDuty").value="";
+  renderTrips(); renderMoney(); renderFatigue(); renderCheck();
+});
+
+function tripSpend(tr){
+  const a=tr.arr.slice(0,10), b=tr.pick.slice(0,10);
+  return state.tx.filter(t=>t.type==="spend"&&txKey(t)===tr.key&&t.date>=a&&t.date<=b);
+}
+const tripCost=tr=>tripSpend(tr).reduce((s,t)=>s+(qOf(t)||0),0);
+const tripAllow=tr=>tr.allowQAR!=null?tr.allowQAR:(toQAR(tr.allowCur,tr.allow)||0);
+
+function renderTrips(){
+  if(!trDestTouched) $("trDest").value=destLabel(state.dest);
+  const ex=state.trips.some(t=>t.ex);
+  document.querySelectorAll(".exBanner").forEach(b=>b.hidden=!ex);
+  const list=state.trips.slice().sort((a,b)=>b.arrUTC-a.arrUTC);
+  $("trList").innerHTML=list.length?list.map(tr=>{
+    const hrs=(tr.pickUTC-tr.arrUTC)/36e5;
+    const meta=[tr.ex?"Example":"",`${fmtDate(tr.arr.slice(0,10))} → ${fmtDate(tr.pick.slice(0,10))}`,`${fmtH(hrs)} on the ground`,`${fmtShift(tr.diff)} vs Doha`,tr.allow?`Allowance ${fmtMoney(tr.allowCur,tr.allow)}`:"No allowance entered"].filter(Boolean).map(esc).join(" · ");
+    return `<li><span class="t">${esc(tr.dest)}</span><button class="x" type="button" data-tr="${tr.id}" aria-label="Delete layover">×</button><span class="m">${meta}</span></li>`;
+  }).join(""):`<li class="empty">No layovers saved yet. On the Today screen, fill in your times and press Save layover.</li>`;
+}
+$("trList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-tr]"); if(!b) return;
+  armOrRun(b,()=>{ state.trips=state.trips.filter(t=>t.id!==b.dataset.tr); store.set("trips",state.trips); renderTrips(); renderMoney(); renderFatigue(); });
+});
+
+/* ---------- allowance vs spending ---------- */
+function renderAllowance(){
+  const has=state.trips.length>0;
+  $("alEmpty").hidden=has; $("alBody").hidden=!has; $("costCard").hidden=!has;
+  if(!has) return;
+  const [from,to,label]=periodRange(spPeriod);
+  const inR=ms=>{const d=isoDate(ms.slice(0,10));return (!from||d>=from)&&(!to||d<to)};
+  const trs=state.trips.filter(tr=>inR(tr.arr)).sort((a,b)=>b.arrUTC-a.arrUTC);
+  const A=trs.reduce((s,t)=>s+tripAllow(t),0), S=trs.reduce((s,t)=>s+tripCost(t),0), K=A-S;
+  const pct=A?Math.round(K/A*100):0;
+  $("alTrio").innerHTML=`<div><span class="label">Allowance ${esc(label)}</span><span class="big">${fmtQAR(A)}</span><span class="hint">${trs.length} layover${trs.length===1?"":"s"}</span></div>
+    <div><span class="label">Spent on layovers</span><span class="big">${fmtQAR(S)}</span></div>
+    <div><span class="label">${K>=0?"You kept":"Over by"}</span><span class="big ${K>=0?"pos":"neg"}">${fmtQAR(Math.abs(K))}</span><span class="hint">${A?(K>=0?pct+"% of allowance":Math.abs(pct)+"% over"):""}</span></div>`;
+
+  const n=new Date(), months=[];
+  for(let i=5;i>=0;i--){
+    const s=new Date(n.getFullYear(),n.getMonth()-i,1), e=new Date(n.getFullYear(),n.getMonth()-i+1,1);
+    const ts=state.trips.filter(tr=>{const d=isoDate(tr.arr.slice(0,10));return d>=s&&d<e});
+    months.push([s.toLocaleString("en-GB",{month:"short"}),ts.reduce((a,t)=>a+tripAllow(t),0),ts.reduce((a,t)=>a+tripCost(t),0)]);
+  }
+  const mx=Math.max(1,...months.flatMap(m=>[m[1],m[2]]));
+  $("alMonths").innerHTML=months.map(([m,a,s])=>`<div title="${m}: allowance ${fmtQAR(a)}, spent ${fmtQAR(s)}"><div class="pb"><i class="a" style="height:${Math.round(a/mx*105)}px"></i><i class="s" style="height:${Math.round(s/mx*105)}px"></i></div><span>${m}</span></div>`).join("");
+
+  /* insights */
+  const ins=[];
+  if(!trs.length) ins.push(`No layovers saved ${label}. Try another period, or save your layovers on the Today screen.`);
+  else if(A>0) ins.push(K>=0?`You kept ${pct}% of your allowances ${label}, which is ${fmtQAR(K)}.`:`You spent ${fmtQAR(-K)} more than your allowances ${label}.`);
+  else ins.push(`Add the allowance when you save a layover to see how much you keep.`);
+  const byDest={}; trs.forEach(t=>{(byDest[t.dest]??=[]).push(tripCost(t))});
+  const avg=Object.entries(byDest).map(([d,c])=>[d,c.reduce((a,b)=>a+b,0)/c.length,c.length]).sort((a,b)=>b[1]-a[1]);
+  if(avg.length>=2) ins.push(`Most expensive: ${avg[0][0]} at ${fmtQAR(avg[0][1])} per layover. Cheapest: ${avg[avg.length-1][0]} at ${fmtQAR(avg[avg.length-1][1])}.`);
+  const lsp=trs.flatMap(tripSpend), byCat=groupBy(lsp,t=>t.cat||"Other"), catTot=byCat.reduce((a,c)=>a+c[1],0);
+  if(byCat.length&&catTot>0) ins.push(`${byCat[0][0]} is ${Math.round(byCat[0][1]/catTot*100)}% of your layover spending ${label}.`);
+  if(spPeriod==="month"){
+    const day=n.getDate(), dim=new Date(n.getFullYear(),n.getMonth()+1,0).getDate();
+    const mSp=state.tx.filter(t=>t.type==="spend"&&isoDate(t.date)>=new Date(n.getFullYear(),n.getMonth(),1)).reduce((a,t)=>a+(qOf(t)||0),0);
+    if(day>=5&&mSp>0){
+      const proj=mSp/day*dim, past=months.slice(0,5).map(m=>m[2]).filter(v=>v>0);
+      let line=`At this pace you'll spend about ${fmtQAR(proj)} this month`;
+      if(past.length){const av=past.reduce((a,b)=>a+b,0)/past.length, d=Math.round((proj-av)/av*100); if(Math.abs(d)>=5) line+=`, ${Math.abs(d)}% ${d>0?"more":"less"} than your average month on layovers`;}
+      ins.push(line+".");
+    }
+  }
+  const linked=new Set(trs.flatMap(tr=>tripSpend(tr).map(t=>t.id)));
+  const unl=state.tx.filter(t=>t.type==="spend"&&!linked.has(t.id)&&(()=>{const d=isoDate(t.date);return (!from||d>=from)&&(!to||d<to)})()).reduce((a,t)=>a+(qOf(t)||0),0);
+  if(unl>0) ins.push(`${fmtQAR(unl)} of spending ${label} isn't linked to a saved layover, so it isn't counted above. Spending counts for a layover when the destination matches and the date is between arrival and pickup.`);
+  $("alInsights").innerHTML=ins.map(s=>`<li>${esc(s)}</li>`).join("");
+
+  /* cost per destination and per layover */
+  bars("costDest",avg.map(([d,v,c])=>[`${d} (${c})`,v]));
+  $("costList").innerHTML=trs.length?trs.map(tr=>{
+    const c=tripCost(tr), a=tripAllow(tr), k=a-c;
+    const meta=[tr.ex?"Example":"",fmtDate(tr.arr.slice(0,10)),a?`Allowance ${fmtQAR(a)}`:"No allowance entered",a?(k>=0?`Kept ${fmtQAR(k)}`:`Over by ${fmtQAR(-k)}`):""].filter(Boolean).map(esc).join(" · ");
+    return `<li><span class="t">${esc(tr.dest)}</span><span class="amt">${fmtQAR(c)}</span><span class="m">${meta}</span></li>`;
+  }).join(""):`<li class="empty">No layovers saved ${esc(label)}.</li>`;
+}
+
+/* ---------- fatigue and time-zone load ---------- */
+let fgPeriod=30;
+$("fgPeriod").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;fgPeriod=+b.dataset.d;renderFatigue()});
+function tripLoad(tr,prev){
+  const f=[]; let s=0;
+  const a=Math.abs(tr.diff);
+  if(a>0){ const east=tr.diff>0; s+=a*(east?1.5:1); f.push(`${fmtShift(tr.diff)} ${east?"east":"west"}`); }
+  const hrs=(tr.pickUTC-tr.arrUTC)/36e5;
+  if(hrs<15){s+=4;f.push("very short layover")} else if(hrs<24){s+=2;f.push("short layover")}
+  if(hourIn(HOME_TZ,new Date(tr.arrUTC))<6){s+=3;f.push("landed in your body's night")}
+  if(prev&&(tr.arrUTC-prev.pickUTC)/36e5<48){s+=2;f.push("back-to-back")}
+  s=Math.round(s*10)/10;
+  return {tr,s,f,hrs,lvl:s>=10?"high":s>=5?"mod":"low"};
+}
+const LVL={low:"Light",mod:"Moderate",high:"Heavy"};
+const weekLvl=v=>v>=20?"high":v>=10?"mod":"low";
+
+/* ---------- flight time rule checks (EASA FTL, as a reference) ---------- */
+const EST_DUTY=10;
+function acclimState(diffAbs,elapsedH){
+  const col=elapsedH<48?0:elapsedH<72?1:elapsedH<96?2:elapsedH<120?3:4;
+  const row=diffAbs<4?0:diffAbs<=6?1:diffAbs<=9?2:3;
+  return [["B","D","D","D","D"],["B","X","D","D","D"],["B","X","X","D","D"],["B","X","X","X","D"]][row][col];
+}
+const ACCLIM={B:"still on Doha time",X:"body clock in an unknown state",D:"adapted to local time"};
+function homeNightsNeeded(diffAbs,elapsedH){
+  if(diffAbs<4) return 0;
+  const col=elapsedH<48?0:elapsedH<72?1:elapsedH<96?2:3, row=diffAbs<=6?0:diffAbs<=9?1:2;
+  return [[2,2,3,3],[2,3,3,4],[2,3,4,5]][row][col];
+}
+/* Local nights in Doha (UTC+3): 22:00-08:00 local = 19:00-05:00 UTC; counts when 8h of it fall inside the window */
+function localNights(fromUTC,toUTC){
+  let n=0; const day=864e5;
+  for(let d=Math.floor(fromUTC/day)*day-day; d<toUTC; d+=day){
+    const s=Math.max(fromUTC,d+19*36e5), e=Math.min(toUTC,d+29*36e5);
+    if(e-s>=8*36e5) n++;
+  }
+  return n;
+}
+function ruleCheck(tr,next){
+  const duty=tr.duty||EST_DUTY, est=!tr.duty, diffAbs=Math.abs(tr.diff);
+  const restH=(tr.pickUTC-tr.arrUTC)/36e5, minRest=Math.max(10,duty), restOk=restH>=minRest;
+  const reportUTC=tr.arrUTC-duty*36e5;
+  const state=acclimState(diffAbs,(tr.pickUTC-reportUTC)/36e5);
+  let home=null;
+  if(next){
+    const backUTC=tr.pickUTC+duty*36e5, nextReport=next.arrUTC-(next.duty||EST_DUTY)*36e5;
+    let need=homeNightsNeeded(diffAbs,(backUTC-reportUTC)/36e5);
+    const flip=diffAbs>=4&&Math.abs(next.diff)>=4&&Math.sign(tr.diff)!==Math.sign(next.diff);
+    if(flip) need=Math.max(need,3);
+    if(need&&nextReport>backUTC){ const have=localNights(backUTC,nextReport); home={need,have,ok:have>=need,flip}; }
+  }
+  const v=!restOk?"bad":home&&!home.ok?"bad":state==="X"?"mod":"ok";
+  const lines=[`Rest ${fmtH(restH)}, minimum ${minRest}h ${restOk?"✓":"✗"}`,`At pickup: ${ACCLIM[state]}`];
+  if(home) lines.push(`Home rest before next trip: ${home.have} of ${home.need} local nights ${home.ok?"✓":"✗"}${home.flip?" (east-west switch)":""}`);
+  if(est) lines.push("duty estimated at 10h");
+  const label={ok:"Within the rules",mod:"Unknown body-clock state",bad:!restOk?"Rest below minimum":"Home rest too short"}[v];
+  return {v,label,lines,restH,minRest,restOk,state,home};
+}
+const RV={ok:"low",mod:"mod",bad:"high"};
+
+/* Route chart: trips in order, one column each, bar = time difference, colour = rule result */
+function routeSVG(items){
+  const n=items.length, L=42, R=14, col=Math.max(52,Math.min(90,600/n)), W=Math.max(300,L+R+col*n), T=24, ph=170, B=50, H=T+ph+B, pw=W-L-R;
+  const Rg=Math.ceil(Math.max(3,...items.map(x=>Math.abs(x.tr.diff)))/3)*3;
+  const sy=v=>T+ph/2-(v/Rg)*(ph/2), cx=i=>L+col*(i+.5), bw=Math.max(8,Math.min(26,col*.5));
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="min-width:${W}px" role="img" aria-label="Time difference and rule check for each trip">`;
+  for(let v=-Rg;v<=Rg;v+=3){ s+=`<line class="${v===0?"c-zero":"c-axis"}" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}"/><text class="c-txt" x="${L-6}" y="${sy(v)+4}" text-anchor="end">${v>0?"+":v<0?"−":""}${Math.abs(v)}h</text>`; }
+  items.forEach((it,i)=>{
+    const d=it.tr.diff, y0=sy(0), y1=sy(d), top=Math.min(y0,y1), hgt=Math.max(3,Math.abs(y1-y0)), x=cx(i);
+    s+=`<rect class="lv-${RV[it.rule.v]}" x="${(x-bw/2).toFixed(1)}" y="${(d===0?y0-1.5:top).toFixed(1)}" width="${bw.toFixed(1)}" height="${hgt.toFixed(1)}" rx="3"><title>Doha to ${esc(it.tr.dest)}, ${shortDate(it.tr.arrUTC)}: ${fmtShift(d)}. ${esc(it.rule.label)}. ${esc(it.rule.lines.join(". "))}</title></rect>`;
+    s+=`<text class="c-code" x="${x.toFixed(1)}" y="${(d>=0?top-5:top+hgt+12).toFixed(1)}" text-anchor="middle">${esc(it.tr.code||it.tr.dest.slice(0,3).toUpperCase())}</text>`;
+    s+=`<text class="c-txt" x="${x.toFixed(1)}" y="${T+ph+16}" text-anchor="middle">${shortDate(it.tr.arrUTC)}</text>`;
+    if(it.rule.home&&i<n-1) s+=`<text class="c-txt ${it.rule.home.ok?"":"c-badtxt"}" x="${(x+col/2).toFixed(1)}" y="${T+ph+40}" text-anchor="middle">${it.rule.home.have}/${it.rule.home.need}</text>`;
+  });
+  return s+"</svg>";
+}
+
+/* Three panels sharing one trip axis: rest vs duty, fatigue points, allowance vs spent */
+function dashSVG(items){
+  const n=items.length, W=340, L=44, R=8, col=(W-L-R)/n, cx=i=>L+col*(i+.5), bw=Math.max(4,Math.min(12,col*.28));
+  const P=[{t:22,h:76},{t:138,h:66},{t:246,h:70}], H=P[2].t+P[2].h+22;
+  const dut=it=>it.tr.duty||EST_DUTY, restH=it=>(it.tr.pickUTC-it.tr.arrUTC)/36e5;
+  const hMax=Math.ceil(Math.max(12,...items.map(it=>Math.max(restH(it),dut(it))))/12)*12;
+  const pMax=Math.max(12,Math.ceil(Math.max(...items.map(it=>it.s))/4)*4);
+  const mMax=Math.max(100,...items.map(it=>Math.max(tripAllow(it.tr),tripCost(it.tr))));
+  const yv=(p,v,max)=>P[p].t+P[p].h-(Math.min(v,max)/max)*P[p].h;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rest against duty, fatigue points and spending against allowance for each trip">`;
+  const title=(p,txt,max)=>`<text class="c-ptitle" x="0" y="${P[p].t-9}">${txt}</text><text class="c-txt" x="${L-4}" y="${P[p].t+4}" text-anchor="end">${max}</text><text class="c-txt" x="${L-4}" y="${P[p].t+P[p].h}" text-anchor="end">0</text><line class="c-zero" x1="${L}" x2="${W-R}" y1="${P[p].t+P[p].h}" y2="${P[p].t+P[p].h}"/><line class="c-axis" x1="${L}" x2="${W-R}" y1="${P[p].t}" y2="${P[p].t}" opacity=".5"/>`;
+  s+=title(0,"Rest vs duty, hours",hMax+"h")+title(1,"Fatigue points",pMax)+title(2,"Allowance vs spent, QAR",Math.round(mMax).toLocaleString("en-GB"));
+  /* panel 1 */
+  items.forEach((it,i)=>{
+    const x=cx(i), d=dut(it), r=restH(it), y0=yv(0,0,hMax);
+    s+=`<rect class="c-duty${it.tr.duty?"":" c-est"}" x="${(x-bw-1).toFixed(1)}" y="${yv(0,d,hMax).toFixed(1)}" width="${bw}" height="${(y0-yv(0,d,hMax)).toFixed(1)}" rx="2"><title>${esc(it.tr.dest)}: duty ${fmtH(d)}${it.tr.duty?"":" (estimated)"}</title></rect>`;
+    s+=`<rect class="${it.rule.restOk?"c-rest":"c-rest-bad"}" x="${(x+1).toFixed(1)}" y="${yv(0,r,hMax).toFixed(1)}" width="${bw}" height="${(y0-yv(0,r,hMax)).toFixed(1)}" rx="2"><title>${esc(it.tr.dest)}: rest ${fmtH(r)}, minimum ${it.rule.minRest}h</title></rect>`;
+    const ym=yv(0,it.rule.minRest,hMax); s+=`<line class="c-mintick" x1="${(x-1).toFixed(1)}" x2="${(x+bw+3).toFixed(1)}" y1="${ym.toFixed(1)}" y2="${ym.toFixed(1)}"/>`;
+  });
+  /* panel 2 */
+  [[5,"mod"],[10,"high"]].forEach(([v,c])=>{ if(v<pMax) s+=`<line class="c-band ${c}" x1="${L}" x2="${W-R}" y1="${yv(1,v,pMax).toFixed(1)}" y2="${yv(1,v,pMax).toFixed(1)}"/>`; });
+  s+=`<path class="c-line" d="${items.map((it,i)=>`${i?"L":"M"}${cx(i).toFixed(1)},${yv(1,it.s,pMax).toFixed(1)}`).join("")}"/>`;
+  items.forEach((it,i)=>{ s+=`<circle class="lv-${it.lvl} c-pt" cx="${cx(i).toFixed(1)}" cy="${yv(1,it.s,pMax).toFixed(1)}" r="4.5"><title>${esc(it.tr.dest)}: ${it.s} points, ${LVL[it.lvl].toLowerCase()}</title></circle>`; });
+  /* panel 3 */
+  items.forEach((it,i)=>{
+    const x=cx(i), a=tripAllow(it.tr), c=tripCost(it.tr), y0=yv(2,0,mMax);
+    if(a) s+=`<rect class="c-allow" x="${(x-bw-1).toFixed(1)}" y="${yv(2,a,mMax).toFixed(1)}" width="${bw*2+2}" height="${(y0-yv(2,a,mMax)).toFixed(1)}" rx="2"><title>${esc(it.tr.dest)}: allowance ${fmtQAR(a)}</title></rect>`;
+    s+=`<rect class="${a&&c>a?"c-over":"c-spent"}" x="${(x-bw/2).toFixed(1)}" y="${yv(2,c,mMax).toFixed(1)}" width="${bw}" height="${Math.max(0,y0-yv(2,c,mMax)).toFixed(1)}" rx="2"><title>${esc(it.tr.dest)}: spent ${fmtQAR(c)}${a?`, kept ${fmtQAR(a-c)}`:""}</title></rect>`;
+    s+=`<text class="c-code" x="${x.toFixed(1)}" y="${H-6}" text-anchor="middle">${esc(it.tr.code||it.tr.dest.slice(0,3).toUpperCase())}</text>`;
+  });
+  return s+"</svg>";
+}
+function dashInsights(items){
+  const out=[], avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const ratio=avg(items.map(it=>((it.tr.pickUTC-it.tr.arrUTC)/36e5)/(it.tr.duty||EST_DUTY)));
+  out.push(`You get about ${ratio.toFixed(1)} hours of rest for every hour of duty.`);
+  const short=items.filter(it=>!it.rule.restOk).length;
+  if(short) out.push(`${short} of ${items.length} trips had less rest than the minimum.`);
+  if(items.length>=4){
+    const k=Math.min(3,Math.floor(items.length/2)), a=avg(items.slice(-k).map(it=>it.s)), b=avg(items.slice(-2*k,-k).map(it=>it.s)), d=a-b;
+    out.push(Math.abs(d)<1?`Fatigue is steady: about ${a.toFixed(1)} points on your last ${k} trips.`
+      :`Fatigue is going ${d>0?"up":"down"}: ${a.toFixed(1)} points on your last ${k} trips, against ${b.toFixed(1)} on the ${k} before.`);
+  }
+  const withMoney=items.filter(it=>tripAllow(it.tr)>0);
+  if(withMoney.length){
+    const A=withMoney.reduce((x,it)=>x+tripAllow(it.tr),0), S=withMoney.reduce((x,it)=>x+tripCost(it.tr),0);
+    out.push(`You kept ${Math.round((A-S)/A*100)}% of your allowances on these trips (${fmtQAR(A-S)}).`);
+  }
+  const hv=items.filter(it=>it.lvl!=="low"), lt=items.filter(it=>it.lvl==="low");
+  if(hv.length&&lt.length){
+    const sh=avg(hv.map(it=>tripCost(it.tr))), sl=avg(lt.map(it=>tripCost(it.tr)));
+    if(Math.abs(sh-sl)>=10) out.push(`On moderate and heavy trips you spend ${fmtQAR(sh)} on average, against ${fmtQAR(sl)} on light ones.`);
+  }
+  return out;
+}
+
+function shiftSVG(items,start,end){
+  const W=640,H=230,L=42,R=14,T=20,B=28,pw=W-L-R,ph=H-T-B;
+  const Rg=Math.ceil(Math.max(3,...items.map(x=>Math.abs(x.tr.diff)))/3)*3;
+  const sy=v=>T+ph/2-(v/Rg)*(ph/2), sx=t=>L+((t-start)/Math.max(1,end-start))*pw;
+  const bw=Math.max(5,Math.min(16,pw/Math.max(items.length,1)*0.5));
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Time-zone shift for each layover">`;
+  for(let v=-Rg;v<=Rg;v+=3){ s+=`<line class="${v===0?"c-zero":"c-axis"}" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}"/><text class="c-txt" x="${L-6}" y="${sy(v)+4}" text-anchor="end">${v>0?"+":v<0?"−":""}${Math.abs(v)}h</text>`; }
+  const showCodes=items.length<=18;
+  items.forEach(it=>{
+    const cx=Math.min(W-R-bw/2,Math.max(L+bw/2,sx(it.tr.arrUTC))), d=it.tr.diff, y0=sy(0), y1=sy(d);
+    const top=Math.min(y0,y1), h=Math.max(2,Math.abs(y1-y0));
+    s+=`<rect class="lv-${it.lvl}" x="${(cx-bw/2).toFixed(1)}" y="${(d===0?y0-1:top).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2"><title>${esc(it.tr.dest)}, ${shortDate(it.tr.arrUTC)}: ${fmtShift(d)}, ${LVL[it.lvl].toLowerCase()} (${it.s} points)</title></rect>`;
+    if(showCodes) s+=`<text class="c-code" x="${cx.toFixed(1)}" y="${(d>=0?top-4:top+h+11).toFixed(1)}" text-anchor="middle">${esc(it.tr.code||it.tr.dest.slice(0,3).toUpperCase())}</text>`;
+  });
+  [start,(start+end)/2,end].forEach((t,i)=>s+=`<text class="c-txt" x="${sx(t)}" y="${H-6}" text-anchor="${["start","middle","end"][i]}">${shortDate(t)}</text>`);
+  return s+"</svg>";
+}
+function loadSVG(scored,start,end){
+  const W=640,H=200,L=34,R=66,T=14,B=26,pw=W-L-R,ph=H-T-B, day=864e5;
+  const pts=[]; for(let t=start;t<=end+1;t+=day){ pts.push([t,scored.filter(x=>x.tr.arrUTC>t-7*day&&x.tr.arrUTC<=t).reduce((a,x)=>a+x.s,0)]); }
+  const ymax=Math.max(25,Math.ceil(Math.max(...pts.map(p=>p[1]))*1.15/5)*5);
+  const sx=t=>L+((t-start)/Math.max(1,end-start))*pw, sy=v=>T+ph-(v/ymax)*ph;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="7-day load over time">`;
+  for(let v=0;v<=ymax;v+=ymax>40?10:5){ s+=`<line class="c-axis" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}" opacity="${v?.45:1}"/><text class="c-txt" x="${L-6}" y="${sy(v)+4}" text-anchor="end">${v}</text>`; }
+  [[10,"mod","Moderate"],[20,"high","Heavy"]].forEach(([v,c,l])=>{ s+=`<line class="c-band ${c}" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}"/><text class="c-bandtxt ${c}" x="${W-R+6}" y="${sy(v)+4}">${l}</text>`; });
+  const line=pts.map((p,i)=>`${i?"L":"M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join("");
+  s+=`<path class="c-area" d="${line}L${sx(pts[pts.length-1][0]).toFixed(1)},${sy(0)}L${sx(pts[0][0]).toFixed(1)},${sy(0)}Z"/><path class="c-line" d="${line}"/>`;
+  const last=pts.filter(p=>p[0]<=Date.now()).pop()||pts[pts.length-1];
+  s+=`<circle class="c-dot" cx="${sx(last[0]).toFixed(1)}" cy="${sy(last[1]).toFixed(1)}" r="5"/><text class="c-code" x="${(sx(last[0])-8).toFixed(1)}" y="${(sy(last[1])-10).toFixed(1)}" text-anchor="end">Now ${Math.round(last[1])}</text>`;
+  [start,(start+end)/2,end].forEach((t,i)=>s+=`<text class="c-txt" x="${sx(t)}" y="${H-6}" text-anchor="${["start","middle","end"][i]}">${shortDate(t)}</text>`);
+  return s+"</svg>";
+}
+
+function renderFatigue(){
+  document.querySelectorAll("#fgPeriod .chip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.d===fgPeriod));
+  const has=state.trips.length>0;
+  $("fgEmpty").hidden=has; $("fgTop").hidden=!has; document.querySelectorAll(".fgCard").forEach(c=>c.hidden=!has);
+  if(!has) return;
+  const trips=state.trips.slice().sort((a,b)=>a.arrUTC-b.arrUTC);
+  const scored=trips.map((tr,i)=>tripLoad(tr,trips[i-1]));
+  const now=Date.now(), day=864e5, start=now-fgPeriod*day;
+  const soon=trips.filter(t=>t.arrUTC>now&&t.arrUTC<now+14*day).map(t=>t.arrUTC);
+  const end=Math.max(now,...soon)+(soon.length?day:0);
+  const inP=scored.filter(x=>x.tr.arrUTC>=start&&x.tr.arrUTC<=end);
+
+  const wk=scored.filter(x=>x.tr.arrUTC>now-7*day&&x.tr.arrUTC<=now).reduce((a,x)=>a+x.s,0), wl=weekLvl(wk);
+  const adv={low:"Your last 7 days have been light on your body clock.",
+    mod:"A moderate week for your body clock. Protect your sleep on the next layover and avoid stacking late nights.",
+    high:"A heavy week for your body clock. Make rest your priority, and if you feel unfit to fly, use your company's fatigue reporting process."}[wl];
+  $("fgNow").innerHTML=`<div><span class="label">Last 7 days</span><div class="big">${Math.round(wk)} points<span class="lvl ${wl}">${LVL[wl]}</span></div></div><p class="hint" style="flex:1 1 220px">${adv}</p>`;
+
+  const tzh=inP.reduce((a,x)=>a+Math.abs(x.tr.diff)*2,0);
+  const east=inP.filter(x=>x.tr.diff>=3).length, short=inP.filter(x=>x.hrs<24).length, night=inP.filter(x=>x.f.includes("landed in your body's night")).length;
+  $("fgTrio").innerHTML=`<div><span class="label">Layovers</span><span class="big">${inP.length}</span></div>
+    <div><span class="label">Time-zone hours crossed</span><span class="big">${Math.round(tzh)}h</span><span class="hint">out and back</span></div>
+    <div><span class="label">Eastbound, 3h+</span><span class="big">${east}</span></div>
+    <div><span class="label">Under 24h on the ground</span><span class="big">${short}</span></div>
+    <div><span class="label">Landed in body's night</span><span class="big">${night}</span></div>`;
+
+  inP.forEach(x=>{ const i=trips.indexOf(x.tr); x.rule=ruleCheck(x.tr,trips[i+1]); });
+  $("fgShift").innerHTML=inP.length?routeSVG(inP):`<p class="empty">No layovers in this period.</p>`;
+  requestAnimationFrame(()=>{ const cb=$("fgShift"); cb.scrollLeft=cb.scrollWidth; });   /* newest trips first in view */
+  $("fgLoad").innerHTML=loadSVG(scored,start,end);
+  const recent=inP.slice(-8);
+  $("dash").innerHTML=recent.length?dashSVG(recent):`<p class="empty">No layovers in this period.</p>`;
+  $("dashN").textContent=recent.length?`Last ${recent.length} trip${recent.length===1?"":"s"}`:"";
+  $("dashIns").innerHTML=recent.length?dashInsights(recent).map(t=>`<li>${esc(t)}</li>`).join(""):"";
+  $("fgList").innerHTML=inP.length?inP.slice().reverse().map(x=>`<li><span class="t">${esc(x.tr.dest)}<span class="lvl ${RV[x.rule.v]}">${esc(x.rule.label)}</span></span><span class="amt">${x.s} pts</span><span class="m">${esc([x.tr.ex?"Example":"",fmtDate(x.tr.arr.slice(0,10)),fmtShift(x.tr.diff)+" vs Doha"].filter(Boolean).join(" · "))}<br>${esc(x.rule.lines.join(" · "))}<br>Fatigue points: ${esc(x.f.join(" · ")||"no extra factors")}</span></li>`).join("")
+    :`<li class="empty">No layovers in this period.</li>`;
+}
+
+/* ---------- example layovers, clearly marked and removable ---------- */
+function seedExamples(){
+  const now=Date.now(), day=864e5;
+  const ex=[[40,"LHR",6.5,27,560,[["Food","GBP",28,128,"card","Pret and dinner"],["Shopping","GBP",45,206,"card","Boots"]]],
+    [35,"BKK",7,26,330,[["Food","THB",450,46,"cash","Street food"],["Beauty & health","THB",800,82,"cash","Thai massage"],["Shopping","THB",1200,122,"card","Mall"]]],
+    [31,"NRT",18,25,610,[["Food","JPY",3200,78,"cash","Ramen and konbini"],["Transport","JPY",1400,34,"card","Suica top-up"]]],
+    [27,"JFK",15,48,720,[["Food","USD",64,233,"card","Dinner with the crew"],["Shopping","USD",85,309,"card","Outlet"],["Transport","USD",18,66,"card","Uber"]]],
+    [23,"CDG",6,24,520,[["Food","EUR",32,128,"card","Café and bakery"],["Beauty & health","EUR",40,160,"card","Pharmacy skincare"]]],
+    [19,"SYD",5.5,30,690,[["Food","AUD",55,131,"card","Harbour lunch"],["Activities","AUD",30,72,"card","Ferry to Manly"]]],
+    [15,"CMB",3,22,280,[["Food","LKR",4500,55,"cash","Kottu at Galle Face"]]],
+    [11,"IST",8,26,450,[["Food","TRY",900,99,"cash","Breakfast in Kadıköy"],["Shopping","TRY",1500,165,"card","Grand Bazaar"]]],
+    [8,"NRT",17,24,610,[["Food","JPY",2800,68,"cash","Sushi"]]],
+    [5,"BKK",2,14,330,[["Food","THB",300,31,"cash","Food court"]]],
+    [3,"LHR",6.5,26,560,[["Food","GBP",22,101,"card","Borough Market"],["Shopping","GBP",60,275,"card","Clothes"]]]];
+  const DUTY={LHR:8,BKK:7.5,NRT:11,JFK:15,CDG:7.5,SYD:15.5,CMB:5.5,IST:5.5};
+  ex.forEach(([ago,code,hr,len,allow,spends])=>{
+    const d=DESTS.find(x=>x.code===code);
+    const ds=localStr(now-ago*day,d.tz).slice(0,10), arr=`${ds}T${pad2(Math.floor(hr))}:${pad2(Math.round(hr%1*60))}`;
+    const arrUTC=zonedToUTC(arr,d.tz), pickUTC=arrUTC+len*36e5;
+    state.trips.push({id:newId(),ex:true,dest:d.name,code,cc:d.cc,key:code,tz:d.tz,arr,pick:localStr(pickUTC,d.tz),arrUTC,pickUTC,rest:10,duty:DUTY[code]||0,allow,allowCur:"QAR",allowQAR:allow,diff:offH(d.tz,new Date(arrUTC))-offH(HOME_TZ,new Date(arrUTC))});
+    spends.forEach(([cat,cur,amt,qar,pay,note])=>state.tx.push({id:newId(),ex:true,date:ds,type:"spend",cur,amt,cat,pay,note,dest:d.name,code,cc:d.cc,qar}));
+  });
+  store.set("trips",state.trips); store.set("tx",state.tx);
+  renderTrips(); renderMoney(); renderFatigue();
+}
+function removeExamples(){
+  state.trips=state.trips.filter(t=>!t.ex); state.tx=state.tx.filter(t=>!t.ex);
+  store.set("trips",state.trips); store.set("tx",state.tx);
+  renderTrips(); renderMoney(); renderFatigue();
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest(".exAdd")) seedExamples();
+  else if(e.target.closest(".exRemove")) removeExamples();
+  else if(e.target.closest(".goPlan")) { showTab("today"); $("trAllow").scrollIntoView({block:"center"}); $("trAllow").focus({preventScroll:true}); }
+  else if(e.target.closest("[data-goto]")) { showTab(e.target.closest("[data-goto]").dataset.goto); }
+  else if(e.target.closest("[data-go]")) {
+    nb.cat=e.target.closest("[data-go]").dataset.go; nbSync(); showTab("explore","nearby");
+    if(nb.base) nbRun(); else if(nb.q&&!LIVE) nbLinks(); else nbUseCentre();
+  }
+});
+
+/* ---------- install tip (phone website) ---------- */
+let installEvt=null;
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; if(!$("installTip").hidden) $("installBtn").hidden=false; });
+function initInstallTip(){
+  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+  if(!WEBAPP||standalone||lsGet("lay.installSeen",false)) return;
+  $("installTip").hidden=false; if(installEvt) $("installBtn").hidden=false;
+}
+$("installClose").addEventListener("click",()=>{ $("installTip").hidden=true; lsSet("lay.installSeen",true); });
+$("installBtn").addEventListener("click",async()=>{ if(!installEvt) return; installEvt.prompt(); try{await installEvt.userChoice}catch(e){} installEvt=null; $("installTip").hidden=true; lsSet("lay.installSeen",true); });
+
+/* ---------- backup and restore ---------- */
+const BK_KEYS=["dest","tips","wish","wallet","plan","tx","visits","rates","trips"];
+let bkPending=null;
+function initBackup(){ renderAccount(); }
+$("bkSave").addEventListener("click",()=>{
+  const out={app:"layover-logbook",saved:new Date().toISOString(),data:{}};
+  BK_KEYS.forEach(k=>{ const v=store.get(k,undefined); if(v!==undefined) out.data[k]=v; });
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:"application/json"}));
+  a.download=`layover-backup-${todayISO()}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  $("bkMsg").textContent="Backup downloaded. Keep it somewhere safe, like your email or cloud storage.";
+});
+$("bkLoad").addEventListener("click",()=>$("bkFile").click());
+$("bkFile").addEventListener("change",async()=>{
+  const f=$("bkFile").files[0]; $("bkFile").value=""; if(!f) return;
+  try{
+    const j=JSON.parse(await f.text());
+    if(!j||j.app!=="layover-logbook"||typeof j.data!=="object") throw 0;
+    bkPending=j.data;
+    const n=k=>Array.isArray(j.data[k])?j.data[k].length:0;
+    $("bkInfo").textContent=`Backup from ${new Date(j.saved).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}: ${n("trips")} layovers, ${n("tx")} money entries, ${n("visits")} places. This replaces what's on ${HERE}.`;
+    $("bkConfirm").hidden=false; $("bkMsg").textContent="";
+  }catch(e){ $("bkMsg").textContent="That file isn't a Layover Logbook backup. Choose the .json file you downloaded from this screen."; }
+});
+$("bkNo").addEventListener("click",()=>{ bkPending=null; $("bkConfirm").hidden=true; });
+$("bkYes").addEventListener("click",()=>{
+  if(!bkPending) return;
+  BK_KEYS.forEach(k=>{ if(k in bkPending) store.set(k,bkPending[k]); });
+  bkPending=null; $("bkConfirm").hidden=true;
+  loadState(); fillMissingQAR(); renderAll();
+  $("bkMsg").textContent="Your data has been restored.";
+});
+
+/* ================= accounts (phone website + Supabase) ================= */
+const CFG=window.LAYOVER_CONFIG||{};
+const SB=String(CFG.supabaseUrl||"").trim().replace(/\/+$/,"");
+const SBKEY=String(CFG.supabaseKey||"").trim();
+const CLOUD_ON=WEBAPP&&/^https:\/\/[^\s/]+$/.test(SB)&&SBKEY.length>20;
+const Auth={
+  session:lsGet("lay.session",null),
+  save(s){ this.session=s; lsSet("lay.session",s); },
+  from(t,user){ return {access_token:t.access_token,refresh_token:t.refresh_token,
+    expires_at:+t.expires_at||Math.floor(Date.now()/1000)+(+t.expires_in||3600),
+    user:{id:(user||t.user||{}).id,email:(user||t.user||{}).email}}; }
+};
+function authErr(j,status){
+  const m=String(j.error_description||j.msg||j.message||j.error||"");
+  let t=m||"Something went wrong. Check your connection and try again.";
+  if(/invalid login credentials/i.test(m)) t="Wrong email or password.";
+  else if(/not confirmed/i.test(m)) t="Please confirm your email first. Open the link we sent you.";
+  else if(/already (been )?registered|already exists/i.test(m)) t="An account with this email already exists. Sign in instead.";
+  else if(/not authorized/i.test(m)) t="Emails can't be sent to this address yet. The app owner needs to finish the email setup.";
+  else if(status===429||/rate limit|too many|security purposes/i.test(m)) t="Too many attempts. Wait a minute, then try again.";
+  else if(/password/i.test(m)&&/(at least|short|weak|characters)/i.test(m)) t="Choose a stronger password, at least 8 characters.";
+  else if(/invalid.*email|email.*invalid/i.test(m)) t="That email address doesn't look right.";
+  return Object.assign(new Error(t),{status});
+}
+async function sbAuth(path,body,{method="POST",token}={}){
+  const r=await fetch(SB+"/auth/v1/"+path,{method,headers:{apikey:SBKEY,"Content-Type":"application/json",...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});
+  let j={}; try{j=await r.json()}catch(e){}
+  if(!r.ok) throw authErr(j,r.status);
+  return j;
+}
+/* A valid access token, refreshed when close to expiry. null = offline, throws {expired} = must sign in again */
+async function validToken(){
+  const s=Auth.session; if(!s) throw Object.assign(new Error("signed out"),{expired:true});
+  if(s.expires_at-60>Date.now()/1000) return s.access_token;
+  try{ const t=await sbAuth("token?grant_type=refresh_token",{refresh_token:s.refresh_token}); Auth.save(Auth.from(t,s.user)); return Auth.session.access_token; }
+  catch(e){ if(e.status>=400&&e.status<500) throw Object.assign(new Error("expired"),{expired:true}); return null; }
+}
+async function sbRest(path,opt={}){
+  const tok=await validToken(); if(!tok) throw Object.assign(new Error("offline"),{offline:true});
+  let r; try{ r=await fetch(SB+"/rest/v1/"+path,{...opt,headers:{apikey:SBKEY,Authorization:"Bearer "+tok,"Content-Type":"application/json",...(opt.headers||{})}}); }
+  catch(e){ throw Object.assign(new Error("offline"),{offline:true}); }
+  if(r.status===401) throw Object.assign(new Error("expired"),{expired:true});
+  if(!r.ok) throw Object.assign(new Error("sync failed "+r.status),{status:r.status});
+  return r;
+}
+
+/* Sync: everything lives in one row per user. A local copy keeps the app working offline. */
+const Cloud={
+  timer:null,busy:false,again:false,rev:0,serverAt:0,state:"",
+  key(){ return "lay.cloud."+DB.cloud.uid; },
+  cache(){ return lsGet(this.key(),null); },
+  writeCache(dirty){ lsSet(this.key(),{data:DB.data,dirty,at:Date.now(),serverAt:this.serverAt}); },
+  touch(){ this.rev++; this.writeCache(true); this.status("wait"); clearTimeout(this.timer); this.timer=setTimeout(()=>this.push(),700); },
+  async push(){
+    clearTimeout(this.timer); if(!DB.cloud) return;
+    if(this.busy){ this.again=true; return; }
+    this.busy=true; const rev=this.rev, at=new Date().toISOString();
+    try{
+      await sbRest("user_data?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},
+        body:JSON.stringify({user_id:DB.cloud.uid,data:DB.data,updated_at:at})});
+      this.serverAt=Date.parse(at);
+      if(rev===this.rev){ this.writeCache(false); this.status("ok"); }
+    }catch(e){ if(e.expired) sessionEnded(); else this.status(e.offline?"off":"bad"); }
+    finally{ this.busy=false; if(this.again){ this.again=false; this.push(); } }
+  },
+  async pull(){
+    const r=await sbRest(`user_data?select=data,updated_at&user_id=eq.${encodeURIComponent(DB.cloud.uid)}`,{method:"GET"});
+    const rows=await r.json(); return rows[0]||null;
+  },
+  status(s){ this.state=s; renderAccount(); }
+};
+addEventListener("online",()=>{ if(DB.cloud){ const c=Cloud.cache(); if(c&&c.dirty) Cloud.push(); }});
+/* Coming back to the app: pick up changes made on another phone */
+document.addEventListener("visibilitychange",async()=>{
+  if(document.visibilityState!=="visible"||!DB.cloud||Cloud.busy) return;
+  const c=Cloud.cache(); if(c&&c.dirty){ Cloud.push(); return; }
+  try{ const row=await Cloud.pull(); if(row&&Date.parse(row.updated_at)>Cloud.serverAt+1000){
+    DB.data=row.data||{}; Cloud.serverAt=Date.parse(row.updated_at); Cloud.writeCache(false); loadState(); fillMissingQAR(); renderAll(); Cloud.status("ok"); } }
+  catch(e){ if(e.expired) sessionEnded(); }
+});
+
+async function startCloud(user){
+  DB.cloud={uid:user.id,email:user.email||""};
+  const c=Cloud.cache(); let row=null;
+  try{ row=await Cloud.pull(); }
+  catch(e){
+    if(e.expired){ DB.cloud=null; return false; }
+    DB.data=c?c.data:{}; Cloud.serverAt=c?c.serverAt||0:0; Cloud.status(c&&c.dirty?"wait":"off");
+    return true;
+  }
+  if(c&&c.dirty&&(!row||c.at>Date.parse(row.updated_at))){ DB.data=c.data; Cloud.serverAt=c.serverAt||0; Cloud.rev++; Cloud.push(); }
+  else if(row){ DB.data=row.data||{}; Cloud.serverAt=Date.parse(row.updated_at); Cloud.writeCache(false); Cloud.status("ok"); }
+  else {
+    /* New account: bring along what this phone saved without an account, once */
+    DB.data={}; let moved=0;
+    if(!lsGet("lay.movedToAccount",false)){
+      BK_KEYS.forEach(k=>{ const v=lsGet("lay."+k,undefined); if(v!==undefined){ DB.data[k]=v; moved++; } });
+      if(moved){ lsSet("lay.movedToAccount",true); Cloud.welcome="The data already on this phone is now saved in your account."; }
+    }
+    Cloud.rev++; Cloud.push();
+  }
+  return true;
+}
+function sessionEnded(){
+  Cloud.status("bad");
+  showLogin("signin","Your session has ended. Sign in again to keep saving to your account.");
+  authDone=user=>{ location.reload(); };
+}
+
+/* ---------- login screen ---------- */
+let authView="signin", authDone=null;
+const showMsg=(t,kind)=>{ const m=$("authMsg"); m.hidden=!t; m.textContent=t||""; m.className="authmsg "+(kind||"err"); };
+function setView(v,msg,kind){
+  authView=v;
+  const T={signin:["Welcome back","Sign in to get your layovers, money and journal on any phone.","Sign in"],
+    signup:["Create your account","Your data is saved to your account, so it's safe if you lose or change your phone.","Create account"],
+    forgot:["Reset your password","Enter your email and we'll send you a link to choose a new password.","Send reset link"],
+    newpass:["Choose a new password","Pick a new password for your account.","Save new password"]}[v];
+  $("authTitle").textContent=T[0]; $("authSub").textContent=T[1]; $("authGo").textContent=T[2];
+  $("authSeg").hidden=v==="forgot"||v==="newpass";
+  $("authSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
+  $("fEmail").hidden=v==="newpass"; $("fPass").hidden=v==="forgot";
+  $("authPassLbl").textContent=v==="signin"?"Password":v==="newpass"?"New password":"Password, at least 8 characters";
+  $("authPass").autocomplete=v==="signin"?"current-password":"new-password";
+  $("authForgot").hidden=v!=="signin"; $("authBack").hidden=v!=="forgot";
+  $("authGuest").hidden=v==="newpass";
+  const off=!CLOUD_ON; $("authSetup").hidden=!off||v==="newpass"; $("authGo").disabled=off; $("authGo").style.opacity=off?.5:"";
+  showMsg(msg,kind);
+}
+function showLogin(v,msg,kind){ $("login").hidden=false; document.body.style.overflow="hidden"; setView(v||"signin",msg,kind); }
+function hideLogin(){ $("login").hidden=true; document.body.style.overflow=""; }
+$("authSeg").addEventListener("click",e=>{const b=e.target.closest("[data-view]"); if(b) setView(b.dataset.view);});
+$("authForgot").addEventListener("click",()=>setView("forgot"));
+$("authBack").addEventListener("click",()=>setView("signin"));
+$("authShow").addEventListener("click",()=>{const p=$("authPass"),s=p.type==="password";p.type=s?"text":"password";$("authShow").textContent=s?"Hide":"Show";});
+$("authGuest").addEventListener("click",()=>{ lsSet("lay.guest",true); Auth.save(null); hideLogin(); authDone&&authDone(null); });
+$("authForm").addEventListener("submit",async e=>{
+  e.preventDefault(); if(!CLOUD_ON) return;
+  const email=$("authEmail").value.trim(), pass=$("authPass").value;
+  if(authView!=="newpass"&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showMsg("Enter your email address."); $("authEmail").focus(); return; }
+  if(authView!=="forgot"&&pass.length<8){ showMsg(authView==="signin"?"Enter your password.":"Use at least 8 characters for your password."); $("authPass").focus(); return; }
+  const go=$("authGo"), label=go.textContent; go.disabled=true; go.textContent="Please wait…"; showMsg("");
+  const here=location.origin+location.pathname;
+  try{
+    if(authView==="signin"){
+      const t=await sbAuth("token?grant_type=password",{email,password:pass}); finishLogin(Auth.from(t));
+    } else if(authView==="signup"){
+      const t=await sbAuth("signup?redirect_to="+encodeURIComponent(here),{email,password:pass});
+      if(t.access_token) finishLogin(Auth.from(t));
+      else if(t.identities&&t.identities.length===0) showMsg("An account with this email already exists. Sign in instead.");
+      else { setView("signin","Check your inbox: we sent a link to confirm your email. Open it on this phone, then sign in.","ok"); $("authEmail").value=email; }
+    } else if(authView==="forgot"){
+      await sbAuth("recover?redirect_to="+encodeURIComponent(here),{email});
+      setView("signin","If an account exists for that email, a reset link is on its way. Open it on this phone.","ok");
+    } else if(authView==="newpass"){
+      const tok=await validToken(); await sbAuth("user",{password:pass},{method:"PUT",token:tok});
+      finishLogin(Auth.session,"Your password has been changed.");
+    }
+  }catch(err){ showMsg(err.status?err.message:"Couldn't connect. Check your internet connection and try again."); }
+  finally{ go.disabled=false; if(go.textContent==="Please wait…") go.textContent=label; }
+});
+function finishLogin(session,note){
+  Auth.save(session); lsSet("lay.guest",null); $("authPass").value="";
+  hideLogin(); if(note) Cloud.welcome=note; authDone&&authDone(session.user);
+}
+/* Links from emails (confirm address, reset password) arrive with tokens in the address */
+async function readAuthLink(){
+  if(!location.hash||location.hash.length<10) return null;
+  const p=new URLSearchParams(location.hash.slice(1));
+  if(!p.has("access_token")&&!p.has("error")&&!p.has("error_description")) return null;
+  history.replaceState(null,"",location.pathname+location.search);
+  if(p.get("error")||p.get("error_description")){
+    const d=p.get("error_description")||"";
+    return {msg:/expired|invalid/i.test(d)?"That link has expired or was already used. Ask for a new one.":"That link didn't work: "+d};
+  }
+  const t={access_token:p.get("access_token"),refresh_token:p.get("refresh_token"),expires_at:p.get("expires_at"),expires_in:p.get("expires_in")};
+  try{ const u=await sbAuth("user",null,{method:"GET",token:t.access_token}); Auth.save(Auth.from(t,u)); }
+  catch(e){ return {msg:"Couldn't open that link. Check your connection and try again."}; }
+  return {type:p.get("type")};
+}
+/* Decides who is using the app: a signed-in user, or a guest */
+async function authGate(){
+  if(!WEBAPP) return null;
+  if(CLOUD_ON){
+    const link=await readAuthLink();
+    if(link&&link.type==="recovery"){ return new Promise(res=>{ authDone=res; showLogin("newpass"); }); }
+    if(link&&link.msg){
+      if(Auth.session&&Auth.session.user&&Auth.session.user.id){ Cloud.welcome=link.msg; return Auth.session.user; }
+      return new Promise(res=>{ authDone=res; showLogin("signin",link.msg); });
+    }
+    if(link&&Auth.session){ Cloud.welcome="Your email is confirmed. Welcome aboard."; return Auth.session.user; }
+    if(Auth.session&&Auth.session.user&&Auth.session.user.id) return Auth.session.user;
+  }
+  /* Accounts not set up: open straight into the app as a guest, no sign-in screen */
+  if(!CLOUD_ON||lsGet("lay.guest",false)) return null;
+  return new Promise(res=>{ authDone=res; showLogin("signin"); });
+}
+
+/* ---------- account card ---------- */
+function renderAccount(){
+  if(!$("dataCard")) return;
+  const signed=!!DB.cloud;
+  $("dataCard").hidden=!LIVE;
+  $("acctBtn").hidden=!signed;
+  $("joinBtn").hidden=signed||!WEBAPP||!CLOUD_ON;
+  if(signed) $("acctBtn").textContent=(DB.cloud.email||"?").trim()[0].toUpperCase();
+  $("acctSignin").hidden=signed||!WEBAPP||!CLOUD_ON; $("acctSignin").textContent="Sign up or sign in"; $("acctOut").hidden=!signed; $("acctDel").hidden=!signed;
+  $("acctLine").textContent=signed?`Signed in as ${DB.cloud.email}. Your data is saved to your account and kept in step across your devices.`
+    :WEBAPP?"You're using the app without an account, so your data is saved on this phone only."
+    :"Saved on "+HERE+".";
+  const S={ok:["ok","Saved"],wait:["wait","Saving…"],off:["off","Offline, will save later"],bad:["bad","Not saved, sign in again"]}[Cloud.state];
+  const el=$("syncState"); el.className="sync"+(S&&signed?" "+S[0]:""); el.textContent=S&&signed?S[1]:"";
+}
+$("acctBtn").addEventListener("click",()=>{ showTab("notebook"); $("dataCard").scrollIntoView({block:"start",behavior:"smooth"}); });
+function openAccountScreen(view){
+  authDone=user=>{ if(user) location.reload(); };   /* signed in: reload into the account. Guest: just close */
+  showLogin(view);
+}
+$("acctSignin").addEventListener("click",()=>openAccountScreen("signup"));
+$("joinBtn").addEventListener("click",()=>openAccountScreen("signup"));
+$("acctOut").addEventListener("click",async()=>{
+  const c=Cloud.cache();
+  if(c&&c.dirty&&navigator.onLine){ await Cloud.push(); }
+  try{ const tok=await validToken(); if(tok) await sbAuth("logout",null,{token:tok}); }catch(e){}
+  if(DB.cloud) lsSet(Cloud.key(),null);   /* remove this account's copy from the phone */
+  Auth.save(null); location.reload();
+});
+$("acctDel").addEventListener("click",()=>{ $("delConfirm").hidden=false; });
+$("delNo").addEventListener("click",()=>{ $("delConfirm").hidden=true; });
+$("delYes").addEventListener("click",async()=>{
+  const b=$("delYes"); b.disabled=true; b.textContent="Deleting…";
+  try{
+    await sbRest("rpc/delete_my_account",{method:"POST",body:"{}"});
+    lsSet(Cloud.key(),null); Auth.save(null); location.reload();
+  }catch(e){ b.disabled=false; b.textContent="Delete forever"; $("bkMsg").textContent=""; $("acctLine").textContent="Couldn't delete your account. Check your connection and try again."; }
+});
+
+function toast(t){
+  const el=document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); el.textContent=t;
+  document.body.appendChild(el); setTimeout(()=>el.remove(),6000);
+}
+/* ---------- fatigue check on Today: updates as the crew types ---------- */
+function renderCheck(){
+  const el=$("fgCheck"); if(!el) return;
+  const d=resolveTripDest($("trDest").value)||state.dest, arr=$("arr").value, pick=$("pick").value;
+  if(!arr||!pick||!d||!d.tz){ el.innerHTML=`<p class="hint">Enter arrival and pickup times above to check this layover.</p>`; return; }
+  const arrUTC=zonedToUTC(arr,d.tz), pickUTC=zonedToUTC(pick,d.tz);
+  if(!(pickUTC>arrUTC)){ el.innerHTML=`<p class="hint">Pickup must be after arrival.</p>`; return; }
+  const key=d.code||(d.name+"-"+d.cc);
+  const dutyIn=Math.abs(parseFloat($("trDuty").value))||0;
+  const me={dest:d.name,key,arr,arrUTC,pickUTC,duty:dutyIn&&dutyIn<=24?dutyIn:0,diff:offH(d.tz,new Date(arrUTC))-offH(HOME_TZ,new Date(arrUTC)),self:true};
+  const all=state.trips.filter(t=>!(t.key===key&&t.arr.slice(0,10)===arr.slice(0,10))).concat([me]).sort((a,b)=>a.arrUTC-b.arrUTC);
+  const scored=all.map((t,i)=>tripLoad(t,all[i-1])), x=scored.find(s=>s.tr.self);
+  const rc=ruleCheck(me,all[all.indexOf(me)+1]);
+  const wk=scored.filter(s=>s.tr.arrUTC>arrUTC-7*864e5&&s.tr.arrUTC<=arrUTC).reduce((a,s)=>a+s.s,0), wl=weekLvl(wk);
+  const why=x.f.length?x.f.join(" · "):"No big time change and plenty of time on the ground";
+  const tip={low:"Your body clock should cope well with this one.",mod:"Plan your sleep around Doha time and keep caffeine early.",high:"Make rest your priority on this layover. If you feel unfit to fly, use your company's fatigue reporting process."}[x.lvl];
+  el.innerHTML=`<div class="fgnow"><div><span class="label">${esc(d.name)}, ${fmtShift(x.tr.diff)} vs Doha</span><div class="big">${x.s} points<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span></div></div><p class="hint" style="flex:1 1 200px">${esc(why)}. ${tip}</p></div>
+    <div class="rulebox ${rc.v}"><span class="label">Flight time rules (EASA reference)</span><b>${esc(rc.label)}</b><span>${esc(rc.lines.join(" · "))}</span></div>
+    <p class="hint">With the layovers you saved in the 7 days before it: <b>${Math.round(wk*10)/10} points, ${LVL[wl].toLowerCase()} week</b>.${state.trips.length?"":" Save your layovers to include them."}</p>`;
+}
+$("trDest").addEventListener("input",renderCheck);
+["arr","pick","trDuty"].forEach(id=>$(id).addEventListener("input",renderCheck));
+
+/* ---------- guided tour ---------- */
+const TOUR=[
+  {sel:".pass",tab:"today",t:"Your destination",b:"Local time, Doha time and what your body clock is telling you. Tap Change at the top right to pick where you are."},
+  {sel:".when",tab:"today",t:"Your free time",b:"Enter your arrival and pickup. Rest is blocked out first, and the green part is your free time."},
+  {sel:"#fgCheck",tab:"today",t:"Fatigue check",b:"The app compares the time difference with Doha and your time on the ground, scores the fatigue, and checks your rest against flight time rules. Save it to keep your history."},
+  {sel:'.tabbar [data-tab="explore"]',tab:"today",t:"Explore",b:"Find food, groceries, pharmacies and sights near your hotel, plus ideas that fit your free time."},
+  {sel:'.tabbar [data-tab="money"]',tab:"today",t:"Money",b:"Record what you spend in any currency. Summary shows your totals in QAR and how much of your allowance you keep."},
+  {sel:'.tabbar [data-tab="rest"]',tab:"today",t:"Rest",b:"Your trips route by route, checked against flight time rules, and your fatigue over the last weeks. Notebook holds your journal, notes and account, and can replay this tour."}
+];
+let tourI=-1;
+function tourEls(){
+  let o=$("tour"); if(o) return o;
+  o=document.createElement("div"); o.id="tour"; o.innerHTML=`<div class="tour-spot" id="tourSpot"></div><div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourT"><div class="tour-step" id="tourN"></div><h2 id="tourT"></h2><p id="tourB"></p><div class="tour-btns"><button class="linkbtn" type="button" id="tourSkip">Skip tour</button><span class="row"><button class="btn ghost" type="button" id="tourBack">Back</button><button class="btn" type="button" id="tourNext">Next</button></span></div></div>`;
+  document.body.appendChild(o);
+  $("tourSkip").onclick=endTour; $("tourBack").onclick=()=>tourGo(tourI-1); $("tourNext").onclick=()=>tourI>=TOUR.length-1?endTour():tourGo(tourI+1);
+  return o;
+}
+function startTour(){ tourEls().hidden=false; document.body.classList.add("touring"); tourGo(0); }
+function endTour(){ const o=$("tour"); if(o) o.hidden=true; document.body.classList.remove("touring"); tourI=-1; lsSet("lay.tourDone",true); }
+function tourGo(i){
+  if(i<0||i>=TOUR.length) return;
+  tourI=i; const s=TOUR[i]; showTab(s.tab);
+  let el=document.querySelector(s.sel); if(el&&s.card) el=el.closest(".card")||el;
+  $("tourN").textContent=`${i+1} of ${TOUR.length}`; $("tourT").textContent=s.t; $("tourB").textContent=s.b;
+  $("tourBack").hidden=i===0; $("tourNext").textContent=i===TOUR.length-1?"Done":"Next";
+  if(el&&!el.closest(".tabbar")){ el.scrollIntoView({block:"start"}); scrollBy(0,-72); }
+  requestAnimationFrame(()=>requestAnimationFrame(()=>placeTour(el)));
+  $("tourNext").focus({preventScroll:true});
+}
+function placeTour(el){
+  if(tourI<0) return;
+  const spot=$("tourSpot"), card=$("tourCard"), pad=6;
+  if(!el){ spot.style.cssText="left:50%;top:50%;width:0;height:0"; }
+  else { const r=el.getBoundingClientRect();
+    spot.style.cssText=`left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px`; }
+  const r=el?el.getBoundingClientRect():{top:innerHeight/2,bottom:innerHeight/2,left:innerWidth/2,width:0};
+  const cw=Math.min(360,innerWidth-32); card.style.width=cw+"px";
+  const ch=card.offsetHeight||180;
+  card.style.left=Math.max(16,Math.min(innerWidth-cw-16,r.left+r.width/2-cw/2))+"px";
+  const below=r.bottom+16+ch<innerHeight-8, above=r.top-16-ch>8;
+  card.style.top=(below?r.bottom+16:above?r.top-16-ch:innerHeight-ch-12)+"px";   /* small screens: card at the bottom */
+}
+addEventListener("resize",()=>{ if(tourI>=0) tourGo(tourI); });
+addEventListener("keydown",e=>{ if(tourI>=0&&e.key==="Escape") endTour(); });
+on("tourAgain","click",startTour);
+
+function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner();renderIdeas();renderPack();renderTips();renderWish();renderTrips();renderMoney();renderJournal();renderFatigue();renderCheck()}
+(async()=>{
+  if(WEBAPP){
+    let user=await authGate();
+    while(user&&!(await startCloud(user))){ Auth.save(null); user=await new Promise(res=>{ authDone=res; showLogin("signin","Your session has ended. Please sign in again."); }); }
+  } else await loadDB();
+  loadState(); fillMissingQAR();
+  $("walDate").value=todayISO(); $("jDate").value=todayISO();
+  syncWalType(); initPlanner(); syncChips(); renderAll(); loadRates(); initInstallTip(); initBackup();
+  setInterval(renderClocks,30000);
+  if(Cloud.welcome){ toast(Cloud.welcome); Cloud.welcome=""; }
+  if(!lsGet("lay.tourDone",false)) setTimeout(startTour,500);
+})();
+</script>
+
+</html>
