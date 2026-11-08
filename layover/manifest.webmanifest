@@ -1,15 +1,16 @@
 {
   "name": "Layover Logbook",
   "short_name": "Layover",
-  "description": "Find cafés, sights and essentials near your layover hotel, and keep your crew tips.",
+  "description": "Plan rest, explore, and track money and fatigue on every layover.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#13233F",
-  "theme_color": "#13233F",
+  "orientation": "portrait",
+  "background_color": "#14223a",
+  "theme_color": "#14223a",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }
