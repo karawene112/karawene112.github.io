@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layover Logbook – Pricing</title>
+<meta name="description" content="Layover Logbook is free for airline crew. Pro adds the full crew feed, the fatigue dashboard and money insights for $4.99 a month or $39.99 a year.">
+<link rel="icon" href="icon-192.png" type="image/png">
+<style>
+  :root{--bg:#e6ecfa;--surface:#fff;--ink:#0d1838;--muted:#44527a;--line:#c9d3ec;--accent:#ff7a1a;--accent-soft:#ffe1c4;--good:#0f9d58;
+    --sky:linear-gradient(140deg,#131f5c 0%,#4b2a93 42%,#d83f7d 78%,#ff9440 100%)}
+  @media (prefers-color-scheme:dark){:root{--bg:#0b1230;--surface:#141d45;--ink:#eef2ff;--muted:#b3bde0;--line:#2c3a73;--accent-soft:#3a2614}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  a{color:inherit}
+  .wrap{max-width:880px;margin:0 auto;padding:0 16px}
+  header.hero{background:var(--sky);color:#fff;padding:40px 0 88px}
+  header.hero a.brand{font-weight:700;text-decoration:none;font-size:1.05rem}
+  header.hero h1{font-size:clamp(1.9rem,6vw,2.75rem);line-height:1.1;margin:28px 0 12px;max-width:18ch}
+  header.hero p{margin:0;max-width:52ch;color:rgba(255,255,255,.9);font-size:1.0625rem}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:-56px}
+  .plan{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 28px rgba(13,24,56,.1)}
+  .plan.best{border:2px solid var(--accent)}
+  .plan h2{margin:0;font-size:1.25rem}
+  .price{font-size:2.25rem;font-weight:700;line-height:1}
+  .price small{font-size:1rem;font-weight:400;color:var(--muted)}
+  .sub{color:var(--muted);margin:0;font-size:.9375rem}
+  .badge{align-self:flex-start;background:var(--accent);color:#1c0d00;font-weight:600;font-size:.8125rem;border-radius:999px;padding:3px 10px}
+  ul.ticks{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:8px;flex:1}
+  ul.ticks li{padding-left:26px;position:relative}
+  ul.ticks li::before{content:"✓";position:absolute;left:0;color:var(--good);font-weight:700}
+  .btn{display:inline-block;text-align:center;text-decoration:none;font-weight:600;border-radius:999px;padding:12px 18px;background:linear-gradient(135deg,#ff9a2e,#ff6a2a);color:#1c0d00}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  section{margin:48px 0}
+  section h2{font-size:1.375rem;margin:0 0 12px}
+  .faq{display:grid;gap:12px}
+  details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  summary{font-weight:600;cursor:pointer}
+  details p{margin:8px 0 0;color:var(--muted)}
+  footer{border-top:1px solid var(--line);padding:24px 0 48px;color:var(--muted);font-size:.9375rem}
+  footer nav{display:flex;flex-wrap:wrap;gap:8px 20px;margin-bottom:8px}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <a class="brand" href="./">Layover Logbook</a>
+    <h1>Free for every crew member. Pro when you want more.</h1>
+    <p>The layover planner, fatigue check, nearby search and money tracker are free. Pro adds the full crew feed, the fatigue dashboard and money insights.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="plans">
+    <article class="plan">
+      <h2>Free</h2>
+      <div class="price">$0</div>
+      <p class="sub">No card needed.</p>
+      <ul class="ticks">
+        <li>Layover planner: free time, rest and ideas for the city</li>
+        <li>Body clock and fatigue check for each trip</li>
+        <li>Nearby places, weather and city essentials</li>
+        <li>Spending in any currency, converted to your home currency</li>
+        <li>Notes, wishlist and layover journal</li>
+        <li>Account and sync across your phones</li>
+        <li>Crew feed: the 10 newest posts, plus posting, likes and comments (invite only)</li>
+      </ul>
+      <a class="btn ghost" href="./">Open the app</a>
+    </article>
+
+    <article class="plan best">
+      <span class="badge">Best value</span>
+      <h2>Pro yearly</h2>
+      <div class="price">$39.99 <small>/ year</small></div>
+      <p class="sub">About $3.33 a month. Billed once a year.</p>
+      <ul class="ticks">
+        <li>Everything in Free</li>
+        <li>The full crew feed: every post, photo and video, in every city</li>
+        <li>Fatigue dashboard: routes checked against flight time rules, your 7-day load, trip-by-trip charts</li>
+        <li>Money insights: allowance kept, cost of each layover</li>
+        <li>Export your entries to Excel</li>
+      </ul>
+      <a class="btn" href="./?upgrade">Get Pro yearly</a>
+    </article>
+
+    <article class="plan">
+      <h2>Pro monthly</h2>
+      <div class="price">$4.99 <small>/ month</small></div>
+      <p class="sub">Billed every month. Cancel any time.</p>
+      <ul class="ticks">
+        <li>Everything in Pro yearly, paid month by month</li>
+      </ul>
+      <a class="btn ghost" href="./?upgrade">Get Pro monthly</a>
+    </article>
+  </div>
+
+  <section>
+    <h2>Questions</h2>
+    <div class="faq">
+      <details>
+        <summary>How do I pay?</summary>
+        <p>Create a free account in the app, then choose Pro. Payment is handled securely by Paddle.com, our online reseller and Merchant of Record. Card details go to Paddle and never reach us. Prices are in US dollars; any sales tax or VAT for your country is shown at checkout.</p>
+      </details>
+      <details>
+        <summary>Can I cancel?</summary>
+        <p>Yes, at any time, from the link in your Paddle receipt email or by emailing us. You keep Pro until the end of the period you paid for, and you are not charged again.</p>
+      </details>
+      <details>
+        <summary>Can I get a refund?</summary>
+        <p>Yes. Ask within 14 days of your first payment, or of a yearly renewal, and you get a full refund. Email us from the address on your account, or use the link in your Paddle receipt.</p>
+      </details>
+      <details>
+        <summary>Who can join the crew feed?</summary>
+        <p>The crew feed is for airline crew only. You join with a one-time invite code from a colleague who already uses the app. Pro does not replace the invite: it shows you every post once you are in.</p>
+      </details>
+      <details>
+        <summary>What happens to my data if I stop paying?</summary>
+        <p>Nothing is deleted. Your logbook, money entries, notes and posts stay in your account, and the free features keep working.</p>
+      </details>
+      <details>
+        <summary>Which airlines is it for?</summary>
+        <p>Any. You choose your own home base and currency. Layover Logbook is an independent project and is not affiliated with any airline.</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav><a href="./">Open the app</a><a href="terms.html">Terms and refunds</a><a href="privacy-policy.html">Privacy policy</a><a href="mailto:karawen.ben.cheikh@gmail.com">Contact</a></nav>
+    <p>Our order process is conducted by our online reseller Paddle.com. Paddle.com is the Merchant of Record for all our orders.</p>
+  </div>
+</footer>
+</body>
+</html>
