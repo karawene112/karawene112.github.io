@@ -2,7 +2,7 @@
   "name": "Layover Logbook",
   "short_name": "Layover",
   "description": "Plan rest, explore, and track money and fatigue on every layover.",
-  "start_url": "./",
+  "start_url": "app.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

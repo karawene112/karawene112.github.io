@@ -6,6 +6,6 @@ Personal CV website, hosted on GitHub Pages.
 - `Karawene_BenCheikh_CV.pdf`: the file the "Download CV" button downloads
 - `layover-logbook-demo.mp4` and `layover-demo-poster.jpg`: the "how it works" video of Layover Logbook v3.1 (1 min 40)
 - `delegiq-demo.mp4` and `delegiq-demo-poster.jpg`: the 90-second tour of Delegiq
-- `layover/`: **Layover Logbook**, a mobile web app for airline crew (free-time planner, nearby search, spending analytics, fatigue tracking, and a crew photo feed). Live at `/layover/`.
+- `layover/`: **Layover Logbook**, a mobile web app for airline crew (free-time planner, nearby search, spending analytics, fatigue tracking, and a crew photo feed). Website at `/layover/`, app at `/layover/app.html`.
   - `layover/config.js`: public settings (Supabase project, Pro plan prices and Paddle IDs). No secrets go in this file.
   - `layover/backend/paddle-webhook.ts`: a copy of the Supabase Edge Function that records subscriptions from Paddle.
