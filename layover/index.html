@@ -470,7 +470,8 @@ a.btn{text-decoration:none}
 .clist div{flex:1;min-width:0;font-size:.9375rem}
 .clist p{margin:0}
 .row.cform{flex-wrap:nowrap}
-.row.cform input{flex:1 1 0;width:auto}
+.row.cform input{flex:1 1 0;width:auto;min-width:0}
+#crewJoinCard,#crewNameCard,#crewForm,#crewInviteCard,#crewGuest{grid-template-columns:minmax(0,1fr)}
 .row.cform .btn{flex:none}
 .skel{height:220px;background:linear-gradient(90deg,var(--sub) 25%,var(--surface) 50%,var(--sub) 75%);background-size:200% 100%}
 .composer textarea{font:inherit;color:inherit;width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;min-height:76px;display:block}
@@ -527,7 +528,7 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.3</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.4</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -735,12 +736,18 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
   </div>
   <div class="card guesthero" id="crewGuest" hidden>
     <h2>Where crew really go on layovers</h2>
-    <p class="hint">Photos, videos, places and tips shared by crew of every airline, in every city. The feed is private: you join with an invite code from a crew member who already uses the app.</p>
+    <p class="hint">Photos, videos, places and tips shared by crew of every airline, in every city. The feed is private to crew: you need to be invited by a crew member who already uses the app, and each invite code can be used only once.</p>
     <button class="btn" type="button" id="crewJoin" style="justify-self:start">Create free account</button>
   </div>
   <form class="card" id="crewJoinCard" hidden>
     <h2>Crew only</h2>
-    <p class="hint">The crew feed is private to airline crew. Ask a colleague who uses Layover Logbook for an invite code. Each code works once.</p>
+    <p class="hint">The crew feed is private to airline crew. To join, you need to be invited by a crew member who already uses Layover Logbook.</p>
+    <ol class="hint" style="margin:0;padding-left:20px;display:grid;gap:4px">
+      <li>Ask a colleague who uses the app for an invite code.</li>
+      <li>Type the code below and tap Join.</li>
+      <li>You're in, with 3 codes of your own to invite crew you know.</li>
+    </ol>
+    <p class="hint"><b>Each code can be used only once.</b> If a code doesn't work, it may already have been used: ask your colleague for a new one.</p>
     <div class="row cform"><input id="crewCode" maxlength="12" placeholder="Invite code, e.g. K7QM2XPD" aria-label="Invite code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" type="submit">Join</button></div>
     <p class="hint" id="crewCodeMsg" aria-live="polite"></p>
     <p class="hint" style="font-size:.8125rem">Your own logbook, planner, money and notes work without a code.</p>
@@ -773,7 +780,7 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
   <div class="card" id="crewInviteCard" hidden>
     <details class="more" id="crewInvites" style="border:0;padding:0">
       <summary>Invite crew you know</summary>
-      <p class="hint">Give a code only to crew you know personally. Each code works once, and the people you invite are linked to your account.</p>
+      <p class="hint">Give a code only to crew you know personally. Each code can be used only once: after your colleague joins, it shows as Used. The people you invite are linked to your account.</p>
       <ul class="list" id="crewInviteList"></ul>
     </details>
   </div>
@@ -2706,7 +2713,7 @@ on("crewJoinCard","submit",async e=>{
   }catch(err){ $("crewCodeMsg").textContent=err.message; }
   finally{ b.disabled=false; }
 });
-const inviteText=c=>`Join me on Layover Logbook, the crew-only layover app: ${location.origin+location.pathname} Your invite code: ${c}`;
+const inviteText=c=>`Join me on Layover Logbook, the layover app for airline crew. The crew feed is invite-only, and this code is for you: ${c}\n\n1. Open ${location.origin+location.pathname} and create a free account.\n2. Go to the Crew tab and enter the code.\n\nThe code works only once, so please don't share it with anyone else.`;
 async function loadInvites(){
   const ul=$("crewInviteList"); ul.innerHTML='<li class="empty">Loading your codes…</li>';
   try{
