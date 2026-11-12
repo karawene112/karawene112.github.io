@@ -484,13 +484,23 @@ a.btn{text-decoration:none}
 .guesthero{background:var(--sky);color:#fff;border:0}
 .guesthero .hint{color:rgba(255,255,255,.9)}
 .guesthero .btn{background:#fff;color:#0d1838;box-shadow:none}
+
+/* ---- v3.2: home base + video ---- */
+button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+#homeBackdrop{z-index:40}
+#homeForm{z-index:41}
+.pvideo{background:#0d1838;cursor:pointer}
+.pvideo.playing{cursor:auto}
+.pphoto video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.playbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:0;background:rgba(13,24,56,.72);color:#fff;font-size:1.5rem;line-height:1;padding-left:6px}
+.vbadge{position:absolute;left:8px;bottom:8px;background:rgba(13,24,56,.78);color:#fff;border-radius:999px;padding:3px 10px;font-size:.8125rem;font-weight:600}
 </style>
 
 <div class="login" id="login" hidden>
   <div class="wrap">
     <div class="login-hero">
       <div class="brand">Layover <b>Logbook</b></div>
-      <div class="login-route" aria-hidden="true">DOH <i></i> <b>ANY</b></div>
+      <div class="login-route" aria-hidden="true">HOME <i></i> <b>ANY</b></div>
       <h1 id="authTitle">Your logbook</h1>
       <p id="authSub">Sign in to get your layovers, money and journal on any phone.</p>
     </div>
@@ -517,7 +527,7 @@ a.btn{text-decoration:none}
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.1</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.2</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -546,7 +556,7 @@ a.btn{text-decoration:none}
 <div class="sheet" id="proSheet" hidden role="dialog" aria-modal="true" aria-labelledby="proTitle">
   <h2 id="proTitle">Layover Logbook <span class="probadge">PRO</span></h2>
   <ul class="insights">
-    <li><b>The full crew feed:</b> every post and photo, in every city.</li>
+    <li><b>The full crew feed:</b> every post, photo and video, in every city.</li>
     <li><b>Fatigue dashboard:</b> routes checked against the rules, your 7-day load, trip-by-trip charts.</li>
     <li><b>Money insights:</b> allowance kept, cost of each layover, Excel export.</li>
   </ul>
@@ -559,6 +569,17 @@ a.btn{text-decoration:none}
   <p class="hint" style="font-size:.8125rem">Secure payment by Paddle. Your logbook, planner, money entries and notes stay free. <a href="terms.html" target="_blank" rel="noopener">Terms and refunds</a></p>
 </div>
 
+<div class="backdrop" id="homeBackdrop" hidden></div>
+<form class="sheet" id="homeForm" hidden aria-label="Home base">
+  <h2>Where are you based?</h2>
+  <p class="hint">Your body clock, time differences and fatigue checks are measured from your home base. Works for any airline.</p>
+  <div class="field"><label class="label" for="homeQ">Home city or airport</label><input id="homeQ" list="destList" placeholder="e.g. DXB, Singapore, Paris" autocomplete="off" maxlength="80"></div>
+  <div class="matches" id="homeMatches"></div>
+  <div class="field"><label class="label" for="homeCur">Show my money in</label><select id="homeCur"></select></div>
+  <p class="hint" id="homeHint" aria-live="polite"></p>
+  <div class="row"><button class="btn" type="submit">Save home base</button><button class="btn ghost" type="button" id="homeClose">Cancel</button></div>
+</form>
+
 <main><div class="wrap">
 
 <!-- ===================== TODAY ===================== -->
@@ -569,7 +590,7 @@ a.btn{text-decoration:none}
   </div>
   <div class="pass">
     <div class="route">
-      <div class="leg"><span class="code from">DOH</span><span class="ctry">Doha</span></div>
+      <button class="leg homeleg" type="button" id="homeBtn" aria-label="Change your home base"><span class="code from hs">DOH</span><span class="ctry"><span class="hn">Doha</span>, change</span></button>
       <div class="flight" aria-hidden="true">
         <svg viewBox="0 0 200 18" preserveAspectRatio="none"><line x1="2" y1="9" x2="198" y2="9" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 5"/></svg>
       </div>
@@ -578,8 +599,8 @@ a.btn{text-decoration:none}
     <div class="perf"></div>
     <div class="times">
       <div><span class="lbl">Local time</span><span class="t" id="hLocal">--:--</span></div>
-      <div><span class="lbl">Doha / body</span><span class="t" id="hBody">--:--</span></div>
-      <div><span class="lbl">Vs Doha</span><span class="t" id="hDiff">–</span></div>
+      <div><span class="lbl"><span class="hs">DOH</span> / body</span><span class="t" id="hBody">--:--</span></div>
+      <div><span class="lbl">Vs <span class="hs">DOH</span></span><span class="t" id="hDiff">–</span></div>
     </div>
     <div class="bodyline"><span id="bodyStatus"></span><p id="bodyAdvice"></p></div>
     <div class="wxline" id="wxCard" hidden><span id="wx"></span><span id="wxTip"></span></div>
@@ -622,7 +643,7 @@ a.btn{text-decoration:none}
     <div class="row" style="align-items:center"><button class="btn" type="button" id="trSave">Save layover</button><span class="hint" id="trMsg" aria-live="polite"></span></div>
     <details class="more">
       <summary>How this works</summary>
-      <p class="hint">The check uses the destination's time difference with Doha and the arrival and pickup times above. Save the layover to add it to your fatigue history in Rest and your allowance in Money. To add a past layover, change the dates first, then save.</p>
+      <p class="hint">The check uses the destination's time difference with your home base and the arrival and pickup times above. Save the layover to add it to your fatigue history in Rest and your allowance in Money. To add a past layover, change the dates first, then save.</p>
     </details>
   </div>
 
@@ -714,7 +735,7 @@ a.btn{text-decoration:none}
   </div>
   <div class="card guesthero" id="crewGuest" hidden>
     <h2>Where crew really go on layovers</h2>
-    <p class="hint">Photos, places and tips shared by crew in every city. Create a free account to see the feed and post your own.</p>
+    <p class="hint">Photos, videos, places and tips shared by crew of every airline, in every city. Create a free account to see the feed and post your own.</p>
     <button class="btn" type="button" id="crewJoin" style="justify-self:start">Create free account</button>
   </div>
   <form class="card" id="crewNameCard" hidden>
@@ -726,16 +747,16 @@ a.btn{text-decoration:none}
   <form class="card composer" id="crewForm" hidden>
     <div class="cardhead"><span class="hint" id="crewAs"></span><button class="linkbtn" type="button" id="crewRename">Change name</button></div>
     <textarea id="crewText" rows="2" maxlength="500" aria-label="New post"></textarea>
-    <div class="photoprev" id="crewPrev" hidden><img id="crewPrevImg" alt="Your photo"><button type="button" class="x" id="crewPhotoX" aria-label="Remove photo">×</button></div>
+    <div class="photoprev" id="crewPrev" hidden><img id="crewPrevImg" alt="Your photo or video"><span class="vbadge" id="crewPrevBadge" hidden></span><button type="button" class="x" id="crewPhotoX" aria-label="Remove photo">×</button></div>
     <div class="row">
       <input id="crewPlace" maxlength="60" placeholder="Place name, optional" aria-label="Place name">
       <select id="crewCat" aria-label="Category"><option>Food</option><option>Sights</option><option>Shopping</option><option>Transport</option><option>Safety</option><option>Other</option></select>
     </div>
     <div class="row compactions">
       <div class="stars" id="crewStars" role="radiogroup" aria-label="Your rating, optional"><button type="button" role="radio" aria-checked="false" data-s="1" aria-label="1 star">★</button><button type="button" role="radio" aria-checked="false" data-s="2" aria-label="2 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="3" aria-label="3 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="4" aria-label="4 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="5" aria-label="5 stars">★</button></div>
-      <span class="row"><label class="btn ghost" for="crewFile" id="crewFileBtn">Add photo</label><button class="btn" type="submit" id="crewPost">Post</button></span>
+      <span class="row"><label class="btn ghost" for="crewFile" id="crewFileBtn">Add photo or video</label><button class="btn" type="submit" id="crewPost">Post</button></span>
     </div>
-    <input type="file" id="crewFile" accept="image/*" hidden>
+    <input type="file" id="crewFile" accept="image/*,video/mp4,video/quicktime" hidden>
     <p class="hint" id="crewMsg" aria-live="polite"></p>
     <p class="hint" style="font-size:.8125rem">Keep crew safe: no crew hotels, uniforms, colleagues' faces or flight details.</p>
   </form>
@@ -801,7 +822,7 @@ a.btn{text-decoration:none}
       </div>
       <div id="alBody" class="field" style="gap:18px">
         <div class="trio" id="alTrio"></div>
-        <div class="field"><div class="label">Last 6 months, in QAR</div><div class="pairs" id="alMonths"></div>
+        <div class="field"><div class="label">Last 6 months, in <span class="hcur">QAR</span></div><div class="pairs" id="alMonths"></div>
           <div class="legend"><span style="--c:var(--navy)">Allowance</span><span style="--c:var(--accent)">Spent on layovers</span></div></div>
         <div class="field"><div class="label">What this tells you</div><ul class="insights" id="alInsights"></ul></div>
       </div>
@@ -849,7 +870,7 @@ a.btn{text-decoration:none}
   </div>
   <div class="card fgCard" data-pro>
     <div class="cardhead"><h2>Route check, by the rules</h2><span class="hint">Up = east, down = west</span></div>
-    <p class="hint">Each bar is one trip from Doha, its height the time difference. The colour shows the result of the flight time rule checks. Under the chart: nights of rest at home between trips, had / needed. Swipe sideways to see older trips.</p>
+    <p class="hint">Each bar is one trip from your home base, its height the time difference. The colour shows the result of the flight time rule checks. Under the chart: nights of rest at home between trips, had / needed. Swipe sideways to see older trips.</p>
     <div class="chartbox" id="fgShift"></div>
     <div class="legend"><span style="--c:var(--good)">Within the rules</span><span style="--c:var(--mod)">Body clock in unknown state</span><span style="--c:var(--bad)">Not enough rest, away or at home</span></div>
   </div>
@@ -877,18 +898,18 @@ a.btn{text-decoration:none}
       <summary>How the rule check works</summary>
       <ul class="insights">
         <li><b>Rest at the outstation:</b> at least 10 hours, or as long as the duty before it if that was longer. It must include an 8-hour sleep opportunity. The app counts arrival to pickup.</li>
-        <li><b>Body clock state at pickup:</b> crew stay acclimatised to Doha time for the first 48 hours. After that, with a time difference of 4 hours or more, the rules treat the body clock as being in an unknown state until enough days pass at the destination (3 to 5 days, depending on the difference).</li>
-        <li><b>Rest at home after the trip:</b> after a trip with a time difference of 4 hours or more, 2 to 5 local nights at home are needed before the next trip, depending on the difference and the length of the trip. Switching between an eastbound and a westbound trip of 4+ hours needs at least 3 local nights. A local night is 8 hours between 22:00 and 08:00 Doha time.</li>
+        <li><b>Body clock state at pickup:</b> crew stay acclimatised to home time for the first 48 hours. After that, with a time difference of 4 hours or more, the rules treat the body clock as being in an unknown state until enough days pass at the destination (3 to 5 days, depending on the difference).</li>
+        <li><b>Rest at home after the trip:</b> after a trip with a time difference of 4 hours or more, 2 to 5 local nights at home are needed before the next trip, depending on the difference and the length of the trip. Switching between an eastbound and a westbound trip of 4+ hours needs at least 3 local nights. A local night is 8 hours between 22:00 and 08:00 home time.</li>
         <li>Without your duty hours, the app assumes 10 hours of duty each way. Enter them when saving a layover for a more exact check.</li>
       </ul>
-      <p class="hint">Based on the European EASA flight time rules (EU regulation 83/2014: ORO.FTL.105, ORO.FTL.235 and CS FTL.1.235), which apply to cabin crew too. Qatar's QCAA rules and your company's scheme can differ, and your roster and company rules always come first.</p>
+      <p class="hint">Based on the European EASA flight time rules (EU regulation 83/2014: ORO.FTL.105, ORO.FTL.235 and CS FTL.1.235), which apply to cabin crew too. Your country's rules and your company's scheme can differ, and your roster and company rules always come first.</p>
     </details>
     <details class="more" style="border:0;padding:0">
       <summary>How the fatigue points are worked out</summary>
       <ul class="insights">
-        <li>Each hour of difference with Doha adds 1 point. Flying east adds 1.5 per hour, because the body adjusts more slowly to it.</li>
+        <li>Each hour of difference with your home base adds 1 point. Flying east adds 1.5 per hour, because the body adjusts more slowly to it.</li>
         <li>A layover under 24 hours adds 2 points, and under 15 hours adds 4.</li>
-        <li>Landing between midnight and 6am Doha time adds 3 points.</li>
+        <li>Landing between midnight and 6am home time adds 3 points.</li>
         <li>Starting a layover less than 48 hours after the previous pickup adds 2 points.</li>
         <li>A layover is light below 5 points, moderate from 5, heavy from 10. A week is moderate from 10 and heavy from 20.</li>
       </ul>
@@ -949,6 +970,11 @@ a.btn{text-decoration:none}
   </div>
 
 
+  <div class="card" id="homeCard">
+    <div class="cardhead"><h2>Home base</h2></div>
+    <p class="hint" id="homeLine"></p>
+    <button class="btn ghost" type="button" id="homeChange" style="justify-self:start">Change home base</button>
+  </div>
   <div class="card">
     <div class="cardhead"><h2>New to the app?</h2></div>
     <p class="hint">A one-minute tour of the main screens.</p>
@@ -998,7 +1024,8 @@ const DESKTOP = location.hostname==="127.0.0.1";
 const WEBAPP = window.LAYOVER_WEB===true;   /* phone website build */
 const LIVE = DESKTOP||WEBAPP;               /* live maps, places, weather and rates */
 const HERE = DESKTOP?"this computer":"this phone";
-const HOME_TZ = "Asia/Qatar";
+/* Home base: where the crew member is based. Doha until they choose their own (see applyHome). */
+const Home={code:"DOH",name:"Doha",cc:"QA",tz:"Asia/Qatar",cur:"QAR",short:"DOH"};
 
 /* Built-in destinations: code|city|country|timezone|lat|lon. Any other place can be searched in the desktop app. */
 const DEST_DATA = `DOH|Doha|QA|Asia/Qatar|25.286|51.533;DXB|Dubai|AE|Asia/Dubai|25.205|55.271;LHR|London|GB|Europe/London|51.507|-0.128;MAN|Manchester|GB|Europe/London|53.481|-2.243;BHX|Birmingham|GB|Europe/London|52.486|-1.890;EDI|Edinburgh|GB|Europe/London|55.953|-3.189;DUB|Dublin|IE|Europe/Dublin|53.350|-6.260;CDG|Paris|FR|Europe/Paris|48.857|2.352;NCE|Nice|FR|Europe/Paris|43.710|7.262;FRA|Frankfurt|DE|Europe/Berlin|50.110|8.682;MUC|Munich|DE|Europe/Berlin|48.137|11.576;BER|Berlin|DE|Europe/Berlin|52.520|13.405;DUS|Düsseldorf|DE|Europe/Berlin|51.227|6.773;AMS|Amsterdam|NL|Europe/Amsterdam|52.370|4.895;BRU|Brussels|BE|Europe/Brussels|50.850|4.352;ZRH|Zurich|CH|Europe/Zurich|47.377|8.541;GVA|Geneva|CH|Europe/Zurich|46.204|6.143;VIE|Vienna|AT|Europe/Vienna|48.208|16.373;FCO|Rome|IT|Europe/Rome|41.903|12.496;MXP|Milan|IT|Europe/Rome|45.464|9.190;VCE|Venice|IT|Europe/Rome|45.441|12.316;MAD|Madrid|ES|Europe/Madrid|40.417|-3.704;BCN|Barcelona|ES|Europe/Madrid|41.385|2.173;LIS|Lisbon|PT|Europe/Lisbon|38.722|-9.139;ATH|Athens|GR|Europe/Athens|37.984|23.728;IST|Istanbul|TR|Europe/Istanbul|41.008|28.978;CPH|Copenhagen|DK|Europe/Copenhagen|55.676|12.568;OSL|Oslo|NO|Europe/Oslo|59.913|10.752;ARN|Stockholm|SE|Europe/Stockholm|59.329|18.069;HEL|Helsinki|FI|Europe/Helsinki|60.170|24.938;WAW|Warsaw|PL|Europe/Warsaw|52.230|21.012;PRG|Prague|CZ|Europe/Prague|50.075|14.438;BUD|Budapest|HU|Europe/Budapest|47.498|19.040;OTP|Bucharest|RO|Europe/Bucharest|44.427|26.103;SOF|Sofia|BG|Europe/Sofia|42.698|23.322;TBS|Tbilisi|GE|Asia/Tbilisi|41.716|44.783;GYD|Baku|AZ|Asia/Baku|40.409|49.867;EVN|Yerevan|AM|Asia/Yerevan|40.179|44.499;ALA|Almaty|KZ|Asia/Almaty|43.238|76.946;TAS|Tashkent|UZ|Asia/Tashkent|41.299|69.240;JFK|New York|US|America/New_York|40.713|-74.006;BOS|Boston|US|America/New_York|42.360|-71.059;IAD|Washington|US|America/New_York|38.907|-77.037;PHL|Philadelphia|US|America/New_York|39.953|-75.165;MIA|Miami|US|America/New_York|25.762|-80.192;ATL|Atlanta|US|America/New_York|33.749|-84.388;ORD|Chicago|US|America/Chicago|41.878|-87.630;DFW|Dallas|US|America/Chicago|32.777|-96.797;IAH|Houston|US|America/Chicago|29.760|-95.370;LAX|Los Angeles|US|America/Los_Angeles|34.052|-118.244;SFO|San Francisco|US|America/Los_Angeles|37.775|-122.419;SEA|Seattle|US|America/Los_Angeles|47.606|-122.332;YUL|Montreal|CA|America/Toronto|45.502|-73.567;YYZ|Toronto|CA|America/Toronto|43.653|-79.383;GRU|São Paulo|BR|America/Sao_Paulo|-23.551|-46.633;EZE|Buenos Aires|AR|America/Argentina/Buenos_Aires|-34.604|-58.382;BOG|Bogotá|CO|America/Bogota|4.711|-74.072;CAI|Cairo|EG|Africa/Cairo|30.044|31.236;CMN|Casablanca|MA|Africa/Casablanca|33.573|-7.589;RAK|Marrakech|MA|Africa/Casablanca|31.629|-7.981;TUN|Tunis|TN|Africa/Tunis|36.806|10.181;ALG|Algiers|DZ|Africa/Algiers|36.754|3.059;NBO|Nairobi|KE|Africa/Nairobi|-1.292|36.822;ADD|Addis Ababa|ET|Africa/Addis_Ababa|9.030|38.740;DAR|Dar es Salaam|TZ|Africa/Dar_es_Salaam|-6.792|39.208;ZNZ|Zanzibar|TZ|Africa/Dar_es_Salaam|-6.165|39.199;EBB|Entebbe|UG|Africa/Kampala|0.051|32.443;KGL|Kigali|RW|Africa/Kigali|-1.944|30.062;LOS|Lagos|NG|Africa/Lagos|6.524|3.379;ABV|Abuja|NG|Africa/Lagos|9.077|7.399;ACC|Accra|GH|Africa/Accra|5.604|-0.187;JNB|Johannesburg|ZA|Africa/Johannesburg|-26.204|28.047;CPT|Cape Town|ZA|Africa/Johannesburg|-33.925|18.424;DUR|Durban|ZA|Africa/Johannesburg|-29.858|31.022;MPM|Maputo|MZ|Africa/Maputo|-25.969|32.573;LUN|Lusaka|ZM|Africa/Lusaka|-15.388|28.322;HRE|Harare|ZW|Africa/Harare|-17.829|31.053;WDH|Windhoek|NA|Africa/Windhoek|-22.560|17.066;SEZ|Mahé|SC|Indian/Mahe|-4.620|55.455;MRU|Mauritius|MU|Indian/Mauritius|-20.161|57.501;RUH|Riyadh|SA|Asia/Riyadh|24.713|46.675;JED|Jeddah|SA|Asia/Riyadh|21.486|39.193;MED|Medina|SA|Asia/Riyadh|24.467|39.611;DMM|Dammam|SA|Asia/Riyadh|26.420|50.089;KWI|Kuwait City|KW|Asia/Kuwait|29.376|47.977;BAH|Bahrain|BH|Asia/Bahrain|26.228|50.586;MCT|Muscat|OM|Asia/Muscat|23.588|58.383;AMM|Amman|JO|Asia/Amman|31.954|35.911;BEY|Beirut|LB|Asia/Beirut|33.894|35.502;BGW|Baghdad|IQ|Asia/Baghdad|33.315|44.366;EBL|Erbil|IQ|Asia/Baghdad|36.191|44.009;IKA|Tehran|IR|Asia/Tehran|35.689|51.389;KHI|Karachi|PK|Asia/Karachi|24.861|67.010;LHE|Lahore|PK|Asia/Karachi|31.520|74.359;ISB|Islamabad|PK|Asia/Karachi|33.684|73.048;DEL|Delhi|IN|Asia/Kolkata|28.614|77.209;BOM|Mumbai|IN|Asia/Kolkata|19.076|72.878;BLR|Bengaluru|IN|Asia/Kolkata|12.972|77.595;MAA|Chennai|IN|Asia/Kolkata|13.083|80.271;HYD|Hyderabad|IN|Asia/Kolkata|17.385|78.487;COK|Kochi|IN|Asia/Kolkata|9.931|76.267;CCU|Kolkata|IN|Asia/Kolkata|22.573|88.364;CMB|Colombo|LK|Asia/Colombo|6.927|79.861;MLE|Malé|MV|Indian/Maldives|4.175|73.509;KTM|Kathmandu|NP|Asia/Kathmandu|27.717|85.324;DAC|Dhaka|BD|Asia/Dhaka|23.811|90.413;BKK|Bangkok|TH|Asia/Bangkok|13.756|100.502;HKT|Phuket|TH|Asia/Bangkok|7.880|98.392;KUL|Kuala Lumpur|MY|Asia/Kuala_Lumpur|3.139|101.687;SIN|Singapore|SG|Asia/Singapore|1.290|103.852;CGK|Jakarta|ID|Asia/Jakarta|-6.208|106.846;DPS|Bali|ID|Asia/Makassar|-8.650|115.216;MNL|Manila|PH|Asia/Manila|14.599|120.984;SGN|Ho Chi Minh City|VN|Asia/Ho_Chi_Minh|10.823|106.630;HAN|Hanoi|VN|Asia/Ho_Chi_Minh|21.028|105.854;PNH|Phnom Penh|KH|Asia/Phnom_Penh|11.556|104.928;HKG|Hong Kong|HK|Asia/Hong_Kong|22.319|114.169;PVG|Shanghai|CN|Asia/Shanghai|31.230|121.474;PEK|Beijing|CN|Asia/Shanghai|39.904|116.407;CAN|Guangzhou|CN|Asia/Shanghai|23.129|113.264;TPE|Taipei|TW|Asia/Taipei|25.033|121.565;ICN|Seoul|KR|Asia/Seoul|37.566|126.978;NRT|Tokyo|JP|Asia/Tokyo|35.681|139.767;KIX|Osaka|JP|Asia/Tokyo|34.694|135.502;SYD|Sydney|AU|Australia/Sydney|-33.869|151.209;MEL|Melbourne|AU|Australia/Melbourne|-37.814|144.963;BNE|Brisbane|AU|Australia/Brisbane|-27.470|153.026;PER|Perth|AU|Australia/Perth|-31.951|115.861;ADL|Adelaide|AU|Australia/Adelaide|-34.929|138.601;AKL|Auckland|NZ|Pacific/Auckland|-36.849|174.763`;
@@ -1126,7 +1153,8 @@ function loadState(){
     tx: store.get("tx",[]),
     visits: store.get("visits",[]),
     rates: store.get("rates",null),
-    trips: store.get("trips",[])
+    trips: store.get("trips",[]),
+    home: store.get("home",null)
   };
 }
 const destKey = () => state.dest.code || (state.dest.name+"-"+state.dest.cc);
@@ -1225,6 +1253,7 @@ function hm(tz,d=new Date()){try{return new Intl.DateTimeFormat("en-GB",{hour:"2
 function hourIn(tz,d=new Date()){try{return +new Intl.DateTimeFormat("en-GB",{hour:"numeric",hour12:false,timeZone:tz}).format(d)%24}catch(e){return d.getUTCHours()}}
 function fmtH(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return hh+"h "+String(mm).padStart(2,"0")+"m"}
 function renderHeader(){
+  applyHome();
   const d=state.dest;
   $("hCode").textContent=d.code||d.cc||"—"; $("hName").textContent=d.name; $("hCountry").textContent=d.cc?countryName(d.cc):"";
   $("hChip").textContent=d.code||d.name;
@@ -1232,11 +1261,11 @@ function renderHeader(){
 }
 function renderClocks(){
   const d=state.dest;
-  $("hLocal").textContent=hm(d.tz)+(d.tzApprox?" ≈":""); $("hBody").textContent=hm(HOME_TZ);
-  { const df=offH(d.tz,new Date())-offH(HOME_TZ,new Date()); $("hDiff").textContent=df?fmtShift(df):"Same"; }
-  const bh=hourIn(HOME_TZ), lh=hourIn(d.tz);
+  $("hLocal").textContent=hm(d.tz)+(d.tzApprox?" ≈":""); $("hBody").textContent=hm(Home.tz);
+  { const df=offH(d.tz,new Date())-offH(Home.tz,new Date()); $("hDiff").textContent=df?fmtShift(df):"Same"; }
+  const bh=hourIn(Home.tz), lh=hourIn(d.tz);
   let s,a;
-  if(bh<6){s=`<span class="status">Body clock: night (${hm(HOME_TZ)} in Doha)</span>`;a="Your body expects sleep. Pick low-energy ideas, get daylight if it's day locally, and avoid caffeine within 6 hours of your rest.";}
+  if(bh<6){s=`<span class="status">Body clock: night (${hm(Home.tz)} in ${esc(Home.name)})</span>`;a="Your body expects sleep. Pick low-energy ideas, get daylight if it's day locally, and avoid caffeine within 6 hours of your rest.";}
   else if(bh>=13&&bh<16){s=`<span class="status">Body clock: afternoon dip</span>`;a="A short nap of 20–30 minutes helps. Keep it short so it doesn't eat into your main rest.";}
   else {s=`<span class="status ok">Body clock: awake</span>`;a=lh>=22||lh<6?"You're alert but it's night locally. Stick to 24h spots near busy areas.":"Good time for the higher-energy ideas.";}
   $("bodyStatus").innerHTML=s; $("bodyAdvice").textContent=a;
@@ -1334,10 +1363,10 @@ function renderPack(){
 function tzDiff(tz){
   try{
     const now=new Date(), off=z=>{const p=new Intl.DateTimeFormat("en-US",{timeZone:z,timeZoneName:"longOffset"}).formatToParts(now).find(x=>x.type==="timeZoneName").value.match(/GMT([+-]\d+)?:?(\d+)?/);return p&&p[1]?(+p[1])+(p[1][0]==="-"?-1:1)*(+(p[2]||0))/60:0};
-    const diff=off(tz)-off(HOME_TZ);
-    if(diff===0) return "Same as Doha";
+    const diff=off(tz)-off(Home.tz);
+    if(diff===0) return "Same as "+Home.name;
     const h=Math.abs(diff), str=Number.isInteger(h)?`${h}h`:`${Math.floor(h)}h ${Math.round((h%1)*60)}m`;
-    return `${str} ${diff>0?"ahead of":"behind"} Doha`;
+    return `${str} ${diff>0?"ahead of":"behind"} ${Home.name}`;
   }catch(e){return "—"}
 }
 
@@ -1380,16 +1409,15 @@ const isoDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d
 const fmtDate=s=>isoDate(s).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const fmtMoney=(c,v)=>{const s=curSymbol(c);return (s||c+" ")+(+v).toLocaleString("en-GB",{maximumFractionDigits:2})};
-const fmtQAR=v=>"QAR "+Math.round(v).toLocaleString("en-GB");
+const fmtQAR=v=>Home.cur+" "+Math.round(v).toLocaleString("en-GB");   /* formats an amount in the home currency */
 let walType="spend", walTouched=false, spPeriod="month";
 
-/* Converts to QAR. The riyal is pegged to the US dollar, so USD always works. */
+/* Converts to the home currency. Rates are stored per 1 QAR; the riyal is pegged to the US dollar, so USD always works. */
 function toQAR(cur,amt){
-  if(cur==="QAR") return amt;
-  const r=state.rates&&state.rates.rates&&state.rates.rates[cur];
-  if(r) return amt/r;
-  if(cur==="USD") return amt*3.64;
-  return null;
+  if(cur===Home.cur) return amt;
+  const R=state.rates&&state.rates.rates, rate=c=>c==="QAR"?1:R&&R[c]?R[c]:c==="USD"?1/3.64:null;
+  const a=rate(cur), b=rate(Home.cur);
+  return a&&b?amt/a*b:null;
 }
 async function loadRates(){
   if(!LIVE) return;
@@ -1491,13 +1519,13 @@ function renderMoney(){
   $("spList").innerHTML=list.length?list.map(t=>{
     const q=qOf(t), sp=t.type==="spend";
     const title=t.note||(sp?t.cat:"Cash added");
-    const meta=[t.ex?"Example":"",fmtDate(t.date),t.dest,sp?t.cat:"Cash added",sp?(t.pay==="card"?"Card":"Cash"):"",t.cur!=="QAR"&&q!=null?"≈ "+fmtQAR(q):""].filter(Boolean).map(esc).join(" · ");
+    const meta=[t.ex?"Example":"",fmtDate(t.date),t.dest,sp?t.cat:"Cash added",sp?(t.pay==="card"?"Card":"Cash"):"",t.cur!==Home.cur&&q!=null?"≈ "+fmtQAR(q):""].filter(Boolean).map(esc).join(" · ");
     return `<li><span class="t">${esc(title)}</span><span><span class="amt ${sp?"":"in"}">${sp?"−":"+"}${esc(fmtMoney(t.cur,t.amt))}</span> <button class="x" type="button" data-tx="${t.id}" aria-label="Delete entry">×</button></span><span class="m">${meta}</span></li>`;
   }).join(""):`<li class="empty">Nothing saved for this period. Use Record money above.</li>`;
 
   $("spExport").hidden=!LIVE||!state.tx.length;
   $("spNote").textContent=LIVE
-    ?"Each payment is converted to QAR with the exchange rate on the day you save it. Everything is saved on "+HERE+"."
+    ?"Each payment is converted to "+Home.cur+" with the exchange rate on the day you save it. Everything is saved on "+HERE+"."
     :"In this web version only QAR and US dollars are converted, and data stays in this browser. The desktop app converts every currency and saves to a file.";
   renderAllowance();
 }
@@ -1700,7 +1728,7 @@ function localStr(utc,tz){
   const p={}; new Intl.DateTimeFormat("en-CA",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(utc)).forEach(x=>p[x.type]=x.value);
   return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
 }
-const fmtShift=d=>{if(!d)return "same as Doha";const a=Math.abs(d),h=Math.floor(a),m=Math.round((a-h)*60);return `${d>0?"+":"−"}${h}h${m?pad2(m):""}`};
+const fmtShift=d=>{if(!d)return "same time";const a=Math.abs(d),h=Math.floor(a),m=Math.round((a-h)*60);return `${d>0?"+":"−"}${h}h${m?pad2(m):""}`};
 const shortDate=ms=>new Date(ms).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 
 function resolveTripDest(v){
@@ -1720,7 +1748,7 @@ $("trSave").addEventListener("click",()=>{
   const key=d.code||(d.name+"-"+d.cc);
   const duty=Math.abs(parseFloat($("trDuty").value))||0;
   const tr={id:newId(),dest:d.name,code:d.code||"",cc:d.cc||"",key,tz:d.tz,arr,pick,arrUTC,pickUTC,rest:+$("rest").value||0,duty:duty&&duty<=24?duty:0,
-    allow,allowCur:cur,allowQAR:q==null?null:Math.round(q*100)/100,diff:offH(d.tz,new Date(arrUTC))-offH(HOME_TZ,new Date(arrUTC))};
+    allow,allowCur:cur,allowQAR:q==null?null:Math.round(q*100)/100,diff:offH(d.tz,new Date(arrUTC))-offH(Home.tz,new Date(arrUTC))};
   const i=state.trips.findIndex(x=>!x.ex&&x.key===key&&x.arr.slice(0,10)===arr.slice(0,10));
   if(i>=0){ tr.id=state.trips[i].id; state.trips[i]=tr; } else state.trips.push(tr);
   store.set("trips",state.trips);
@@ -1743,7 +1771,7 @@ function renderTrips(){
   const list=state.trips.slice().sort((a,b)=>b.arrUTC-a.arrUTC);
   $("trList").innerHTML=list.length?list.map(tr=>{
     const hrs=(tr.pickUTC-tr.arrUTC)/36e5;
-    const meta=[tr.ex?"Example":"",`${fmtDate(tr.arr.slice(0,10))} → ${fmtDate(tr.pick.slice(0,10))}`,`${fmtH(hrs)} on the ground`,`${fmtShift(tr.diff)} vs Doha`,tr.allow?`Allowance ${fmtMoney(tr.allowCur,tr.allow)}`:"No allowance entered"].filter(Boolean).map(esc).join(" · ");
+    const meta=[tr.ex?"Example":"",`${fmtDate(tr.arr.slice(0,10))} → ${fmtDate(tr.pick.slice(0,10))}`,`${fmtH(hrs)} on the ground`,`${fmtShift(tr.diff)} vs ${Home.short}`,tr.allow?`Allowance ${fmtMoney(tr.allowCur,tr.allow)}`:"No allowance entered"].filter(Boolean).map(esc).join(" · ");
     return `<li><span class="t">${esc(tr.dest)}</span><button class="x" type="button" data-tr="${tr.id}" aria-label="Delete layover">×</button><span class="m">${meta}</span></li>`;
   }).join(""):`<li class="empty">No layovers saved yet. On the Today screen, fill in your times and press Save layover.</li>`;
 }
@@ -1818,7 +1846,7 @@ function tripLoad(tr,prev){
   if(a>0){ const east=tr.diff>0; s+=a*(east?1.5:1); f.push(`${fmtShift(tr.diff)} ${east?"east":"west"}`); }
   const hrs=(tr.pickUTC-tr.arrUTC)/36e5;
   if(hrs<15){s+=4;f.push("very short layover")} else if(hrs<24){s+=2;f.push("short layover")}
-  if(hourIn(HOME_TZ,new Date(tr.arrUTC))<6){s+=3;f.push("landed in your body's night")}
+  if(hourIn(Home.tz,new Date(tr.arrUTC))<6){s+=3;f.push("landed in your body's night")}
   if(prev&&(tr.arrUTC-prev.pickUTC)/36e5<48){s+=2;f.push("back-to-back")}
   s=Math.round(s*10)/10;
   return {tr,s,f,hrs,lvl:s>=10?"high":s>=5?"mod":"low"};
@@ -1833,17 +1861,17 @@ function acclimState(diffAbs,elapsedH){
   const row=diffAbs<4?0:diffAbs<=6?1:diffAbs<=9?2:3;
   return [["B","D","D","D","D"],["B","X","D","D","D"],["B","X","X","D","D"],["B","X","X","X","D"]][row][col];
 }
-const ACCLIM={B:"still on Doha time",X:"body clock in an unknown state",D:"adapted to local time"};
+const ACCLIM={B:"still on home time",X:"body clock in an unknown state",D:"adapted to local time"};
 function homeNightsNeeded(diffAbs,elapsedH){
   if(diffAbs<4) return 0;
   const col=elapsedH<48?0:elapsedH<72?1:elapsedH<96?2:3, row=diffAbs<=6?0:diffAbs<=9?1:2;
   return [[2,2,3,3],[2,3,3,4],[2,3,4,5]][row][col];
 }
-/* Local nights in Doha (UTC+3): 22:00-08:00 local = 19:00-05:00 UTC; counts when 8h of it fall inside the window */
+/* Local nights at home: 22:00-08:00 home time; counts when 8h of it fall inside the window */
 function localNights(fromUTC,toUTC){
-  let n=0; const day=864e5;
-  for(let d=Math.floor(fromUTC/day)*day-day; d<toUTC; d+=day){
-    const s=Math.max(fromUTC,d+19*36e5), e=Math.min(toUTC,d+29*36e5);
+  let n=0; const day=864e5, off=offH(Home.tz,new Date(fromUTC))*36e5;
+  for(let d=Math.floor(fromUTC/day)*day-2*day; d<toUTC+day; d+=day){
+    const s=Math.max(fromUTC,d+22*36e5-off), e=Math.min(toUTC,d+32*36e5-off);
     if(e-s>=8*36e5) n++;
   }
   return n;
@@ -1879,7 +1907,7 @@ function routeSVG(items){
   for(let v=-Rg;v<=Rg;v+=3){ s+=`<line class="${v===0?"c-zero":"c-axis"}" x1="${L}" x2="${W-R}" y1="${sy(v)}" y2="${sy(v)}"/><text class="c-txt" x="${L-6}" y="${sy(v)+4}" text-anchor="end">${v>0?"+":v<0?"−":""}${Math.abs(v)}h</text>`; }
   items.forEach((it,i)=>{
     const d=it.tr.diff, y0=sy(0), y1=sy(d), top=Math.min(y0,y1), hgt=Math.max(3,Math.abs(y1-y0)), x=cx(i);
-    s+=`<rect class="lv-${RV[it.rule.v]}" x="${(x-bw/2).toFixed(1)}" y="${(d===0?y0-1.5:top).toFixed(1)}" width="${bw.toFixed(1)}" height="${hgt.toFixed(1)}" rx="3"><title>Doha to ${esc(it.tr.dest)}, ${shortDate(it.tr.arrUTC)}: ${fmtShift(d)}. ${esc(it.rule.label)}. ${esc(it.rule.lines.join(". "))}</title></rect>`;
+    s+=`<rect class="lv-${RV[it.rule.v]}" x="${(x-bw/2).toFixed(1)}" y="${(d===0?y0-1.5:top).toFixed(1)}" width="${bw.toFixed(1)}" height="${hgt.toFixed(1)}" rx="3"><title>${esc(Home.name)} to ${esc(it.tr.dest)}, ${shortDate(it.tr.arrUTC)}: ${fmtShift(d)}. ${esc(it.rule.label)}. ${esc(it.rule.lines.join(". "))}</title></rect>`;
     s+=`<text class="c-code" x="${x.toFixed(1)}" y="${(d>=0?top-5:top+hgt+12).toFixed(1)}" text-anchor="middle">${esc(it.tr.code||it.tr.dest.slice(0,3).toUpperCase())}</text>`;
     s+=`<text class="c-txt" x="${x.toFixed(1)}" y="${T+ph+16}" text-anchor="middle">${shortDate(it.tr.arrUTC)}</text>`;
     if(it.rule.home&&i<n-1) s+=`<text class="c-txt ${it.rule.home.ok?"":"c-badtxt"}" x="${(x+col/2).toFixed(1)}" y="${T+ph+40}" text-anchor="middle">${it.rule.home.have}/${it.rule.home.need}</text>`;
@@ -1898,7 +1926,7 @@ function dashSVG(items){
   const yv=(p,v,max)=>P[p].t+P[p].h-(Math.min(v,max)/max)*P[p].h;
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rest against duty, fatigue points and spending against allowance for each trip">`;
   const title=(p,txt,max)=>`<text class="c-ptitle" x="0" y="${P[p].t-9}">${txt}</text><text class="c-txt" x="${L-4}" y="${P[p].t+4}" text-anchor="end">${max}</text><text class="c-txt" x="${L-4}" y="${P[p].t+P[p].h}" text-anchor="end">0</text><line class="c-zero" x1="${L}" x2="${W-R}" y1="${P[p].t+P[p].h}" y2="${P[p].t+P[p].h}"/><line class="c-axis" x1="${L}" x2="${W-R}" y1="${P[p].t}" y2="${P[p].t}" opacity=".5"/>`;
-  s+=title(0,"Rest vs duty, hours",hMax+"h")+title(1,"Fatigue points",pMax)+title(2,"Allowance vs spent, QAR",Math.round(mMax).toLocaleString("en-GB"));
+  s+=title(0,"Rest vs duty, hours",hMax+"h")+title(1,"Fatigue points",pMax)+title(2,"Allowance vs spent, "+Home.cur,Math.round(mMax).toLocaleString("en-GB"));
   /* panel 1 */
   items.forEach((it,i)=>{
     const x=cx(i), d=dut(it), r=restH(it), y0=yv(0,0,hMax);
@@ -2010,7 +2038,7 @@ function renderFatigue(){
   $("dash").innerHTML=recent.length?dashSVG(recent):`<p class="empty">No layovers in this period.</p>`;
   $("dashN").textContent=recent.length?`Last ${recent.length} trip${recent.length===1?"":"s"}`:"";
   $("dashIns").innerHTML=recent.length?dashInsights(recent).map(t=>`<li>${esc(t)}</li>`).join(""):"";
-  $("fgList").innerHTML=inP.length?inP.slice().reverse().map(x=>`<li><span class="t">${esc(x.tr.dest)}<span class="lvl ${RV[x.rule.v]}">${esc(x.rule.label)}</span></span><span class="amt">${x.s} pts</span><span class="m">${esc([x.tr.ex?"Example":"",fmtDate(x.tr.arr.slice(0,10)),fmtShift(x.tr.diff)+" vs Doha"].filter(Boolean).join(" · "))}<br>${esc(x.rule.lines.join(" · "))}<br>Fatigue points: ${esc(x.f.join(" · ")||"no extra factors")}</span></li>`).join("")
+  $("fgList").innerHTML=inP.length?inP.slice().reverse().map(x=>`<li><span class="t">${esc(x.tr.dest)}<span class="lvl ${RV[x.rule.v]}">${esc(x.rule.label)}</span></span><span class="amt">${x.s} pts</span><span class="m">${esc([x.tr.ex?"Example":"",fmtDate(x.tr.arr.slice(0,10)),fmtShift(x.tr.diff)+" vs "+Home.short].filter(Boolean).join(" · "))}<br>${esc(x.rule.lines.join(" · "))}<br>Fatigue points: ${esc(x.f.join(" · ")||"no extra factors")}</span></li>`).join("")
     :`<li class="empty">No layovers in this period.</li>`;
 }
 
@@ -2033,10 +2061,10 @@ function seedExamples(){
     const d=DESTS.find(x=>x.code===code);
     const ds=localStr(now-ago*day,d.tz).slice(0,10), arr=`${ds}T${pad2(Math.floor(hr))}:${pad2(Math.round(hr%1*60))}`;
     const arrUTC=zonedToUTC(arr,d.tz), pickUTC=arrUTC+len*36e5;
-    state.trips.push({id:newId(),ex:true,dest:d.name,code,cc:d.cc,key:code,tz:d.tz,arr,pick:localStr(pickUTC,d.tz),arrUTC,pickUTC,rest:10,duty:DUTY[code]||0,allow,allowCur:"QAR",allowQAR:allow,diff:offH(d.tz,new Date(arrUTC))-offH(HOME_TZ,new Date(arrUTC))});
-    spends.forEach(([cat,cur,amt,qar,pay,note])=>state.tx.push({id:newId(),ex:true,date:ds,type:"spend",cur,amt,cat,pay,note,dest:d.name,code,cc:d.cc,qar}));
+    state.trips.push({id:newId(),ex:true,dest:d.name,code,cc:d.cc,key:code,tz:d.tz,arr,pick:localStr(pickUTC,d.tz),arrUTC,pickUTC,rest:10,duty:Home.code==="DOH"?DUTY[code]||0:0,allow,allowCur:"QAR",allowQAR:Home.cur==="QAR"?allow:(q=>q==null?null:Math.round(q))(toQAR("QAR",allow)),diff:offH(d.tz,new Date(arrUTC))-offH(Home.tz,new Date(arrUTC))});
+    spends.forEach(([cat,cur,amt,qar,pay,note])=>state.tx.push({id:newId(),ex:true,date:ds,type:"spend",cur,amt,cat,pay,note,dest:d.name,code,cc:d.cc,qar:Home.cur==="QAR"?qar:null}));
   });
-  store.set("trips",state.trips); store.set("tx",state.tx);
+  fillMissingQAR(); store.set("trips",state.trips); store.set("tx",state.tx);
   renderTrips(); renderMoney(); renderFatigue();
 }
 function removeExamples(){
@@ -2067,7 +2095,7 @@ $("installClose").addEventListener("click",()=>{ $("installTip").hidden=true; ls
 $("installBtn").addEventListener("click",async()=>{ if(!installEvt) return; installEvt.prompt(); try{await installEvt.userChoice}catch(e){} installEvt=null; $("installTip").hidden=true; lsSet("lay.installSeen",true); });
 
 /* ---------- backup and restore ---------- */
-const BK_KEYS=["dest","tips","wish","wallet","plan","tx","visits","rates","trips"];
+const BK_KEYS=["dest","tips","wish","wallet","plan","tx","visits","rates","trips","home"];
 let bkPending=null;
 function initBackup(){ renderAccount(); }
 $("bkSave").addEventListener("click",()=>{
@@ -2351,14 +2379,14 @@ function renderCheck(){
   if(!(pickUTC>arrUTC)){ el.innerHTML=`<p class="hint">Pickup must be after arrival.</p>`; return; }
   const key=d.code||(d.name+"-"+d.cc);
   const dutyIn=Math.abs(parseFloat($("trDuty").value))||0;
-  const me={dest:d.name,key,arr,arrUTC,pickUTC,duty:dutyIn&&dutyIn<=24?dutyIn:0,diff:offH(d.tz,new Date(arrUTC))-offH(HOME_TZ,new Date(arrUTC)),self:true};
+  const me={dest:d.name,key,arr,arrUTC,pickUTC,duty:dutyIn&&dutyIn<=24?dutyIn:0,diff:offH(d.tz,new Date(arrUTC))-offH(Home.tz,new Date(arrUTC)),self:true};
   const all=state.trips.filter(t=>!(t.key===key&&t.arr.slice(0,10)===arr.slice(0,10))).concat([me]).sort((a,b)=>a.arrUTC-b.arrUTC);
   const scored=all.map((t,i)=>tripLoad(t,all[i-1])), x=scored.find(s=>s.tr.self);
   const rc=ruleCheck(me,all[all.indexOf(me)+1]);
   const wk=scored.filter(s=>s.tr.arrUTC>arrUTC-7*864e5&&s.tr.arrUTC<=arrUTC).reduce((a,s)=>a+s.s,0), wl=weekLvl(wk);
   const why=x.f.length?x.f.join(" · "):"No big time change and plenty of time on the ground";
-  const tip={low:"Your body clock should cope well with this one.",mod:"Plan your sleep around Doha time and keep caffeine early.",high:"Make rest your priority on this layover. If you feel unfit to fly, use your company's fatigue reporting process."}[x.lvl];
-  el.innerHTML=`<div class="fgnow"><div><span class="label">${esc(d.name)}, ${fmtShift(x.tr.diff)} vs Doha</span><div class="big">${x.s} points<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span></div></div><p class="hint" style="flex:1 1 200px">${esc(why)}. ${tip}</p></div>
+  const tip={low:"Your body clock should cope well with this one.",mod:"Plan your sleep around home time and keep caffeine early.",high:"Make rest your priority on this layover. If you feel unfit to fly, use your company's fatigue reporting process."}[x.lvl];
+  el.innerHTML=`<div class="fgnow"><div><span class="label">${esc(d.name)}, ${fmtShift(x.tr.diff)} vs ${esc(Home.short)}</span><div class="big">${x.s} points<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span></div></div><p class="hint" style="flex:1 1 200px">${esc(why)}. ${tip}</p></div>
     <div class="rulebox ${rc.v}"><span class="label">Flight time rules (EASA reference)</span><b>${esc(rc.label)}</b><span>${esc(rc.lines.join(" · "))}</span></div>
     <p class="hint">With the layovers you saved in the 7 days before it: <b>${Math.round(wk*10)/10} points, ${LVL[wl].toLowerCase()} week</b>.${state.trips.length?"":" Save your layovers to include them."}</p>`;
 }
@@ -2367,12 +2395,12 @@ $("trDest").addEventListener("input",renderCheck);
 
 /* ---------- guided tour ---------- */
 const TOUR=[
-  {sel:".pass",tab:"today",t:"Your destination",b:"Local time, Doha time and what your body clock is telling you. Tap Change at the top right to pick where you are."},
+  {sel:".pass",tab:"today",t:"Your destination",b:"Local time, home time and what your body clock is telling you. Tap Change at the top right to pick where you are."},
   {sel:".when",tab:"today",t:"Your free time",b:"Enter your arrival and pickup. Rest is blocked out first, and the green part is your free time."},
-  {sel:"#fgCheck",tab:"today",t:"Fatigue check",b:"The app compares the time difference with Doha and your time on the ground, scores the fatigue, and checks your rest against flight time rules. Save it to keep your history."},
+  {sel:"#fgCheck",tab:"today",t:"Fatigue check",b:"The app compares the time difference with your home base and your time on the ground, scores the fatigue, and checks your rest against flight time rules. Save it to keep your history."},
   {sel:'.tabbar [data-tab="explore"]',tab:"today",t:"Explore",b:"Find food, groceries, pharmacies and sights near your hotel, plus ideas that fit your free time."},
-  {sel:'.tabbar [data-tab="crew"]',tab:"today",t:"Crew feed",b:"Photos, places and ratings shared by crew in every city. Like, comment, and post your own finds under a crew name."},
-  {sel:'.tabbar [data-tab="money"]',tab:"today",t:"Money",b:"Record what you spend in any currency. Summary shows your totals in QAR and how much of your allowance you keep."},
+  {sel:'.tabbar [data-tab="crew"]',tab:"today",t:"Crew feed",b:"Photos, videos, places and ratings shared by crew of every airline, in every city. Like, comment, and post your own finds under a crew name."},
+  {sel:'.tabbar [data-tab="money"]',tab:"today",t:"Money",b:"Record what you spend in any currency. Summary shows your totals in your home currency and how much of your allowance you keep."},
   {sel:'.tabbar [data-tab="rest"]',tab:"today",t:"Rest",b:"Your trips route by route, checked against flight time rules, and your fatigue over the last weeks. Notebook holds your journal, notes and account, and can replay this tour."}
 ];
 let tourI=-1;
@@ -2507,7 +2535,10 @@ on("proSheet","click",async e=>{
 });
 
 /* ---------- crew feed (Crew tab): posts, photos, likes, comments ---------- */
-const Crew={scope:"here",key:null,posts:null,full:true,total:0,me:null,photo:null,photoUrl:"",rating:0,busy:false};
+const Crew={scope:"here",key:null,posts:null,full:true,total:0,me:null,photo:null,photoUrl:"",video:null,rating:0,busy:false};
+const VIDEO_MAX=25*1024*1024, VIDEO_SECS=60;
+const isVideo=p=>/\.(mp4|mov)$/i.test(p||"");
+const posterOf=p=>String(p).replace(/\.(mp4|mov)$/i,".jpg");
 const HEART='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.200A4.3 4.3 0 0 1 12 7.600a4.3 4.3 0 0 1 7.5 2.700c0 5.600-7.5 10.200-7.5 10.200z"/></svg>';
 const BUBBLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4.5 3.5v-3.5a2 2 0 0 1-2-2z"/></svg>';
 function crewVisible(){ const s=$("tab-crew"); return !!s&&!s.hidden; }
@@ -2529,7 +2560,7 @@ async function loadPhoto(img){
     let u=photoCache.get(p);
     if(!u){ const r=await sbStore("GET","authenticated/crew-photos/"+p); if(!r.ok) throw new Error("gone"); u=URL.createObjectURL(await r.blob()); photoCache.set(p,u); }
     img.onload=()=>img.classList.add("in"); img.src=u;
-  }catch(e){ const box=img.closest(".pphoto"); if(box) box.classList.add("gone"); }
+  }catch(e){ const box=img.closest(".pphoto"); if(box&&!box.dataset.video) box.classList.add("gone"); }
 }
 const photoIO="IntersectionObserver" in window?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ photoIO.unobserve(e.target); loadPhoto(e.target); } }),{rootMargin:"600px"}):null;
 /* Shrinks a photo before upload. Redrawing it also removes the location data cameras hide in photos. */
@@ -2546,10 +2577,58 @@ async function shrinkPhoto(file){
     return b;
   }finally{ URL.revokeObjectURL(url); }
 }
+/* Phones write where a video was filmed into the file. This blanks those parts in place, without re-encoding:
+   the "udta" and "meta" boxes are relabelled as free space and wiped, so nothing else in the file moves. */
+function stripVideoMeta(buf){
+  const v=new DataView(buf), u=new Uint8Array(buf), kind=o=>String.fromCharCode(u[o+4],u[o+5],u[o+6],u[o+7]);
+  const walk=(start,end)=>{
+    let o=start;
+    while(o+8<=end){
+      let size=v.getUint32(o), hdr=8;
+      if(size===1){ if(o+16>end) break; size=v.getUint32(o+8)*4294967296+v.getUint32(o+12); hdr=16; } else if(size===0) size=end-o;
+      if(size<hdr||o+size>end) break;
+      const t=kind(o);
+      if(t==="udta"||t==="meta"){ u[o+4]=0x66; u[o+5]=0x72; u[o+6]=0x65; u[o+7]=0x65; u.fill(0,o+hdr,o+size); }
+      else if(t==="moov"||t==="trak") walk(o+hdr,o+size);
+      o+=size;
+    }
+  };
+  walk(0,buf.byteLength);
+  return buf;
+}
+/* A still from the video, used as its cover in the feed. Resolves with no picture if the phone can't make one. */
+function videoPoster(file){
+  return new Promise(res=>{
+    const url=URL.createObjectURL(file), v=document.createElement("video"); let done=false;
+    const fin=blob=>{ if(done) return; done=true; const dur=v.duration; URL.revokeObjectURL(url); res({blob:blob||null,dur}); };
+    v.muted=true; v.playsInline=true; v.preload="auto";
+    v.onloadeddata=()=>{ try{ v.currentTime=Math.min(.5,(v.duration||1)/2); }catch(e){ fin(null); } };
+    v.onseeked=()=>{ try{
+      const k=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight)), c=document.createElement("canvas");
+      c.width=Math.round(v.videoWidth*k); c.height=Math.round(v.videoHeight*k);
+      if(!c.width||!c.height) return fin(null);
+      c.getContext("2d").drawImage(v,0,0,c.width,c.height); c.toBlob(fin,"image/jpeg",.8);
+    }catch(e){ fin(null); } };
+    v.onerror=()=>fin(null);
+    setTimeout(()=>fin(null),8000);
+    v.src=url; v.load();
+  });
+}
+async function playVideo(box){
+  if(box.classList.contains("playing")) return; box.classList.add("playing");
+  try{
+    const r=await sbStore("POST","sign/crew-photos/"+box.dataset.video,{headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})});
+    const j=r.ok?await r.json():null, link=j&&(j.signedURL||j.signedUrl);
+    if(!link) throw new Error("That video couldn't be loaded. Try again.");
+    const v=document.createElement("video"); v.controls=true; v.playsInline=true; v.autoplay=true; v.src=SB+"/storage/v1"+link;
+    box.replaceChildren(v);
+  }catch(err){ box.classList.remove("playing"); throw err; }
+}
 function postHTML(x){
   return `<article class="post" data-id="${+x.id}">
   <header>${pav(x.name)}<div><b>${esc(x.name)}</b><span class="hint">${esc(x.dest_name)}, ${ago(x.at)}</span></div>${x.mine?'<button class="plink" type="button" data-del>Delete</button>':'<button class="plink" type="button" data-rep>Report</button>'}</header>
-  ${x.photo?`<div class="pphoto"><img alt="Photo shared by ${esc(x.name)}" data-photo="${esc(x.photo)}"><span class="burst" aria-hidden="true">♥</span></div>`:""}
+  ${!x.photo?"":isVideo(x.photo)?`<div class="pphoto pvideo" data-video="${esc(x.photo)}"><img alt="Video shared by ${esc(x.name)}" data-photo="${esc(posterOf(x.photo))}"><button class="playbtn" type="button" aria-label="Play video">▶</button></div>`
+    :`<div class="pphoto"><img alt="Photo shared by ${esc(x.name)}" data-photo="${esc(x.photo)}"><span class="burst" aria-hidden="true">♥</span></div>`}
   <div class="pbody">
     ${x.place||x.rating?`<div class="pplace">${x.place?`<b>${esc(x.place)}</b>`:"<span></span>"}${x.rating?`<span class="pstars" role="img" aria-label="${+x.rating} out of 5 stars">${"★".repeat(+x.rating)}<i>${"★".repeat(5-x.rating)}</i></span>`:""}</div>`:""}
     ${x.t?`<p>${esc(x.t)}</p>`:""}
@@ -2579,7 +2658,7 @@ async function renderCrew(force){
   if(!signed){ $("crewForm").hidden=true; $("crewNameCard").hidden=true; $("crewFeed").innerHTML=""; $("crewMore").hidden=true; $("crewLoad").hidden=true; return; }
   const k=crewKey();
   if(Crew.key!==k){ Crew.key=k; Crew.posts=null; }
-  $("crewText").placeholder=`Share a place, a tip or a photo from ${state.dest.name}`;
+  $("crewText").placeholder=`Share a place, a tip, a photo or a video from ${state.dest.name}`;
   if(!crewVisible()) return;
   crewChrome(); drawCrew();
   if(Crew.posts&&!force) return;
@@ -2603,29 +2682,46 @@ on("crewNameCard","submit",async e=>{
 on("crewRename","click",()=>{ $("crewName").value=Crew.me||""; $("crewNameCard").hidden=false; $("crewForm").hidden=true; $("crewName").focus(); });
 function setStars(n){ Crew.rating=n; $("crewStars").querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",+b.dataset.s<=n&&n>0)); }
 on("crewStars","click",e=>{ const b=e.target.closest("[data-s]"); if(b) setStars(Crew.rating===+b.dataset.s?0:+b.dataset.s); });
-function clearPhoto(){ if(Crew.photoUrl) URL.revokeObjectURL(Crew.photoUrl); Crew.photo=null; Crew.photoUrl=""; $("crewPrev").hidden=true; $("crewPrevImg").removeAttribute("src"); $("crewFile").value=""; $("crewFileBtn").textContent="Add photo"; }
+function clearPhoto(){
+  if(Crew.photoUrl) URL.revokeObjectURL(Crew.photoUrl); Crew.photo=null; Crew.photoUrl=""; Crew.video=null;
+  $("crewPrev").hidden=true; $("crewPrevImg").removeAttribute("src"); $("crewPrevImg").hidden=false; $("crewPrevBadge").hidden=true;
+  $("crewFile").value=""; $("crewFileBtn").textContent="Add photo or video";
+}
 on("crewPhotoX","click",clearPhoto);
 on("crewFile","change",async e=>{
   const f=e.target.files&&e.target.files[0]; if(!f) return; $("crewMsg").textContent="";
-  try{ const b=await shrinkPhoto(f); clearPhoto(); Crew.photo=b; Crew.photoUrl=URL.createObjectURL(b); $("crewPrevImg").src=Crew.photoUrl; $("crewPrev").hidden=false; $("crewFileBtn").textContent="Change photo"; }
-  catch(err){ $("crewMsg").textContent=err.message; }
+  try{
+    if(/^video\//.test(f.type)){
+      if(f.type!=="video/mp4"&&f.type!=="video/quicktime") throw new Error("Use an MP4 or MOV video.");
+      if(f.size>VIDEO_MAX) throw new Error("That video is over 25 MB. Trim it to about 20 seconds and try again.");
+      $("crewMsg").textContent="Preparing your video…";
+      const {blob,dur}=await videoPoster(f);
+      if(dur>VIDEO_SECS) throw new Error("Keep videos under one minute.");
+      const buf=stripVideoMeta(await f.arrayBuffer());
+      clearPhoto(); Crew.video={blob:new Blob([buf],{type:f.type}),type:f.type,ext:f.type==="video/mp4"?"mp4":"mov"}; Crew.photo=blob;
+      if(blob){ Crew.photoUrl=URL.createObjectURL(blob); $("crewPrevImg").src=Crew.photoUrl; } else $("crewPrevImg").hidden=true;
+      $("crewPrevBadge").textContent=isFinite(dur)?`Video, ${Math.max(1,Math.round(dur))} s`:"Video"; $("crewPrevBadge").hidden=false;
+      $("crewMsg").textContent="";
+    }else{
+      const b=await shrinkPhoto(f); clearPhoto(); Crew.photo=b; Crew.photoUrl=URL.createObjectURL(b); $("crewPrevImg").src=Crew.photoUrl;
+    }
+    $("crewPrev").hidden=false; $("crewFileBtn").textContent="Change";
+  }catch(err){ $("crewFile").value=""; $("crewMsg").textContent=err.message; }
 });
 on("crewForm","submit",async e=>{
   e.preventDefault(); if(Crew.busy) return;
   const t=$("crewText").value.trim();
-  if(t.length<3&&!Crew.photo){ $("crewMsg").textContent="Write a few words or add a photo."; return; }
-  const b=$("crewPost"); Crew.busy=true; b.disabled=true; b.textContent="Posting…"; $("crewMsg").textContent="";
-  let path=null;
+  if(t.length<3&&!Crew.photo&&!Crew.video){ $("crewMsg").textContent="Write a few words or add a photo or video."; return; }
+  const b=$("crewPost"); Crew.busy=true; b.disabled=true; b.textContent=Crew.video?"Uploading…":"Posting…"; $("crewMsg").textContent="";
+  const base=DB.cloud.uid+"/"+crypto.randomUUID(), sent=[]; let path=null, saved=false;
+  const put=async(p,blob,type)=>{ const r=await sbStore("POST","crew-photos/"+p,{headers:{"Content-Type":type},body:blob}); if(!r.ok) throw new Error("The upload didn't finish. Check your connection and try again."); sent.push(p); };
   try{
-    if(Crew.photo){
-      path=DB.cloud.uid+"/"+crypto.randomUUID()+".jpg";
-      const r=await sbStore("POST","crew-photos/"+path,{headers:{"Content-Type":"image/jpeg"},body:Crew.photo});
-      if(!r.ok){ path=null; throw new Error("The photo didn't upload. Check your connection and try again."); }
-    }
+    if(Crew.video){ path=base+"."+Crew.video.ext; await put(path,Crew.video.blob,Crew.video.type); if(Crew.photo) await put(base+".jpg",Crew.photo,"image/jpeg"); }
+    else if(Crew.photo){ path=base+".jpg"; await put(path,Crew.photo,"image/jpeg"); }
     await rpc("crew_post_add",{p_dest:destKey(),p_name:state.dest.name,p_cat:$("crewCat").value,p_body:t,p_place:$("crewPlace").value.trim()||null,p_rating:Crew.rating||null,p_photo:path});
-    path=null; $("crewText").value=""; $("crewPlace").value=""; setStars(0); clearPhoto();
+    saved=true; $("crewText").value=""; $("crewPlace").value=""; setStars(0); clearPhoto();
     toast("Posted to the crew feed."); await renderCrew(true);
-  }catch(err){ $("crewMsg").textContent=err.message; if(path) sbStore("DELETE","crew-photos/"+path).catch(()=>{}); }
+  }catch(err){ $("crewMsg").textContent=err.message; if(!saved) sent.forEach(p=>sbStore("DELETE","crew-photos/"+p).catch(()=>{})); }
   finally{ Crew.busy=false; b.disabled=false; b.textContent="Post"; }
 });
 async function likePost(art,x){
@@ -2651,6 +2747,7 @@ on("crewFeed","click",async e=>{
   const id=+art.dataset.id, x=Crew.posts.find(p=>p.id===id); if(!x) return;
   try{
     if(e.target.closest("[data-like]")) await likePost(art,x);
+    else if(e.target.closest(".pvideo")){ const box=e.target.closest(".pvideo"); if(!box.classList.contains("playing")) await playVideo(box); }
     else if(e.target.closest(".pphoto")){   /* double-tap the photo to like it */
       const now=Date.now(), dbl=lastTap.id===id&&now-lastTap.at<350; lastTap={id,at:dbl?0:now};
       if(dbl){ const h=art.querySelector(".burst"); h.classList.remove("show"); void h.offsetWidth; h.classList.add("show"); if(!x.liked) await likePost(art,x); }
@@ -2663,7 +2760,7 @@ on("crewFeed","click",async e=>{
     else if(e.target.closest("[data-cdel]")){ await rpc("crew_comment_delete",{p_id:+e.target.closest("[data-cdel]").dataset.cdel}); await loadComments(art,x); }
     else if(e.target.closest("[data-del]")){
       if(!confirm("Delete this post?")) return;
-      const path=await rpc("crew_post_delete",{p_id:id}); if(path) sbStore("DELETE","crew-photos/"+path).catch(()=>{});
+      const path=await rpc("crew_post_delete",{p_id:id}); if(path){ sbStore("DELETE","crew-photos/"+path).catch(()=>{}); if(isVideo(path)) sbStore("DELETE","crew-photos/"+posterOf(path)).catch(()=>{}); }
       Crew.posts=Crew.posts.filter(p=>p.id!==id); Crew.total=Math.max(0,Crew.total-1); drawCrew();
     }
     else if(e.target.closest("[data-rep]")){
@@ -2692,6 +2789,74 @@ async function crewPurgePhotos(){
   await sbStore("DELETE","crew-photos",{headers:J,body:JSON.stringify({prefixes:files.map(f=>uid+"/"+f.name)})});
 }
 
+/* ---------- home base: any city, any airline ---------- */
+function applyHome(){
+  const h=state.home;
+  Object.assign(Home,h?{code:h.code||"",name:h.name||"Home",cc:h.cc||"",tz:h.tz||"Asia/Qatar",cur:h.cur||"QAR"}:{code:"DOH",name:"Doha",cc:"QA",tz:"Asia/Qatar",cur:"QAR"});
+  Home.short=Home.code||Home.name;
+  document.querySelectorAll(".hn").forEach(e=>e.textContent=Home.name);
+  document.querySelectorAll(".hs").forEach(e=>e.textContent=Home.short);
+  document.querySelectorAll(".hcur").forEach(e=>e.textContent=Home.cur);
+  if($("homeLine")) $("homeLine").textContent=`Based in ${Home.name}${Home.code?" ("+Home.code+")":""}. Money totals are shown in ${Home.cur}.`;
+}
+let homeFirst=false, homeCurTouched=false, afterHome=null, homeItems=[];
+function openHome(first){
+  homeFirst=!!first; homeCurTouched=false; homeItems=[];
+  let guess=null; try{ const z=Intl.DateTimeFormat().resolvedOptions().timeZone; guess=DESTS.find(d=>d.tz===z)||null; }catch(e){}
+  const cur=state.home||guess;
+  $("homeQ").value=cur?(cur.code?`${cur.code} · ${cur.name}`:cur.name):"";
+  $("homeCur").innerHTML=$("walCur").innerHTML;
+  $("homeCur").value=state.home?state.home.cur:(guess&&COUNTRY[guess.cc]?COUNTRY[guess.cc][0]:"USD");
+  $("homeMatches").innerHTML=""; $("homeHint").textContent=""; $("homeClose").hidden=homeFirst;
+  $("homeForm").hidden=false; $("homeBackdrop").hidden=false;
+}
+function closeHome(){
+  $("homeForm").hidden=true; $("homeBackdrop").hidden=true;
+  if(afterHome){ const f=afterHome; afterHome=null; f(); }
+}
+function setHome(d,cur){
+  const clean=v=>String(v||"").replace(/[<>&"'`]/g,"").slice(0,60), was=Home.cur;
+  state.home={code:clean(d.code),name:clean(d.name)||"Home",cc:clean(d.cc),tz:d.tz,cur}; store.set("home",state.home); applyHome();
+  if(was!==Home.cur){   /* amounts are kept in the original currency, so totals are worked out again in the new one */
+    state.tx.forEach(t=>{ t.qar=null; }); fillMissingQAR();
+    state.trips.forEach(tr=>{ const q=tr.allow?toQAR(tr.allowCur,tr.allow):0; tr.allowQAR=q==null?null:Math.round(q*100)/100; });
+  }
+  state.trips.forEach(tr=>{ if(tr.tz) tr.diff=offH(tr.tz,new Date(tr.arrUTC))-offH(Home.tz,new Date(tr.arrUTC)); });
+  store.set("tx",state.tx); store.set("trips",state.trips);
+  $("trCur").value=Home.cur; homeFirst=false; closeHome(); renderAll();
+  toast(`Home base set to ${Home.name}. Money is shown in ${Home.cur}.`);
+}
+on("homeQ","input",()=>{ if(homeCurTouched) return; const l=findLocal($("homeQ").value), c=l.length===1&&COUNTRY[l[0].cc]; if(c) $("homeCur").value=c[0]; });
+on("homeCur","change",()=>{ homeCurTouched=true; });
+on("homeClose","click",closeHome);
+on("homeBackdrop","click",()=>{ if(!homeFirst) closeHome(); });
+on("homeBtn","click",()=>openHome(false));
+on("homeChange","click",()=>openHome(false));
+on("homeForm","submit",async e=>{
+  e.preventDefault();
+  const q=$("homeQ").value.trim(); if(!q){ $("homeHint").textContent="Type your home city or airport code."; return; }
+  const local=findLocal(q), list=items=>{ homeItems=items; $("homeMatches").innerHTML='<div class="hint">Which one?</div>'+items.map((it,i)=>`<button class="match" type="button" data-i="${i}">${esc(it.label)}</button>`).join(""); };
+  if(local.length===1) return setHome(local[0],$("homeCur").value);
+  if(local.length>1) return list(local.map(d=>({label:`${d.code} · ${d.name}, ${countryName(d.cc)}`,d})));
+  if(!LIVE){ $("homeHint").textContent="That place isn't in the built-in list. Try the nearest big airport."; return; }
+  $("homeHint").textContent="Searching…";
+  try{
+    const res=await (await fetch("/api/geocode?q="+encodeURIComponent(q))).json();
+    if(!res.length){ $("homeHint").textContent=`No place called "${q}" found. Check the spelling or add the country.`; return; }
+    $("homeHint").textContent=""; list(res.map(m=>({label:m.display_name,m})));
+  }catch(err){ $("homeHint").textContent="Couldn't reach the map service. Check your connection, or type an airport code."; }
+});
+on("homeMatches","click",async e=>{
+  const b=e.target.closest(".match"); if(!b) return; const it=homeItems[+b.dataset.i]; if(!it) return;
+  if(it.d){ const c=COUNTRY[it.d.cc]; return setHome(it.d,!homeCurTouched&&c?c[0]:$("homeCur").value); }
+  const m=it.m, a=m.address||{}, lat=+m.lat, lon=+m.lon;
+  const d={code:"",name:m.name||a.city||a.town||a.village||m.display_name.split(",")[0],cc:(a.country_code||"").toUpperCase(),tz:null};
+  $("homeHint").textContent="Getting local time…";
+  try{ const w=await (await fetch(`/api/weather?lat=${lat}&lon=${lon}`)).json(); d.tz=w.timezone; }catch(err){}
+  if(!d.tz){ const off=Math.round(lon/15); d.tz=off===0?"Etc/GMT":`Etc/GMT${off>0?"-":"+"}${Math.abs(off)}`; }
+  const c=COUNTRY[d.cc]; setHome(d,!homeCurTouched&&c?c[0]:$("homeCur").value);
+});
+
 function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner();renderIdeas();renderPack();renderTips();renderWish();renderTrips();renderMoney();renderJournal();renderFatigue();renderCheck();renderCrew()}
 (async()=>{
   if(WEBAPP){
@@ -2703,7 +2868,12 @@ function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner
   syncWalType(); initPlanner(); syncChips(); applyPlan(); renderAll(); Plan.refresh(); loadRates(); initInstallTip(); initBackup();
   setInterval(renderClocks,30000);
   if(Cloud.welcome){ toast(Cloud.welcome); Cloud.welcome=""; }
-  if(!lsGet("lay.tourDone",false)) setTimeout(startTour,500);
+  const tourIfNew=()=>{ if(!lsGet("lay.tourDone",false)) setTimeout(startTour,500); };
+  $("trCur").value=Home.cur;
+  if(state.home) tourIfNew();
+  else if(state.tx.some(t=>!t.ex)||state.trips.some(t=>!t.ex)){   /* logbooks from before v3.2 were all kept from Doha, in QAR */
+    state.home={code:"DOH",name:"Doha",cc:"QA",tz:"Asia/Qatar",cur:"QAR"}; store.set("home",state.home); applyHome(); tourIfNew();
+  } else { afterHome=tourIfNew; openHome(true); }
 })();
 </script>
 
