@@ -2501,6 +2501,7 @@ function applyPlan(){
         :i.cancel_at?`Your Pro plan ends on ${fmtDay(i.cancel_at)}.`
         :i.status==="past_due"?"Your last payment didn't go through. Update your card to keep Pro."
         :i.period_end?`Renews on ${fmtDay(i.period_end)}.`:"Everything is unlocked.";
+      if(pro&&!PRO_CFG.manageUrl) $("planLine").textContent+=" To cancel or change your card, use the link in your Paddle receipt email.";
       $("planUp").hidden=pro;
       const m=$("planManage"); m.hidden=!pro||!PRO_CFG.manageUrl; if(PRO_CFG.manageUrl) m.href=PRO_CFG.manageUrl;
     }
@@ -2525,11 +2526,13 @@ let paddleReady=null;
 function loadPaddle(){
   return paddleReady??=new Promise((res,rej)=>{
     const s=document.createElement("script"); s.src="https://cdn.paddle.com/paddle/v2/paddle.js";
-    s.onload=()=>{ try{ if(PRO_CFG.paddleEnv==="sandbox") Paddle.Environment.set("sandbox"); Paddle.Initialize({token:PRO_CFG.paddleToken,eventCallback:onPaddle}); res(); }catch(e){ paddleReady=null; rej(e); } };
+    s.onload=()=>{ try{ if(PRO_CFG.paddleEnv==="sandbox"||/^test_/.test(PRO_CFG.paddleToken)) Paddle.Environment.set("sandbox"); Paddle.Initialize({token:PRO_CFG.paddleToken,eventCallback:onPaddle}); res(); }catch(e){ paddleReady=null; rej(e); } };
     s.onerror=()=>{ paddleReady=null; s.remove(); rej(new Error("offline")); };
     document.head.appendChild(s);
   });
 }
+/* Links in Paddle's emails (update a card, finish a payment) open this page with ?_ptxn=…; Paddle.js then shows that checkout */
+if(PAY_ON&&/[?&]_ptxn=/.test(location.search)) loadPaddle().catch(()=>{});
 function onPaddle(ev){ if(ev&&ev.name==="checkout.completed"){ toast("Payment received. Unlocking Pro…"); pollPlan(0); } }
 async function pollPlan(n){
   await Plan.refresh();
