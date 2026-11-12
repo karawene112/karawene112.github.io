@@ -386,6 +386,104 @@ details.more > :not(summary){margin-top:12px}
 .fgnow .big{font-size:1.3rem}
 
 @media (prefers-reduced-motion:no-preference){.timeline div{transition:flex-grow .3s var(--ease)}.seg button,.tabbar button{transition:color .15s var(--ease),background-color .15s var(--ease)}}
+
+/* ---- Pro plan + shared crew guide ---- */
+body.locked [data-pro]{display:none!important}
+body:not(.locked) .prolock{display:none!important}
+.prolock{border-style:dashed;background:var(--accent-soft)}
+.probadge{font-family:var(--mono);font-size:.6875rem;font-weight:600;letter-spacing:.06em;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:2px 6px;vertical-align:middle}
+a.btn{text-decoration:none}
+#proBackdrop{z-index:50}
+#proSheet{z-index:51}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.planbtn{display:grid;gap:2px;text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.planbtn.best{border:2px solid var(--accent)}
+.planbtn b{font-size:.875rem}
+.planbtn .p{font-family:var(--mono);font-size:1.15rem}
+.planbtn small{color:var(--muted);font-size:.75rem}
+.planbtn:disabled{opacity:.5}
+#proSheet a{color:var(--warn)}
+
+/* ---- v3.1 look: more colour, stronger contrast, livelier controls ---- */
+:root{--bg:#e6ecfa;--sub:#d5def3;--ink:#0d1838;--muted:#44527a;--line:#c9d3ec;
+  --accent:#ff7a1a;--accent-ink:#1c0d00;--accent-soft:#ffe1c4;--board:#0d1838;--board-2:#1b2a5c;--board-line:#3a4c86;
+  --good:#0f9d58;--warn:#c2500a;--navy:#3454a6;--bad:#d22f27;
+  --shadow:0 1px 2px rgba(13,24,56,.08),0 10px 28px rgba(13,24,56,.09)}
+:root{--heart:#ff2e63;--star:#f5a300;--hot:linear-gradient(135deg,#ff9a2e,#ff6a2a);--sky:linear-gradient(140deg,#131f5c 0%,#4b2a93 42%,#d83f7d 78%,#ff9440 100%)}
+.pass{background:var(--sky);box-shadow:0 14px 34px rgba(75,42,147,.28)}
+.pass{--board-muted:rgba(255,255,255,.88);--board-line:rgba(255,255,255,.4)}
+.pass .code:not(.from){color:#fff}
+.pass .status{color:#ffe08a}
+.pass .status.ok{color:#b4ffd6}
+.btn,.joinbtn{background:var(--hot)}
+.btn{box-shadow:0 4px 14px rgba(255,106,42,.3)}
+.btn.ghost{background:transparent;box-shadow:none}
+.tabbar .in{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.tabbar button{padding:6px 2px 8px;font-size:.6875rem}
+.tabbar svg{width:48px;height:28px;padding:2px 12px;box-sizing:border-box;border-radius:999px}
+.tabbar button[aria-selected="true"]{font-weight:600}
+.tabbar button[aria-selected="true"] svg{background:var(--accent-soft);stroke:var(--warn)}
+.tabbar button[aria-selected="true"]::before{display:none}
+@keyframes tabin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.3)}}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion:no-preference){
+  section.panel[id^="tab-"]:not([hidden]){animation:tabin .26s var(--ease)}
+  .tabbar svg{transition:background-color .2s var(--ease)}
+  .tabbar button[aria-selected="true"] svg{animation:pop .32s var(--ease)}
+  .btn:active{transform:scale(.95)}
+  .like.pop svg{animation:pop .36s var(--ease)}
+  .burst.show{animation:burst .7s var(--ease)}
+  .skel{animation:shimmer 1.2s linear infinite}
+}
+
+/* ---- crew feed ---- */
+.feed{display:grid;gap:16px}
+.feed>*,.pbody>*{min-width:0}
+.post{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+.post header{display:flex;align-items:center;gap:10px;padding:12px 8px 12px 16px}
+.post header div{display:grid;min-width:0;flex:1;line-height:1.25}
+.post header .hint{font-size:.8125rem}
+.pav{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:600;color:#fff;background:hsl(var(--h) 62% 40%)}
+.plink{background:none;border:0;color:var(--muted);font-size:.8125rem;padding:10px 8px}
+.pphoto{position:relative;background:var(--sub);aspect-ratio:4/3;overflow:hidden;touch-action:manipulation}
+.pphoto img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
+.pphoto img.in{opacity:1}
+.pphoto.gone{display:none}
+.burst{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:5rem;line-height:1;color:#fff;opacity:0;pointer-events:none;text-shadow:0 4px 18px rgba(0,0,0,.35)}
+.pbody{padding:12px 16px 12px;display:grid;gap:8px}
+.pbody p{margin:0;white-space:pre-line;overflow-wrap:anywhere}
+.pplace{display:flex;justify-content:space-between;gap:4px 12px;align-items:baseline;flex-wrap:wrap}
+.pstars{color:var(--star);letter-spacing:1px;white-space:nowrap}
+.pstars i{font-style:normal;color:var(--line)}
+.pact{display:flex;align-items:center;gap:4px;margin:0 -8px -4px}
+.pact button{display:inline-flex;align-items:center;gap:6px;background:none;border:0;border-radius:999px;padding:8px 10px;color:var(--muted);font-weight:600;font-size:.875rem;min-height:40px}
+.pact svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.like[aria-pressed="true"]{color:var(--heart)}
+.like[aria-pressed="true"] svg{fill:var(--heart);stroke:var(--heart)}
+.pact .ptag{margin-left:auto;margin-right:8px;background:var(--sub);border-radius:999px;padding:3px 10px;font-size:.8125rem;font-weight:600}
+.pcomments{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:12px}
+.clist{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.clist li{display:flex;gap:10px;align-items:flex-start}
+.clist .pav{width:28px;height:28px;font-size:.8125rem}
+.clist div{flex:1;min-width:0;font-size:.9375rem}
+.clist p{margin:0}
+.row.cform{flex-wrap:nowrap}
+.row.cform input{flex:1 1 0;width:auto}
+.row.cform .btn{flex:none}
+.skel{height:220px;background:linear-gradient(90deg,var(--sub) 25%,var(--surface) 50%,var(--sub) 75%);background-size:200% 100%}
+.composer textarea{font:inherit;color:inherit;width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;min-height:76px;display:block}
+.photoprev{position:relative;border-radius:12px;overflow:hidden}
+.photoprev img{display:block;width:100%;max-height:260px;object-fit:cover}
+.photoprev .x{position:absolute;top:8px;right:8px;background:rgba(13,24,56,.72);color:#fff;border-radius:50%;width:32px;height:32px}
+.stars{display:flex;gap:2px}
+.stars button{background:none;border:0;font-size:1.5rem;line-height:1;padding:6px 2px;color:var(--line)}
+.stars button[aria-checked="true"]{color:var(--star)}
+.row.compactions{align-items:center;justify-content:space-between}
+.guesthero{background:var(--sky);color:#fff;border:0}
+.guesthero .hint{color:rgba(255,255,255,.9)}
+.guesthero .btn{background:#fff;color:#0d1838;box-shadow:none}
 </style>
 
 <div class="login" id="login" hidden>
@@ -419,7 +517,7 @@ details.more > :not(summary){margin-top:12px}
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v2.7</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.1</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -443,6 +541,23 @@ details.more > :not(summary){margin-top:12px}
   <p class="hint" id="destHint"></p>
   <button class="btn ghost" type="button" id="destClose">Cancel</button>
 </form>
+
+<div class="backdrop" id="proBackdrop" hidden></div>
+<div class="sheet" id="proSheet" hidden role="dialog" aria-modal="true" aria-labelledby="proTitle">
+  <h2 id="proTitle">Layover Logbook <span class="probadge">PRO</span></h2>
+  <ul class="insights">
+    <li><b>The full crew feed:</b> every post and photo, in every city.</li>
+    <li><b>Fatigue dashboard:</b> routes checked against the rules, your 7-day load, trip-by-trip charts.</li>
+    <li><b>Money insights:</b> allowance kept, cost of each layover, Excel export.</li>
+  </ul>
+  <div class="plans">
+    <button class="planbtn best" type="button" data-plan="yearly"><b>Yearly</b><span class="p" id="proYear"></span><small>per year · best value</small></button>
+    <button class="planbtn" type="button" data-plan="monthly"><b>Monthly</b><span class="p" id="proMonth"></span><small>per month · cancel any time</small></button>
+  </div>
+  <p class="hint" id="proMsg" aria-live="polite"></p>
+  <button class="btn ghost" type="button" id="proClose">Not now</button>
+  <p class="hint" style="font-size:.8125rem">Secure payment by Paddle. Your logbook, planner, money entries and notes stay free. <a href="terms.html" target="_blank" rel="noopener">Terms and refunds</a></p>
+</div>
 
 <main><div class="wrap">
 
@@ -588,6 +703,47 @@ details.more > :not(summary){margin-top:12px}
   </div>
 </section>
 
+<!-- ===================== CREW ===================== -->
+<section class="panel" id="tab-crew" hidden>
+  <div class="pagehead">
+    <h1>Crew feed</h1>
+    <div class="seg" id="crewScope" role="tablist" aria-label="Which posts" hidden>
+      <button type="button" data-scope="here" aria-selected="true"><span class="dn">London</span></button>
+      <button type="button" data-scope="all" aria-selected="false">Everywhere</button>
+    </div>
+  </div>
+  <div class="card guesthero" id="crewGuest" hidden>
+    <h2>Where crew really go on layovers</h2>
+    <p class="hint">Photos, places and tips shared by crew in every city. Create a free account to see the feed and post your own.</p>
+    <button class="btn" type="button" id="crewJoin" style="justify-self:start">Create free account</button>
+  </div>
+  <form class="card" id="crewNameCard" hidden>
+    <h2>Pick your crew name</h2>
+    <p class="hint">It appears on your posts and comments. Your email is never shown. Use a nickname if you'd rather not be recognised.</p>
+    <div class="row cform"><input id="crewName" maxlength="20" placeholder="e.g. SkyNomad" aria-label="Crew name" autocomplete="off"><button class="btn" type="submit">Save name</button></div>
+    <p class="hint" id="crewNameMsg" aria-live="polite"></p>
+  </form>
+  <form class="card composer" id="crewForm" hidden>
+    <div class="cardhead"><span class="hint" id="crewAs"></span><button class="linkbtn" type="button" id="crewRename">Change name</button></div>
+    <textarea id="crewText" rows="2" maxlength="500" aria-label="New post"></textarea>
+    <div class="photoprev" id="crewPrev" hidden><img id="crewPrevImg" alt="Your photo"><button type="button" class="x" id="crewPhotoX" aria-label="Remove photo">×</button></div>
+    <div class="row">
+      <input id="crewPlace" maxlength="60" placeholder="Place name, optional" aria-label="Place name">
+      <select id="crewCat" aria-label="Category"><option>Food</option><option>Sights</option><option>Shopping</option><option>Transport</option><option>Safety</option><option>Other</option></select>
+    </div>
+    <div class="row compactions">
+      <div class="stars" id="crewStars" role="radiogroup" aria-label="Your rating, optional"><button type="button" role="radio" aria-checked="false" data-s="1" aria-label="1 star">★</button><button type="button" role="radio" aria-checked="false" data-s="2" aria-label="2 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="3" aria-label="3 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="4" aria-label="4 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="5" aria-label="5 stars">★</button></div>
+      <span class="row"><label class="btn ghost" for="crewFile" id="crewFileBtn">Add photo</label><button class="btn" type="submit" id="crewPost">Post</button></span>
+    </div>
+    <input type="file" id="crewFile" accept="image/*" hidden>
+    <p class="hint" id="crewMsg" aria-live="polite"></p>
+    <p class="hint" style="font-size:.8125rem">Keep crew safe: no crew hotels, uniforms, colleagues' faces or flight details.</p>
+  </form>
+  <div class="feed" id="crewFeed"></div>
+  <div class="banner" id="crewMore" hidden><span id="crewMoreText"></span><button class="btn proGo" type="button">Unlock with Pro</button></div>
+  <button class="btn ghost" type="button" id="crewLoad" hidden>Show older posts</button>
+</section>
+
 <!-- ===================== MONEY ===================== -->
 <section class="panel" id="tab-money" hidden>
   <div class="pagehead">
@@ -631,7 +787,12 @@ details.more > :not(summary){margin-top:12px}
       <div id="spCatWrap" class="field"><div class="label">By category</div><div class="bars" id="spCat"></div></div>
       <div id="spDestWrap" class="field"><div class="label">By destination</div><div class="bars" id="spDest"></div></div>
     </div>
-    <div class="card">
+    <div class="card prolock">
+      <div class="cardhead"><h2>Money insights</h2><span class="probadge">PRO</span></div>
+      <p class="hint">See how much of each allowance you keep, what every layover really costs, and export your entries to Excel.</p>
+      <button class="btn proGo" type="button" style="justify-self:start">Unlock with Pro</button>
+    </div>
+    <div class="card" data-pro>
       <h2>Allowance vs spending</h2>
       <div class="banner exBanner" hidden><span>Showing example layovers</span><button class="btn ghost exRemove" type="button">Remove examples</button></div>
       <div id="alEmpty" class="field" hidden>
@@ -645,7 +806,7 @@ details.more > :not(summary){margin-top:12px}
         <div class="field"><div class="label">What this tells you</div><ul class="insights" id="alInsights"></ul></div>
       </div>
     </div>
-    <div class="card" id="costCard">
+    <div class="card" id="costCard" data-pro>
       <h2>Cost of each layover</h2>
       <div class="field"><div class="label">Average per layover, by destination</div><div class="bars" id="costDest"></div></div>
       <div class="field"><div class="label">Layovers</div><ul class="list" id="costList"></ul></div>
@@ -653,7 +814,7 @@ details.more > :not(summary){margin-top:12px}
     <div class="card">
       <h2>Entries</h2>
       <ul class="list" id="spList"></ul>
-      <div class="row"><button class="btn ghost" type="button" id="spExport">Export to Excel (CSV)</button></div>
+      <div class="row" data-pro><button class="btn ghost" type="button" id="spExport">Export to Excel (CSV)</button></div>
       <p class="hint" id="spNote"></p>
     </div>
   </div>
@@ -681,24 +842,29 @@ details.more > :not(summary){margin-top:12px}
       <div class="trio" id="fgTrio"></div>
     </div>
   </div>
-  <div class="card fgCard">
+  <div class="card prolock">
+    <div class="cardhead"><h2>Fatigue dashboard</h2><span class="probadge">PRO</span></div>
+    <p class="hint">Your routes checked against the flight time rules, your 7-day load, and rest, fatigue and money for every trip.</p>
+    <button class="btn proGo" type="button" style="justify-self:start">Unlock with Pro</button>
+  </div>
+  <div class="card fgCard" data-pro>
     <div class="cardhead"><h2>Route check, by the rules</h2><span class="hint">Up = east, down = west</span></div>
     <p class="hint">Each bar is one trip from Doha, its height the time difference. The colour shows the result of the flight time rule checks. Under the chart: nights of rest at home between trips, had / needed. Swipe sideways to see older trips.</p>
     <div class="chartbox" id="fgShift"></div>
     <div class="legend"><span style="--c:var(--good)">Within the rules</span><span style="--c:var(--mod)">Body clock in unknown state</span><span style="--c:var(--bad)">Not enough rest, away or at home</span></div>
   </div>
-  <div class="card fgCard">
+  <div class="card fgCard" data-pro>
     <div class="cardhead"><h2>7-day load</h2><span class="hint">Dashed lines mark moderate and heavy weeks</span></div>
     <div class="chartbox" id="fgLoad"></div>
   </div>
-  <div class="card fgCard">
+  <div class="card fgCard" data-pro>
     <div class="cardhead"><h2>Trip by trip: rest, fatigue and money</h2><span class="hint" id="dashN"></span></div>
     <div id="dash"></div>
     <div class="legend"><span style="--c:var(--navy)">Duty</span><span style="--c:var(--good)">Rest</span><span style="--c:var(--bad)">Below minimum rest</span><span style="--c:var(--accent)">Spent</span><span style="--c:color-mix(in srgb,var(--navy) 30%,transparent)">Allowance</span></div>
     <p class="hint">The tick on each rest bar is the minimum rest; faded duty bars are estimates (10 hours). Dashed lines in fatigue mark moderate (5) and heavy (10) trips.</p>
     <div class="field"><div class="label">What the data shows</div><ul class="insights" id="dashIns"></ul></div>
   </div>
-  <div class="card fgCard">
+  <div class="card fgCard" data-pro>
     <h2>Layover by layover</h2>
     <ul class="list" id="fgList"></ul>
   </div>
@@ -791,6 +957,12 @@ details.more > :not(summary){margin-top:12px}
   <div class="card" id="dataCard" hidden>
     <div class="cardhead"><h2>Account and data</h2><span class="sync" id="syncState"></span></div>
     <p class="hint" id="acctLine"></p>
+    <div class="field" id="planBox" hidden>
+      <div class="label">Your plan</div>
+      <div><b id="planName">Free</b></div>
+      <p class="hint" id="planLine"></p>
+      <div class="row"><button class="btn proGo" type="button" id="planUp">Upgrade to Pro</button><a class="btn ghost" id="planManage" target="_blank" rel="noopener" hidden>Manage subscription</a></div>
+    </div>
     <div class="row" id="acctBtns">
       <button class="btn" type="button" id="acctSignin" hidden>Sign in or create account</button>
       <button class="btn ghost" type="button" id="acctOut" hidden>Sign out</button>
@@ -814,6 +986,7 @@ details.more > :not(summary){margin-top:12px}
   <div class="in">
     <button type="button" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Today</button>
     <button type="button" data-tab="explore" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explore</button>
+    <button type="button" data-tab="crew" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.100 1.800 5.500 4.800"/><circle cx="16.800" cy="9.800" r="2.500"/><path d="M16.500 14.300c2.200.1 3.700 1.600 4 4.200"/></svg>Crew</button>
     <button type="button" data-tab="money" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="17" height="13" rx="2.5"/><path d="M3.5 10h17"/><circle cx="16.5" cy="14.5" r="1.2"/></svg>Money</button>
     <button type="button" data-tab="rest" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10z"/></svg>Rest</button>
     <button type="button" data-tab="notebook" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5H6z"/><path d="M6 3.5v17M9.5 8h5.5M9.5 11.5h5.5"/></svg>Notebook</button>
@@ -1038,6 +1211,7 @@ function showTab(name,sub){
   document.querySelectorAll("section.panel[id^='tab-']").forEach(p=>p.hidden=p.id!=="tab-"+name);
   if(sub) showSub(name,sub);
   else if(name==="explore"&&nb.map) setTimeout(()=>nb.map.invalidateSize(),50);
+  if(name==="crew") renderCrew();
   window.scrollTo(0,0);
 }
 document.querySelectorAll(".tabbar button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
@@ -2158,6 +2332,7 @@ $("delNo").addEventListener("click",()=>{ $("delConfirm").hidden=true; });
 $("delYes").addEventListener("click",async()=>{
   const b=$("delYes"); b.disabled=true; b.textContent="Deleting…";
   try{
+    try{ await crewPurgePhotos(); }catch(e){}   /* remove this account's photos first */
     await sbRest("rpc/delete_my_account",{method:"POST",body:"{}"});
     lsSet(Cloud.key(),null); Auth.save(null); location.reload();
   }catch(e){ b.disabled=false; b.textContent="Delete forever"; $("bkMsg").textContent=""; $("acctLine").textContent="Couldn't delete your account. Check your connection and try again."; }
@@ -2236,7 +2411,287 @@ addEventListener("resize",()=>{ if(tourI>=0) tourGo(tourI); });
 addEventListener("keydown",e=>{ if(tourI>=0&&e.key==="Escape") endTour(); });
 on("tourAgain","click",startTour);
 
-function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner();renderIdeas();renderPack();renderTips();renderWish();renderTrips();renderMoney();renderJournal();renderFatigue();renderCheck()}
+/* ================= Pro plan (subscription) + shared crew guide ================= */
+/* Calls a database function as the signed-in user. Errors come back as plain sentences. */
+async function rpc(fn,args){
+  const offline=()=>Object.assign(new Error("You're offline. Try again when you have a connection."),{offline:true});
+  let tok; try{ tok=await validToken(); }catch(e){ throw new Error("Sign in again to continue."); }
+  if(!tok) throw offline();
+  let r; try{ r=await fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SBKEY,Authorization:"Bearer "+tok,"Content-Type":"application/json"},body:JSON.stringify(args||{})}); }
+  catch(e){ throw offline(); }
+  if(r.status===401) throw new Error("Sign in again to continue.");
+  let j=null; try{ j=await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(j&&j.code==="P0001"&&j.message?j.message:"Something went wrong. Try again.");
+  return j;
+}
+const PRO_CFG=CFG.pro||{};
+const PAY_ON=!!(PRO_CFG.paddleToken&&(PRO_CFG.paddleMonthlyId||PRO_CFG.paddleYearlyId));
+/* The paywall switch lives in the database (app_config.paywall). While it's off, everything is free. */
+const Plan={
+  info:lsGet("lay.plan",null), last:0,
+  get paywall(){ return CLOUD_ON&&!!(this.info&&this.info.paywall); },
+  get pro(){ return !this.paywall||(!!DB.cloud&&this.info.uid===DB.cloud.uid&&!!this.info.pro); },
+  async refresh(){
+    if(!CLOUD_ON) return;
+    this.last=Date.now();
+    try{
+      if(DB.cloud){ const j=await rpc("my_plan"); if(j) this.info={...j,uid:DB.cloud.uid}; }
+      else{ const r=await fetch(SB+"/rest/v1/app_config?select=paywall",{headers:{apikey:SBKEY}}); if(r.ok){ const j=await r.json(); this.info={paywall:!!(j[0]&&j[0].paywall),pro:false}; } }
+      lsSet("lay.plan",this.info);
+    }catch(e){}
+    applyPlan();
+  }
+};
+const fmtDay=iso=>{ try{ return new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); }catch(e){ return ""; } };
+let planWas=null;
+function applyPlan(){
+  const pro=Plan.pro;
+  document.body.classList.toggle("locked",!pro);
+  const crewBtn=document.querySelector('.tabbar [data-tab="crew"]'); if(crewBtn) crewBtn.hidden=!CLOUD_ON;
+  const box=$("planBox");
+  if(box){
+    box.hidden=!Plan.paywall;
+    if(Plan.paywall){
+      const i=Plan.info||{};
+      $("planName").innerHTML=pro?'Pro <span class="probadge">PRO</span>':"Free";
+      $("planLine").textContent=!pro?"Pro unlocks the full crew feed, the fatigue dashboard and money insights."
+        :i.cancel_at?`Your Pro plan ends on ${fmtDay(i.cancel_at)}.`
+        :i.status==="past_due"?"Your last payment didn't go through. Update your card to keep Pro."
+        :i.period_end?`Renews on ${fmtDay(i.period_end)}.`:"Everything is unlocked.";
+      $("planUp").hidden=pro;
+      const m=$("planManage"); m.hidden=!pro||!PRO_CFG.manageUrl; if(PRO_CFG.manageUrl) m.href=PRO_CFG.manageUrl;
+    }
+  }
+  if(planWas!==null&&planWas!==pro&&crewVisible()) renderCrew(true);
+  planWas=pro;
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&Date.now()-Plan.last>60000) Plan.refresh(); });
+
+/* ---------- upgrade screen + checkout ---------- */
+function openPro(){
+  if(!DB.cloud){ toast("Create a free account first. Then you can upgrade to Pro."); openAccountScreen("signup"); return; }
+  $("proYear").textContent=PRO_CFG.yearlyPrice||""; $("proMonth").textContent=PRO_CFG.monthlyPrice||"";
+  document.querySelectorAll("#proSheet .planbtn").forEach(b=>{ const id=b.dataset.plan==="yearly"?PRO_CFG.paddleYearlyId:PRO_CFG.paddleMonthlyId; b.disabled=!PAY_ON||!id; });
+  $("proMsg").textContent=PAY_ON?"":"Pro subscriptions open soon.";
+  $("proBackdrop").hidden=false; $("proSheet").hidden=false;
+}
+function closePro(){ $("proBackdrop").hidden=true; $("proSheet").hidden=true; }
+on("proClose","click",closePro); on("proBackdrop","click",closePro);
+document.addEventListener("click",e=>{ if(e.target.closest(".proGo")) openPro(); });
+let paddleReady=null;
+function loadPaddle(){
+  return paddleReady??=new Promise((res,rej)=>{
+    const s=document.createElement("script"); s.src="https://cdn.paddle.com/paddle/v2/paddle.js";
+    s.onload=()=>{ try{ if(PRO_CFG.paddleEnv==="sandbox") Paddle.Environment.set("sandbox"); Paddle.Initialize({token:PRO_CFG.paddleToken,eventCallback:onPaddle}); res(); }catch(e){ paddleReady=null; rej(e); } };
+    s.onerror=()=>{ paddleReady=null; s.remove(); rej(new Error("offline")); };
+    document.head.appendChild(s);
+  });
+}
+function onPaddle(ev){ if(ev&&ev.name==="checkout.completed"){ toast("Payment received. Unlocking Pro…"); pollPlan(0); } }
+async function pollPlan(n){
+  await Plan.refresh();
+  if(Plan.info&&Plan.info.pro&&DB.cloud&&Plan.info.uid===DB.cloud.uid){ try{ Paddle.Checkout.close(); }catch(e){} toast("Welcome to Pro. Everything is unlocked."); return; }
+  if(n<12) setTimeout(()=>pollPlan(n+1),2500);
+  else toast("Your payment is still being confirmed. Pro unlocks as soon as it is. Reopen the app in a minute.");
+}
+on("proSheet","click",async e=>{
+  const b=e.target.closest(".planbtn"); if(!b||b.disabled||!DB.cloud) return;
+  const id=b.dataset.plan==="yearly"?PRO_CFG.paddleYearlyId:PRO_CFG.paddleMonthlyId; if(!id) return;
+  $("proMsg").textContent="Opening the secure checkout…";
+  try{
+    await loadPaddle(); closePro();
+    Paddle.Checkout.open({items:[{priceId:id,quantity:1}],customData:{user_id:DB.cloud.uid},
+      ...(DB.cloud.email?{customer:{email:DB.cloud.email}}:{}),settings:{displayMode:"overlay",allowLogout:false}});
+  }catch(err){ $("proMsg").textContent="Couldn't open the checkout. Check your connection and try again."; }
+});
+
+/* ---------- crew feed (Crew tab): posts, photos, likes, comments ---------- */
+const Crew={scope:"here",key:null,posts:null,full:true,total:0,me:null,photo:null,photoUrl:"",rating:0,busy:false};
+const HEART='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.200A4.3 4.3 0 0 1 12 7.600a4.3 4.3 0 0 1 7.5 2.700c0 5.600-7.5 10.200-7.5 10.200z"/></svg>';
+const BUBBLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4.5 3.5v-3.5a2 2 0 0 1-2-2z"/></svg>';
+function crewVisible(){ const s=$("tab-crew"); return !!s&&!s.hidden; }
+const crewKey=()=>Crew.scope==="all"?"*":destKey();
+function ago(iso){ const s=Math.max(0,(Date.now()-Date.parse(iso))/1000); return s<60?"just now":s<3600?Math.floor(s/60)+" min ago":s<86400?Math.floor(s/3600)+" h ago":s<604800?Math.floor(s/86400)+" d ago":fmtDay(iso); }
+function hue(n){ let h=0; for(const c of String(n)) h=(h*31+c.charCodeAt(0))%360; return h; }
+const pav=n=>`<span class="pav" style="--h:${hue(n)}" aria-hidden="true">${esc(String(n||"?")[0].toUpperCase())}</span>`;
+/* Photos are private to signed-in crew, so they are fetched with the user's token */
+async function sbStore(method,path,opt={}){
+  let tok; try{ tok=await validToken(); }catch(e){ throw new Error("Sign in again to continue."); }
+  if(!tok) throw new Error("You're offline. Try again when you have a connection.");
+  try{ return await fetch(SB+"/storage/v1/object/"+path,{method,headers:{apikey:SBKEY,Authorization:"Bearer "+tok,...(opt.headers||{})},body:opt.body}); }
+  catch(e){ throw new Error("You're offline. Try again when you have a connection."); }
+}
+const photoCache=new Map();
+async function loadPhoto(img){
+  const p=img.dataset.photo; if(!p||img.dataset.done) return; img.dataset.done="1";
+  try{
+    let u=photoCache.get(p);
+    if(!u){ const r=await sbStore("GET","authenticated/crew-photos/"+p); if(!r.ok) throw new Error("gone"); u=URL.createObjectURL(await r.blob()); photoCache.set(p,u); }
+    img.onload=()=>img.classList.add("in"); img.src=u;
+  }catch(e){ const box=img.closest(".pphoto"); if(box) box.classList.add("gone"); }
+}
+const photoIO="IntersectionObserver" in window?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ photoIO.unobserve(e.target); loadPhoto(e.target); } }),{rootMargin:"600px"}):null;
+/* Shrinks a photo before upload. Redrawing it also removes the location data cameras hide in photos. */
+async function shrinkPhoto(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("That file isn't a photo the app can read.")); i.src=url; });
+    const k=Math.min(1,1440/Math.max(im.naturalWidth,im.naturalHeight));
+    const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=Math.max(1,Math.round(im.naturalHeight*k));
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    let q=.82,b=null;
+    do{ b=await new Promise(r=>c.toBlob(r,"image/jpeg",q)); q-=.14; }while(b&&b.size>1400000&&q>.35);
+    if(!b||b.size>1400000) throw new Error("That photo is too large. Try another one.");
+    return b;
+  }finally{ URL.revokeObjectURL(url); }
+}
+function postHTML(x){
+  return `<article class="post" data-id="${+x.id}">
+  <header>${pav(x.name)}<div><b>${esc(x.name)}</b><span class="hint">${esc(x.dest_name)}, ${ago(x.at)}</span></div>${x.mine?'<button class="plink" type="button" data-del>Delete</button>':'<button class="plink" type="button" data-rep>Report</button>'}</header>
+  ${x.photo?`<div class="pphoto"><img alt="Photo shared by ${esc(x.name)}" data-photo="${esc(x.photo)}"><span class="burst" aria-hidden="true">♥</span></div>`:""}
+  <div class="pbody">
+    ${x.place||x.rating?`<div class="pplace">${x.place?`<b>${esc(x.place)}</b>`:"<span></span>"}${x.rating?`<span class="pstars" role="img" aria-label="${+x.rating} out of 5 stars">${"★".repeat(+x.rating)}<i>${"★".repeat(5-x.rating)}</i></span>`:""}</div>`:""}
+    ${x.t?`<p>${esc(x.t)}</p>`:""}
+    <div class="pact"><button class="like" type="button" data-like aria-pressed="${!!x.liked}" aria-label="Like">${HEART}<span>${+x.likes}</span></button><button type="button" data-comments aria-label="Comments">${BUBBLE}<span>${+x.comments}</span></button><span class="ptag">${esc(x.c)}</span></div>
+    <div class="pcomments" hidden></div>
+  </div></article>`;
+}
+function drawCrew(){
+  const f=$("crewFeed");
+  if(!Crew.posts){ f.innerHTML='<div class="post skel"></div><div class="post skel"></div>'; $("crewMore").hidden=true; $("crewLoad").hidden=true; return; }
+  f.innerHTML=Crew.posts.length?Crew.posts.map(postHTML).join("")
+    :`<div class="card"><h2>Nothing ${Crew.scope==="all"?"shared":"from "+esc(state.dest.name)} yet</h2><p class="hint">Be the first. Share a café, a view or a tip other crew will thank you for.</p></div>`;
+  const more=Math.max(0,Crew.total-Crew.posts.length);
+  $("crewMore").hidden=Crew.full||!more; if(!Crew.full&&more) $("crewMoreText").textContent=`${more} more ${more===1?"post":"posts"} with Pro`;
+  $("crewLoad").hidden=!Crew.full||!more;
+  f.querySelectorAll("img[data-photo]").forEach(i=>photoIO?photoIO.observe(i):loadPhoto(i));
+}
+function crewChrome(){
+  const known=Crew.posts!==null, named=!!Crew.me;
+  $("crewNameCard").hidden=!known||named; $("crewForm").hidden=!known||!named;
+  if(named) $("crewAs").textContent="Posting as "+Crew.me;
+}
+async function renderCrew(force){
+  if(!$("crewFeed")||!state||!state.dest) return;
+  const signed=!!DB.cloud;
+  $("crewGuest").hidden=signed; $("crewScope").hidden=!signed;
+  if(!signed){ $("crewForm").hidden=true; $("crewNameCard").hidden=true; $("crewFeed").innerHTML=""; $("crewMore").hidden=true; $("crewLoad").hidden=true; return; }
+  const k=crewKey();
+  if(Crew.key!==k){ Crew.key=k; Crew.posts=null; }
+  $("crewText").placeholder=`Share a place, a tip or a photo from ${state.dest.name}`;
+  if(!crewVisible()) return;
+  crewChrome(); drawCrew();
+  if(Crew.posts&&!force) return;
+  try{
+    const d=await rpc("crew_feed",{p_dest:Crew.scope==="all"?null:destKey(),p_before:null});
+    if(Crew.key!==k) return;
+    Crew.posts=d.posts||[]; Crew.full=!!d.full; Crew.total=d.total||0; Crew.me=d.me||null; crewChrome(); drawCrew();
+  }catch(e){ if(Crew.key===k&&!Crew.posts) $("crewFeed").innerHTML=`<div class="card"><p class="hint">${esc(e.message)}</p><button class="btn ghost" type="button" id="crewRetry" style="justify-self:start">Try again</button></div>`; }
+}
+on("crewScope","click",e=>{
+  const b=e.target.closest("[data-scope]"); if(!b) return;
+  Crew.scope=b.dataset.scope; $("crewScope").querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected",x===b)); renderCrew();
+});
+on("crewJoin","click",()=>openAccountScreen("signup"));
+on("crewNameCard","submit",async e=>{
+  e.preventDefault(); const b=e.target.querySelector("button[type=submit]"); b.disabled=true; $("crewNameMsg").textContent="";
+  try{ Crew.me=await rpc("crew_set_name",{p_name:$("crewName").value}); crewChrome(); toast("You're posting as "+Crew.me+"."); if(Crew.posts&&Crew.posts.some(p=>p.mine)) renderCrew(true); }
+  catch(err){ $("crewNameMsg").textContent=err.message; }
+  finally{ b.disabled=false; }
+});
+on("crewRename","click",()=>{ $("crewName").value=Crew.me||""; $("crewNameCard").hidden=false; $("crewForm").hidden=true; $("crewName").focus(); });
+function setStars(n){ Crew.rating=n; $("crewStars").querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",+b.dataset.s<=n&&n>0)); }
+on("crewStars","click",e=>{ const b=e.target.closest("[data-s]"); if(b) setStars(Crew.rating===+b.dataset.s?0:+b.dataset.s); });
+function clearPhoto(){ if(Crew.photoUrl) URL.revokeObjectURL(Crew.photoUrl); Crew.photo=null; Crew.photoUrl=""; $("crewPrev").hidden=true; $("crewPrevImg").removeAttribute("src"); $("crewFile").value=""; $("crewFileBtn").textContent="Add photo"; }
+on("crewPhotoX","click",clearPhoto);
+on("crewFile","change",async e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return; $("crewMsg").textContent="";
+  try{ const b=await shrinkPhoto(f); clearPhoto(); Crew.photo=b; Crew.photoUrl=URL.createObjectURL(b); $("crewPrevImg").src=Crew.photoUrl; $("crewPrev").hidden=false; $("crewFileBtn").textContent="Change photo"; }
+  catch(err){ $("crewMsg").textContent=err.message; }
+});
+on("crewForm","submit",async e=>{
+  e.preventDefault(); if(Crew.busy) return;
+  const t=$("crewText").value.trim();
+  if(t.length<3&&!Crew.photo){ $("crewMsg").textContent="Write a few words or add a photo."; return; }
+  const b=$("crewPost"); Crew.busy=true; b.disabled=true; b.textContent="Posting…"; $("crewMsg").textContent="";
+  let path=null;
+  try{
+    if(Crew.photo){
+      path=DB.cloud.uid+"/"+crypto.randomUUID()+".jpg";
+      const r=await sbStore("POST","crew-photos/"+path,{headers:{"Content-Type":"image/jpeg"},body:Crew.photo});
+      if(!r.ok){ path=null; throw new Error("The photo didn't upload. Check your connection and try again."); }
+    }
+    await rpc("crew_post_add",{p_dest:destKey(),p_name:state.dest.name,p_cat:$("crewCat").value,p_body:t,p_place:$("crewPlace").value.trim()||null,p_rating:Crew.rating||null,p_photo:path});
+    path=null; $("crewText").value=""; $("crewPlace").value=""; setStars(0); clearPhoto();
+    toast("Posted to the crew feed."); await renderCrew(true);
+  }catch(err){ $("crewMsg").textContent=err.message; if(path) sbStore("DELETE","crew-photos/"+path).catch(()=>{}); }
+  finally{ Crew.busy=false; b.disabled=false; b.textContent="Post"; }
+});
+async function likePost(art,x){
+  const btn=art.querySelector("[data-like]"), show=()=>{ btn.setAttribute("aria-pressed",!!x.liked); btn.querySelector("span").textContent=x.likes; };
+  const was={liked:x.liked,likes:x.likes};
+  x.liked=!x.liked; x.likes=Math.max(0,x.likes+(x.liked?1:-1)); show();
+  btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop");
+  try{ const r=await rpc("crew_like",{p_id:x.id}); x.liked=!!r.liked; x.likes=r.likes; show(); }
+  catch(err){ Object.assign(x,was); show(); throw err; }
+}
+function drawComments(box,list){
+  box.innerHTML=`${list.length?`<ul class="clist">${list.map(c=>`<li>${pav(c.name)}<div><b>${esc(c.name)}</b> <span class="hint">${ago(c.at)}</span><p>${esc(c.t)}</p></div>${c.mine?`<button class="x" type="button" data-cdel="${+c.id}" aria-label="Delete your comment">×</button>`:""}</li>`).join("")}</ul>`:""}
+    <form class="row cform"><input maxlength="300" placeholder="${list.length?"Add a comment":"Be the first to comment"}" aria-label="Add a comment"><button class="btn" type="submit">Send</button></form>`;
+}
+async function loadComments(art,x){
+  const box=art.querySelector(".pcomments"); const list=await rpc("crew_comments_for",{p_id:x.id});
+  x.comments=list.length; art.querySelector("[data-comments] span").textContent=x.comments; drawComments(box,list);
+}
+let lastTap={id:0,at:0};
+on("crewFeed","click",async e=>{
+  if(e.target.closest("#crewRetry")){ renderCrew(true); return; }
+  const art=e.target.closest(".post"); if(!art||!Crew.posts) return;
+  const id=+art.dataset.id, x=Crew.posts.find(p=>p.id===id); if(!x) return;
+  try{
+    if(e.target.closest("[data-like]")) await likePost(art,x);
+    else if(e.target.closest(".pphoto")){   /* double-tap the photo to like it */
+      const now=Date.now(), dbl=lastTap.id===id&&now-lastTap.at<350; lastTap={id,at:dbl?0:now};
+      if(dbl){ const h=art.querySelector(".burst"); h.classList.remove("show"); void h.offsetWidth; h.classList.add("show"); if(!x.liked) await likePost(art,x); }
+    }
+    else if(e.target.closest("[data-comments]")){
+      const box=art.querySelector(".pcomments");
+      if(!box.hidden){ box.hidden=true; return; }
+      box.hidden=false; box.innerHTML='<p class="hint">Loading comments…</p>'; await loadComments(art,x);
+    }
+    else if(e.target.closest("[data-cdel]")){ await rpc("crew_comment_delete",{p_id:+e.target.closest("[data-cdel]").dataset.cdel}); await loadComments(art,x); }
+    else if(e.target.closest("[data-del]")){
+      if(!confirm("Delete this post?")) return;
+      const path=await rpc("crew_post_delete",{p_id:id}); if(path) sbStore("DELETE","crew-photos/"+path).catch(()=>{});
+      Crew.posts=Crew.posts.filter(p=>p.id!==id); Crew.total=Math.max(0,Crew.total-1); drawCrew();
+    }
+    else if(e.target.closest("[data-rep]")){
+      if(!confirm("Report this post? Use this for crew hotels, uniforms or faces shown without consent, or abuse.")) return;
+      await rpc("crew_report",{p_id:id}); toast("Reported. Thank you for keeping the feed safe.");
+    }
+  }catch(err){ toast(err.message); }
+});
+on("crewFeed","submit",async e=>{
+  const f=e.target.closest(".cform"); if(!f) return; e.preventDefault();
+  const art=f.closest(".post"), x=art&&Crew.posts&&Crew.posts.find(p=>p.id===+art.dataset.id), inp=f.querySelector("input"), t=inp.value.trim();
+  if(!x||!t) return; const b=f.querySelector("button"); b.disabled=true;
+  try{ await rpc("crew_comment_add",{p_id:x.id,p_body:t}); await loadComments(art,x); }
+  catch(err){ toast(err.message); b.disabled=false; }
+});
+on("crewLoad","click",async()=>{
+  if(!Crew.posts||!Crew.posts.length) return; const k=Crew.key, b=$("crewLoad"); b.disabled=true;
+  try{ const d=await rpc("crew_feed",{p_dest:Crew.scope==="all"?null:destKey(),p_before:Crew.posts[Crew.posts.length-1].id}); if(Crew.key===k){ if(!d.posts.length) Crew.total=Crew.posts.length; Crew.posts=Crew.posts.concat(d.posts); drawCrew(); } }
+  catch(err){ toast(err.message); }
+  finally{ b.disabled=false; }
+});
+async function crewPurgePhotos(){
+  if(!DB.cloud) return; const uid=DB.cloud.uid, J={"Content-Type":"application/json"};
+  const r=await sbStore("POST","list/crew-photos",{headers:J,body:JSON.stringify({prefix:uid,limit:1000})}); if(!r.ok) return;
+  const files=await r.json(); if(!Array.isArray(files)||!files.length) return;
+  await sbStore("DELETE","crew-photos",{headers:J,body:JSON.stringify({prefixes:files.map(f=>uid+"/"+f.name)})});
+}
+
+function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner();renderIdeas();renderPack();renderTips();renderWish();renderTrips();renderMoney();renderJournal();renderFatigue();renderCheck();renderCrew()}
 (async()=>{
   if(WEBAPP){
     let user=await authGate();
@@ -2244,7 +2699,7 @@ function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner
   } else await loadDB();
   loadState(); fillMissingQAR();
   $("walDate").value=todayISO(); $("jDate").value=todayISO();
-  syncWalType(); initPlanner(); syncChips(); renderAll(); loadRates(); initInstallTip(); initBackup();
+  syncWalType(); initPlanner(); syncChips(); applyPlan(); renderAll(); Plan.refresh(); loadRates(); initInstallTip(); initBackup();
   setInterval(renderClocks,30000);
   if(Cloud.welcome){ toast(Cloud.welcome); Cloud.welcome=""; }
   if(!lsGet("lay.tourDone",false)) setTimeout(startTour,500);
