@@ -13,7 +13,7 @@ window.LAYOVER_CONFIG = {
     monthlyPrice: "$4.99",      // shown on the upgrade screen; keep it the same as the price in Paddle
     yearlyPrice: "$39.99",
     paddleEnv: "production",    // a token starting with "test_" switches the app to Paddle's sandbox by itself
-    paddleToken: "",            // Paddle > Developer tools > Authentication > Client-side token ("live_..." or "test_...")
+    paddleToken: "live_65eea25eda1a0487274d7d33bed",   // Paddle > Authentication > Client-side token ("live_..." or "test_...")
     paddleMonthlyId: "pri_01m77y1hvwrf421vjdt01wq0s6",        // Paddle > Catalog > your product > monthly price ID ("pri_...")
     paddleYearlyId: "pri_01m77y2y25qstp4g1hrq91795q",         // yearly price ID ("pri_...")
     manageUrl: ""               // Paddle > Checkout > Customer portal link, so subscribers can cancel or change card

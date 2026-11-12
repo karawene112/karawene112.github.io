@@ -2924,6 +2924,7 @@ function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner
   else if(state.tx.some(t=>!t.ex)||state.trips.some(t=>!t.ex)){   /* logbooks from before v3.2 were all kept from Doha, in QAR */
     state.home={code:"DOH",name:"Doha",cc:"QA",tz:"Asia/Qatar",cur:"QAR"}; store.set("home",state.home); applyHome(); tourIfNew();
   } else { afterHome=tourIfNew; openHome(true); }
+  if(/[?&]upgrade(=|&|$)/.test(location.search)) openPro();   /* layover/?upgrade opens the Pro screen directly */
 })();
 </script>
 
