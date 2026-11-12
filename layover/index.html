@@ -527,7 +527,7 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.2</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.3</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -735,9 +735,16 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
   </div>
   <div class="card guesthero" id="crewGuest" hidden>
     <h2>Where crew really go on layovers</h2>
-    <p class="hint">Photos, videos, places and tips shared by crew of every airline, in every city. Create a free account to see the feed and post your own.</p>
+    <p class="hint">Photos, videos, places and tips shared by crew of every airline, in every city. The feed is private: you join with an invite code from a crew member who already uses the app.</p>
     <button class="btn" type="button" id="crewJoin" style="justify-self:start">Create free account</button>
   </div>
+  <form class="card" id="crewJoinCard" hidden>
+    <h2>Crew only</h2>
+    <p class="hint">The crew feed is private to airline crew. Ask a colleague who uses Layover Logbook for an invite code. Each code works once.</p>
+    <div class="row cform"><input id="crewCode" maxlength="12" placeholder="Invite code, e.g. K7QM2XPD" aria-label="Invite code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" type="submit">Join</button></div>
+    <p class="hint" id="crewCodeMsg" aria-live="polite"></p>
+    <p class="hint" style="font-size:.8125rem">Your own logbook, planner, money and notes work without a code.</p>
+  </form>
   <form class="card" id="crewNameCard" hidden>
     <h2>Pick your crew name</h2>
     <p class="hint">It appears on your posts and comments. Your email is never shown. Use a nickname if you'd rather not be recognised.</p>
@@ -763,6 +770,13 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
   <div class="feed" id="crewFeed"></div>
   <div class="banner" id="crewMore" hidden><span id="crewMoreText"></span><button class="btn proGo" type="button">Unlock with Pro</button></div>
   <button class="btn ghost" type="button" id="crewLoad" hidden>Show older posts</button>
+  <div class="card" id="crewInviteCard" hidden>
+    <details class="more" id="crewInvites" style="border:0;padding:0">
+      <summary>Invite crew you know</summary>
+      <p class="hint">Give a code only to crew you know personally. Each code works once, and the people you invite are linked to your account.</p>
+      <ul class="list" id="crewInviteList"></ul>
+    </details>
+  </div>
 </section>
 
 <!-- ===================== MONEY ===================== -->
@@ -2399,7 +2413,7 @@ const TOUR=[
   {sel:".when",tab:"today",t:"Your free time",b:"Enter your arrival and pickup. Rest is blocked out first, and the green part is your free time."},
   {sel:"#fgCheck",tab:"today",t:"Fatigue check",b:"The app compares the time difference with your home base and your time on the ground, scores the fatigue, and checks your rest against flight time rules. Save it to keep your history."},
   {sel:'.tabbar [data-tab="explore"]',tab:"today",t:"Explore",b:"Find food, groceries, pharmacies and sights near your hotel, plus ideas that fit your free time."},
-  {sel:'.tabbar [data-tab="crew"]',tab:"today",t:"Crew feed",b:"Photos, videos, places and ratings shared by crew of every airline, in every city. Like, comment, and post your own finds under a crew name."},
+  {sel:'.tabbar [data-tab="crew"]',tab:"today",t:"Crew feed",b:"Photos, videos, places and ratings shared by crew of every airline, in every city. It is private to crew: you join with an invite code from a colleague."},
   {sel:'.tabbar [data-tab="money"]',tab:"today",t:"Money",b:"Record what you spend in any currency. Summary shows your totals in your home currency and how much of your allowance you keep."},
   {sel:'.tabbar [data-tab="rest"]',tab:"today",t:"Rest",b:"Your trips route by route, checked against flight time rules, and your fatigue over the last weeks. Notebook holds your journal, notes and account, and can replay this tour."}
 ];
@@ -2535,7 +2549,7 @@ on("proSheet","click",async e=>{
 });
 
 /* ---------- crew feed (Crew tab): posts, photos, likes, comments ---------- */
-const Crew={scope:"here",key:null,posts:null,full:true,total:0,me:null,photo:null,photoUrl:"",video:null,rating:0,busy:false};
+const Crew={scope:"here",key:null,posts:null,full:true,total:0,me:null,member:null,photo:null,photoUrl:"",video:null,rating:0,busy:false};
 const VIDEO_MAX=25*1024*1024, VIDEO_SECS=60;
 const isVideo=p=>/\.(mp4|mov)$/i.test(p||"");
 const posterOf=p=>String(p).replace(/\.(mp4|mov)$/i,".jpg");
@@ -2647,25 +2661,30 @@ function drawCrew(){
   f.querySelectorAll("img[data-photo]").forEach(i=>photoIO?photoIO.observe(i):loadPhoto(i));
 }
 function crewChrome(){
-  const known=Crew.posts!==null, named=!!Crew.me;
+  const locked=Crew.member===false, known=Crew.posts!==null&&!locked, named=!!Crew.me;
+  $("crewJoinCard").hidden=!locked; $("crewScope").hidden=locked; $("crewInviteCard").hidden=Crew.member!==true;
   $("crewNameCard").hidden=!known||named; $("crewForm").hidden=!known||!named;
   if(named) $("crewAs").textContent="Posting as "+Crew.me;
+  if(locked){ $("crewFeed").innerHTML=""; $("crewMore").hidden=true; $("crewLoad").hidden=true; }
 }
 async function renderCrew(force){
   if(!$("crewFeed")||!state||!state.dest) return;
   const signed=!!DB.cloud;
   $("crewGuest").hidden=signed; $("crewScope").hidden=!signed;
-  if(!signed){ $("crewForm").hidden=true; $("crewNameCard").hidden=true; $("crewFeed").innerHTML=""; $("crewMore").hidden=true; $("crewLoad").hidden=true; return; }
+  if(!signed){ $("crewForm").hidden=true; $("crewNameCard").hidden=true; $("crewJoinCard").hidden=true; $("crewInviteCard").hidden=true; $("crewFeed").innerHTML=""; $("crewMore").hidden=true; $("crewLoad").hidden=true; return; }
   const k=crewKey();
   if(Crew.key!==k){ Crew.key=k; Crew.posts=null; }
   $("crewText").placeholder=`Share a place, a tip, a photo or a video from ${state.dest.name}`;
   if(!crewVisible()) return;
-  crewChrome(); drawCrew();
+  crewChrome();
+  if(Crew.member===false&&!force) return;   /* not a member yet: the invite code card is showing */
+  drawCrew();
   if(Crew.posts&&!force) return;
   try{
     const d=await rpc("crew_feed",{p_dest:Crew.scope==="all"?null:destKey(),p_before:null});
     if(Crew.key!==k) return;
-    Crew.posts=d.posts||[]; Crew.full=!!d.full; Crew.total=d.total||0; Crew.me=d.me||null; crewChrome(); drawCrew();
+    if(d.member===false){ Crew.member=false; Crew.posts=null; crewChrome(); return; }
+    Crew.member=true; Crew.posts=d.posts||[]; Crew.full=!!d.full; Crew.total=d.total||0; Crew.me=d.me||null; crewChrome(); drawCrew();
   }catch(e){ if(Crew.key===k&&!Crew.posts) $("crewFeed").innerHTML=`<div class="card"><p class="hint">${esc(e.message)}</p><button class="btn ghost" type="button" id="crewRetry" style="justify-self:start">Try again</button></div>`; }
 }
 on("crewScope","click",e=>{
@@ -2673,6 +2692,34 @@ on("crewScope","click",e=>{
   Crew.scope=b.dataset.scope; $("crewScope").querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected",x===b)); renderCrew();
 });
 on("crewJoin","click",()=>openAccountScreen("signup"));
+/* ---------- crew only: join with an invite code, invite colleagues ---------- */
+on("crewJoinCard","submit",async e=>{
+  e.preventDefault(); const code=$("crewCode").value.trim(); if(!code){ $("crewCodeMsg").textContent="Type your invite code."; return; }
+  const b=e.target.querySelector("button[type=submit]"); b.disabled=true; $("crewCodeMsg").textContent="";
+  try{
+    const r=await rpc("crew_join",{p_code:code});
+    if(r&&r.ok){ $("crewCode").value=""; Crew.member=null; Crew.posts=null; toast("Welcome aboard. You're in the crew feed."); await renderCrew(true); }
+    else $("crewCodeMsg").textContent=(r&&r.msg)||"That code didn't work. Check it and try again.";
+  }catch(err){ $("crewCodeMsg").textContent=err.message; }
+  finally{ b.disabled=false; }
+});
+const inviteText=c=>`Join me on Layover Logbook, the crew-only layover app: ${location.origin+location.pathname} Your invite code: ${c}`;
+async function loadInvites(){
+  const ul=$("crewInviteList"); ul.innerHTML='<li class="empty">Loading your codes…</li>';
+  try{
+    const list=await rpc("crew_my_invites")||[];
+    ul.innerHTML=list.length?list.map(i=>`<li><span class="t" style="font-family:var(--mono);letter-spacing:.08em">${esc(i.code)}</span>${i.used?'<span class="tag">Used</span>':`<button class="btn ghost" type="button" data-invite="${esc(i.code)}">${navigator.share?"Share":"Copy"}</button>`}</li>`).join("")
+      :'<li class="empty">You have no invite codes yet.</li>';
+  }catch(err){ ul.innerHTML=`<li class="empty">${esc(err.message)}</li>`; }
+}
+on("crewInvites","toggle",()=>{ if($("crewInvites").open) loadInvites(); });
+on("crewInviteList","click",async e=>{
+  const b=e.target.closest("[data-invite]"); if(!b) return; const c=b.dataset.invite;
+  try{
+    if(navigator.share) await navigator.share({text:inviteText(c)});
+    else{ await navigator.clipboard.writeText(inviteText(c)); toast("Invite copied. Paste it in a message to your colleague."); }
+  }catch(err){ if(err&&err.name!=="AbortError") toast("Couldn't share it. Your code is "+c+"."); }
+});
 on("crewNameCard","submit",async e=>{
   e.preventDefault(); const b=e.target.querySelector("button[type=submit]"); b.disabled=true; $("crewNameMsg").textContent="";
   try{ Crew.me=await rpc("crew_set_name",{p_name:$("crewName").value}); crewChrome(); toast("You're posting as "+Crew.me+"."); if(Crew.posts&&Crew.posts.some(p=>p.mine)) renderCrew(true); }
