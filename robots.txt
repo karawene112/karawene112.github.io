@@ -1,3 +1,12 @@
+# karawene112.github.io: portfolio and Layover Logbook
 User-agent: *
 Allow: /
+
+# Source code and technical files, not pages
+Disallow: /layover/backend/
+Disallow: /layover-android/
+Disallow: /.github/
+Disallow: /README.md
+Disallow: /README_1.md
+
 Sitemap: https://karawene112.github.io/sitemap.xml
