@@ -616,14 +616,15 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
     <li><b>The full crew feed:</b> every post, photo and video, in every city.</li>
     <li><b>Fatigue dashboard:</b> routes checked against the rules, your 7-day load, trip-by-trip charts.</li>
     <li><b>Money insights:</b> allowance kept, cost of each layover, Excel export.</li>
+    <li><b>Roster check:</b> your roster as a calendar, checked against flight time limits and fatigue.</li>
   </ul>
-  <div class="plans">
+  <div class="plans" id="proPlans">
     <button class="planbtn best" type="button" data-plan="yearly"><b>Yearly</b><span class="p" id="proYear"></span><small>per year · best value</small></button>
     <button class="planbtn" type="button" data-plan="monthly"><b>Monthly</b><span class="p" id="proMonth"></span><small>per month · cancel any time</small></button>
   </div>
   <p class="hint" id="proMsg" aria-live="polite"></p>
   <button class="btn ghost" type="button" id="proClose">Not now</button>
-  <p class="hint" style="font-size:.8125rem">Secure payment by Paddle. Your logbook, planner, money entries and notes stay free. <a href="./" target="_blank" rel="noopener">Website</a> · <a href="pricing.html" target="_blank" rel="noopener">Pricing</a> · <a href="terms.html" target="_blank" rel="noopener">Terms and refunds</a></p>
+  <p class="hint" id="proLinks" style="font-size:.8125rem">Secure payment by Paddle. Your logbook, planner, money entries and notes stay free. <a href="./" target="_blank" rel="noopener">Website</a> · <a href="pricing.html" target="_blank" rel="noopener">Pricing</a> · <a href="terms.html" target="_blank" rel="noopener">Terms and refunds</a></p>
 </div>
 
 <div class="backdrop" id="homeBackdrop" hidden></div>
@@ -2643,7 +2644,13 @@ async function rpc(fn,args){
   return j;
 }
 const PRO_CFG=CFG.pro||{};
-const PAY_ON=!!(PRO_CFG.paddleToken&&(PRO_CFG.paddleMonthlyId||PRO_CFG.paddleYearlyId));
+/* Google Play app (Trusted Web Activity): Play's rules don't allow selling Pro through Paddle inside the app,
+   so there it only says how to unlock Pro with an existing account. Kept in sessionStorage so Chrome itself isn't affected. */
+const ANDROID_APP=(()=>{ try{
+  if(/[?&]src=android(&|$)/.test(location.search)||document.referrer.startsWith("android-app://")) sessionStorage.setItem("lay.android","1");
+  return sessionStorage.getItem("lay.android")==="1";
+}catch(e){ return false; } })();
+const PAY_ON=!ANDROID_APP&&!!(PRO_CFG.paddleToken&&(PRO_CFG.paddleMonthlyId||PRO_CFG.paddleYearlyId));
 /* The paywall switch lives in the database (app_config.paywall). While it's off, everything is free. */
 const Plan={
   info:lsGet("lay.plan",null), last:0,
@@ -2688,10 +2695,12 @@ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==
 
 /* ---------- upgrade screen + checkout ---------- */
 function openPro(){
-  if(!DB.cloud){ toast("Create a free account first. Then you can upgrade to Pro."); openAccountScreen("signup"); return; }
+  if(!DB.cloud&&!ANDROID_APP){ toast("Create a free account first. Then you can upgrade to Pro."); openAccountScreen("signup"); return; }
   $("proYear").textContent=PRO_CFG.yearlyPrice||""; $("proMonth").textContent=PRO_CFG.monthlyPrice||"";
   document.querySelectorAll("#proSheet .planbtn").forEach(b=>{ const id=b.dataset.plan==="yearly"?PRO_CFG.paddleYearlyId:PRO_CFG.paddleMonthlyId; b.disabled=!PAY_ON||!id; });
-  $("proMsg").textContent=PAY_ON?"":"Pro subscriptions open soon.";
+  $("proPlans").hidden=ANDROID_APP; $("proLinks").hidden=ANDROID_APP;
+  $("proMsg").textContent=ANDROID_APP?"Pro can't be bought in the Android app. If you already have Pro, sign in with the same account and it unlocks here too."
+    :PAY_ON?"":"Pro subscriptions open soon.";
   $("proBackdrop").hidden=false; $("proSheet").hidden=false;
 }
 function closePro(){ $("proBackdrop").hidden=true; $("proSheet").hidden=true; }

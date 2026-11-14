@@ -1,0 +1,40 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.karawene.layoverlogbook"
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.karawene.layoverlogbook"
+        minSdk 23
+        targetSdk 36          // Google Play requires API 36 for new apps from 31 Aug 2026
+        versionCode 1         // add 1 for every upload to Google Play
+        versionName "3.6"
+
+        // The website this app opens. Change these if the site moves.
+        manifestPlaceholders = [
+            hostName: "karawene112.github.io",
+            launchUrl: "https://karawene112.github.io/layover/app.html?src=android",
+            themeColor: "#14223A",
+            backgroundColor: "#0B1220"
+        ]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Google's helper for Trusted Web Activities: shows the website full screen in Chrome, with no browser bar
+    implementation "com.google.androidbrowserhelper:androidbrowserhelper:2.6.2"
+}
