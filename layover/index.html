@@ -131,6 +131,8 @@
   .phone{justify-self:center;width:min(300px,78vw);border-radius:42px;padding:10px;background:#0b1230;box-shadow:0 30px 60px rgba(13,24,56,.25),inset 0 0 0 1px #2a3a78}
   .phone img{border-radius:32px;width:100%;height:auto}
   .caption{font-size:.875rem;color:var(--muted);text-align:center;margin-top:10px}
+  .crewband .caption{color:rgba(255,255,255,.8)}
+  .phone .caption{color:#c3cdee}
   @media (max-width:860px){.feature{grid-template-columns:minmax(0,1fr);gap:32px;margin-top:72px}.feature:nth-of-type(even) .phone{order:0}}
 
   /* ---------- crew-only band ---------- */
@@ -138,7 +140,7 @@
   .crewband .wrap{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:56px;align-items:center}
   .crewband h2{font:700 clamp(2.125rem,4.5vw,3.25rem)/1 var(--display);margin:0 0 16px}
   .crewband p{color:rgba(255,255,255,.9);max-width:46ch}
-  .pass{background:#fff;color:var(--ink);border-radius:20px;padding:24px;display:grid;gap:14px;box-shadow:0 24px 48px rgba(13,24,56,.3);position:relative}
+  .pass{--ink:#0d1838;--muted:#46557f;--line:#cfd8ee;background:#fff;color:var(--ink);border-radius:20px;padding:24px;display:grid;gap:14px;box-shadow:0 24px 48px rgba(13,24,56,.3);position:relative}
   .pass::before,.pass::after{content:"";position:absolute;top:58%;width:22px;height:22px;border-radius:50%;background:#9a3a86}
   .pass::before{left:-11px} .pass::after{right:-11px}
   .pass .lbl{font-size:.875rem;color:var(--muted)}
