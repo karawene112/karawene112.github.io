@@ -585,6 +585,23 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 .rc-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60}
 .rc-sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-width:560px;margin:0 auto;background:var(--surface);border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;max-height:88vh;overflow:auto}
 .rc-sheet h2{margin:0}
+
+/* ---- mobile: readable labels and 44px touch targets ---- */
+.tabbar button{font-size:.75rem}
+.probadge,.rc-badge{font-size:.75rem}
+.rc-dow{font-size:.75rem}
+@media (pointer:coarse){
+  .destbtn{min-height:44px}
+  .seg button{min-height:44px}
+  .chip{min-height:44px}
+  details.more summary{min-height:44px}
+  .btn.rc-sm{min-height:44px}
+  #rcPrev,#rcNext{min-width:44px}
+}
+.rc-calhead{flex-wrap:wrap}
+@media (max-width:345px){.tabbar button{font-size:.6875rem}}
+@media (max-width:360px){.rc-cal{gap:2px}.rc-day{padding:3px 2px;min-height:54px}.rc-day .t{font-size:.5625rem}}
+
 </style>
 
 <div class="login" id="login" hidden>

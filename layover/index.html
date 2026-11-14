@@ -185,6 +185,16 @@
   footer nav{display:flex;flex-wrap:wrap;gap:10px 24px;margin-bottom:16px}
   footer nav a{text-decoration:none;color:#fff}
   footer p{margin:6px 0;max-width:70ch}
+
+  /* ---- touch targets ---- */
+  @media (pointer:coarse){
+    .brand{display:inline-flex;align-items:center;min-height:44px}
+    .cta.small{min-height:44px}
+    #base{min-height:44px}
+    .billing button{min-height:44px;padding:8px 18px}
+    footer a{display:inline-flex;align-items:center;min-height:44px}
+    summary{min-height:44px;display:flex;align-items:center}
+  }
 </style>
 <script src="/consent.js" defer></script>
 </head>

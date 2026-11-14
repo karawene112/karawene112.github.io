@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<script>if(location.protocol==="http:"&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))location.replace("https:"+location.href.slice(5))</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Page not found – Karawene Ben Cheikh</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="This page doesn't exist. Go back to the portfolio or open Layover Logbook.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#13233F">
+<style>
+  :root{--bg:#f7f6f2;--card:#fff;--ink:#1c2230;--body:#3d4555;--muted:#5d6577;--line:#e4e2db;--accent:#1f3a8a;--accent-soft:#e8edf9;--orange:#c75a10}
+  @media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1a1f29;--ink:#f1f2f5;--body:#c6cad3;--muted:#a3abbc;--line:#2c3240;--accent:#8fa8ff;--accent-soft:#232c48;--orange:#f6a35c}}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{background:var(--bg);color:var(--body);font:400 1.0625rem/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
+       display:grid;place-items:center;min-height:100vh;min-height:100dvh;
+       padding:max(24px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+  main{width:100%;max-width:560px;text-align:center}
+  .board{display:inline-flex;gap:6px;margin-bottom:28px}
+  .board span{display:grid;place-items:center;width:64px;height:84px;border-radius:12px;background:#13233F;color:#ffd34d;
+              font:700 3rem/1 ui-monospace,"SF Mono",Menlo,monospace;box-shadow:inset 0 -42px 0 rgba(255,255,255,.04),0 10px 24px rgba(19,35,63,.25);position:relative}
+  .board span::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(0,0,0,.45)}
+  @media (prefers-reduced-motion:no-preference){.board span{animation:flip .6s ease-out both}.board span:nth-child(2){animation-delay:.12s}.board span:nth-child(3){animation-delay:.24s}}
+  @keyframes flip{from{transform:rotateX(90deg);opacity:0}to{transform:none;opacity:1}}
+  .tag{font:600 .8125rem/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 10px}
+  h1{color:var(--ink);font-size:clamp(1.75rem,6vw,2.375rem);line-height:1.15;margin:0 0 12px}
+  p.lead{margin:0 auto 28px;max-width:42ch}
+  .actions{display:grid;gap:10px;max-width:360px;margin:0 auto}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 20px;border-radius:999px;
+       font-weight:600;text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme:dark){.btn.primary{color:#12151c}}
+  .btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  .path{margin-top:28px;font-size:.875rem;color:var(--muted);overflow-wrap:anywhere}
+  .path code{background:var(--accent-soft);color:var(--ink);padding:2px 6px;border-radius:6px}
+  @media (max-width:360px){.board span{width:52px;height:70px;font-size:2.5rem}}
+</style>
+</head>
+<body>
+<main>
+  <div class="board" aria-hidden="true"><span>4</span><span>0</span><span>4</span></div>
+  <p class="tag" id="t-tag">Gate not found</p>
+  <h1 id="t-title">This page has left the gate</h1>
+  <p class="lead" id="t-lead">The link may be old, or the address has a typo. Here's where you can go instead.</p>
+  <nav class="actions" aria-label="Where to go">
+    <a class="btn primary" id="b1" href="/">Back to the portfolio</a>
+    <a class="btn" id="b2" href="/layover/app.html">Open Layover Logbook</a>
+    <a class="btn" id="b3" href="/layover/">About Layover Logbook</a>
+  </nav>
+  <p class="path" id="t-path"></p>
+</main>
+<script>
+(function(){
+  var fr=/^fr\b/i.test(navigator.language||""), inApp=/^\/layover(\/|$)/.test(location.pathname);
+  if(fr){
+    document.documentElement.lang="fr";
+    document.title="Page introuvable – Karawene Ben Cheikh";
+    var T={"t-tag":"Porte introuvable","t-title":"Cette page a quitté la porte d'embarquement",
+      "t-lead":"Le lien est peut-être ancien, ou l'adresse contient une faute de frappe. Voici où aller à la place.",
+      b1:"Retour au portfolio",b2:"Ouvrir Layover Logbook",b3:"Découvrir Layover Logbook"};
+    for(var k in T){var e=document.getElementById(k); if(e) e.textContent=T[k];}
+  }
+  if(inApp){ /* someone looking for the app: put the app first */
+    var nav=document.querySelector(".actions"), b1=document.getElementById("b1"), b2=document.getElementById("b2");
+    b2.className="btn primary"; b1.className="btn"; nav.insertBefore(b2,b1);
+  }
+  var p=document.getElementById("t-path"), c=document.createElement("code");
+  c.textContent=location.pathname;
+  p.appendChild(document.createTextNode(fr?"Adresse demandée : ":"You asked for: ")); p.appendChild(c);
+})();
+</script>
+</body>
+</html>
