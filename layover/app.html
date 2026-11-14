@@ -495,6 +495,62 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 .pphoto video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 .playbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:0;background:rgba(13,24,56,.72);color:#fff;font-size:1.5rem;line-height:1;padding-left:6px}
 .vbadge{position:absolute;left:8px;bottom:8px;background:rgba(13,24,56,.78);color:#fff;border-radius:999px;padding:3px 10px;font-size:.8125rem;font-weight:600}
+
+/* ---- Roster check (Pro) ---- */
+.rc-wrap{display:grid;gap:16px}
+.rc-pair{display:grid;grid-template-columns:1fr 88px;gap:8px}
+.rc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.rc-wrap .rc-grid2{grid-template-columns:1fr}}
+.rc-limits{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:8px}
+.rc-wrap input[type=month],.rc-sheet input[type=datetime-local]{-webkit-appearance:none;appearance:none;display:block;min-height:46px;text-align:left}
+.rc-badge{display:inline-block;font-family:var(--mono);font-size:.6875rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:2px 6px}
+.rc-verified{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.rc-baseline{background:color-mix(in srgb,var(--mod) 20%,transparent);color:var(--mod)}
+.rc-estimated{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.rc-drop{border:2px dashed var(--line);border-radius:14px;padding:20px;text-align:center;color:var(--muted);background:var(--bg);width:100%}
+.rc-drop b{color:var(--ink);display:block}
+.rc-drop.has{border-color:var(--accent)}
+.rc-thumbs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.rc-thumbs img{height:64px;border-radius:8px;border:1px solid var(--line)}
+.rc-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.rc-stat{background:var(--bg);border-radius:12px;padding:12px;display:grid;gap:2px;align-content:start}
+.rc-stat.bad .big{color:var(--bad)}.rc-stat.warn .big{color:var(--warn)}.rc-stat.ok .big{color:var(--good)}
+.rc-bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:4px}
+.rc-bar i{display:block;height:100%;background:var(--good)}.rc-bar i.warn{background:var(--warn)}.rc-bar i.bad{background:var(--bad)}
+.rc-issue{border-left:3px solid var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent);border-radius:8px;padding:8px 12px;display:grid;gap:2px;font-size:.9375rem}
+.rc-issue small{color:var(--muted)}
+.rc-ok{background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good);border-radius:10px;padding:12px;font-weight:600}
+.rc-calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rc-calhead .row{flex-wrap:nowrap;align-items:center}
+.rc-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.rc-dow{font-size:.6875rem;color:var(--muted);text-align:center;font-weight:600}
+.rc-day{min-height:60px;border-radius:9px;background:var(--bg);padding:4px;border:2px solid transparent;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:2px;text-align:left;min-width:0;overflow:hidden;color:var(--ink)}
+.rc-day.empty{background:transparent}
+.rc-day .n{font-weight:600;font-size:.75rem}
+.rc-day .t{display:block;border-radius:5px;padding:1px 2px;font-size:.625rem;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:color-mix(in srgb,var(--navy) 22%,transparent)}
+.rc-day .t.ret{background:transparent;border:1px dashed var(--muted);font-weight:500}
+.rc-day .t.k-SBY-A,.rc-day .t.k-SBY-H,.rc-day .t.k-TRN{background:color-mix(in srgb,var(--mod) 22%,transparent)}
+.rc-day .t.k-OFF,.rc-day .t.k-LEAVE{background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good)}
+.rc-day.f-Moderate{border-color:var(--mod)}.rc-day.f-High{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,var(--bg))}
+.rc-day.breach{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--bg))}
+.rc-day.sel{outline:2px solid var(--accent);outline-offset:1px}
+.list li.rc-duty{grid-template-columns:1fr;gap:8px}
+.rc-dtop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.rc-meta{font-family:var(--mono);font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.rc-est{font-size:.75rem;color:var(--warn);font-weight:600}
+.rc-fat{font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.rc-fat.Low{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.rc-fat.Moderate{background:color-mix(in srgb,var(--mod) 18%,transparent);color:var(--mod)}
+.rc-fat.High{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.rc-flags{font-size:.875rem;color:var(--muted)}
+.btn.rc-sm{padding:6px 12px;font-size:.875rem;box-shadow:none}
+.rc-wrap .btn:disabled{opacity:.45;box-shadow:none;cursor:default}
+.rc-link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline}
+.rc-spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:rcs 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes rcs{to{transform:rotate(360deg)}}
+.rc-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60}
+.rc-sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-width:560px;margin:0 auto;background:var(--surface);border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;max-height:88vh;overflow:auto}
+.rc-sheet h2{margin:0}
 </style>
 
 <div class="login" id="login" hidden>
@@ -866,12 +922,17 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 <section class="panel" id="tab-rest" hidden>
   <div class="pagehead">
     <h1>Rest</h1>
+    <div class="seg" role="tablist" aria-label="Rest">
+      <button type="button" data-sub="layovers" aria-selected="true">Layovers</button>
+      <button type="button" data-sub="roster" aria-selected="false">Roster check <span class="probadge">PRO</span></button>
+    </div>
     <div class="chips" id="fgPeriod">
       <button class="chip" type="button" data-d="7" aria-pressed="false">Last 7 days</button>
       <button class="chip" type="button" data-d="30" aria-pressed="true">Last 30 days</button>
       <button class="chip" type="button" data-d="90" aria-pressed="false">Last 90 days</button>
     </div>
   </div>
+  <div data-panel="layovers" class="panel">
   <div class="card">
     <div class="banner exBanner" hidden><span>Showing example layovers</span><button class="btn ghost exRemove" type="button">Remove examples</button></div>
     <div id="fgEmpty" class="field" hidden>
@@ -936,6 +997,112 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
       </ul>
     </details>
     <p class="note">A personal guide to plan rest, not a medical tool or your company's flight time limits. If you feel unfit to fly, follow your company's fatigue reporting process.</p>
+  </div>
+  </div>
+  <div data-panel="roster" class="panel" hidden>
+    <div class="card prolock">
+      <div class="cardhead"><h2>Roster check</h2><span class="probadge">PRO</span></div>
+      <p class="hint">Upload a screenshot of your roster. The app turns it into a calendar and checks every duty against your airline's flight time limits and your fatigue risk.</p>
+      <ul class="insights">
+        <li>Duty hours in 7, 14 and 28 days, block hours, rest between duties, the weekly 36-hour rest and maximum duty length</li>
+        <li>Rule sets for Qatar Airways, Emirates, Etihad, Singapore Airlines, EASA and FAA, with your own OM-A numbers if they differ</li>
+        <li>Breaches and high-fatigue days highlighted on a month calendar</li>
+        <li>Add your whole month to your phone's calendar in one tap</li>
+      </ul>
+      <button class="btn proGo" type="button" style="justify-self:start">Unlock with Pro</button>
+    </div>
+
+    <div class="rc-wrap" data-pro>
+      <div class="card">
+        <div class="cardhead"><h2>Your airline and rules</h2></div>
+        <label class="field"><span class="label">Airline / rule set</span><select id="rcAirline"></select></label>
+        <div class="field"><span class="label">Home base airport · UTC offset</span>
+          <div class="rc-pair"><input id="rcBase" maxlength="3" aria-label="Home base airport" autocapitalize="characters"><input id="rcOff" type="number" step="0.5" inputmode="decimal" aria-label="UTC offset"></div></div>
+        <div class="field"><b id="rcReg"></b><span><span id="rcStatus" class="rc-badge"></span></span><p class="hint" id="rcNote"></p></div>
+        <details class="more" style="border:0;padding:0">
+          <summary>Edit limits (enter your OM-A values)</summary>
+          <div class="rc-limits" id="rcLimits"></div>
+          <p class="hint" style="margin-top:8px">Leave a box empty to switch that check off. Saved on this phone.</p>
+          <div class="row" style="margin-top:8px"><button class="btn ghost rc-sm" type="button" id="rcReset">Reset to defaults</button></div>
+        </details>
+        <details class="more" style="border:0;padding:0">
+          <summary>Hours from before this roster</summary>
+          <div class="rc-limits">
+            <label class="field"><span class="label">Block h, previous 28 days</span><input type="number" id="rcC28" min="0" step="0.5" inputmode="decimal" placeholder="0"></label>
+            <label class="field"><span class="label">Duty h, previous 28 days</span><input type="number" id="rcCD28" min="0" step="0.5" inputmode="decimal" placeholder="0"></label>
+            <label class="field"><span class="label">Block h so far this year</span><input type="number" id="rcCY" min="0" step="0.5" inputmode="decimal" placeholder="0"></label>
+          </div>
+          <p class="hint" style="margin-top:8px">The 7-, 14- and 28-day limits are rolling, so the first weeks of a month also count hours from the month before.</p>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="cardhead"><h2>Add your roster</h2></div>
+        <div class="rc-grid2">
+          <label class="field"><span class="label">Roster month</span><input type="month" id="rcMonth"></label>
+          <label class="field"><span class="label">Times on the roster are</span><select id="rcBasis"><option value="auto">Auto-detect</option><option value="local">Local time</option><option value="utc">UTC / GMT</option></select></label>
+        </div>
+        <button type="button" class="rc-drop" id="rcDrop"><b>Tap to add roster screenshots</b>PNG or JPG, up to 4 pictures<div class="rc-thumbs" id="rcThumbs"></div></button>
+        <input type="file" id="rcFile" accept="image/*" multiple hidden>
+        <div class="row">
+          <button class="btn" type="button" id="rcRead" disabled>Read my roster</button>
+          <button class="btn ghost" type="button" id="rcSample">See an example</button>
+          <button class="btn ghost" type="button" id="rcAdd">Type a duty</button>
+        </div>
+        <p class="hint" id="rcMsg" role="status"></p>
+        <p class="note">Hide your staff number and name before you upload. Pictures are read once and not stored.</p>
+      </div>
+
+      <div class="rc-wrap" id="rcResults" hidden>
+        <div class="card"><div class="cardhead"><h2>Summary</h2><button class="btn ghost rc-sm" type="button" id="rcClear">Clear roster</button></div><div class="rc-stats" id="rcStats"></div></div>
+        <div class="card"><h2>Flight time limits</h2><div class="rc-wrap" id="rcIssues" style="gap:8px"></div></div>
+        <div class="card">
+          <div class="rc-calhead"><h2>Calendar</h2><div class="row"><button class="btn ghost rc-sm" type="button" id="rcPrev" aria-label="Previous month">‹</button><span id="rcMonthLbl" class="label" style="min-width:104px;text-align:center"></span><button class="btn ghost rc-sm" type="button" id="rcNext" aria-label="Next month">›</button></div></div>
+          <div class="rc-cal" id="rcCal"></div>
+          <div class="legend"><span style="--c:var(--bad)">Limit breach</span><span style="--c:var(--warn)">High fatigue</span><span style="--c:var(--mod)">Moderate fatigue</span><span style="--c:var(--muted)">Dashed = flight home</span></div>
+          <div class="row"><button class="btn" type="button" id="rcIcs">Add to my calendar</button></div>
+          <p class="hint" id="rcIcsMsg"></p>
+        </div>
+        <div class="card">
+          <div class="cardhead"><h2>Duties and fatigue</h2><span class="hint" id="rcDutyHead"></span></div>
+          <ul class="list" id="rcDuties"></ul>
+          <div class="row"><button class="btn ghost rc-sm" type="button" id="rcAdd2">Add a duty</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <details class="more" style="border:0;padding:0">
+          <summary>How the roster check works</summary>
+          <ul class="insights">
+            <li><b>Cumulative limits:</b> duty hours in any 7, 14 and 28 days, block hours in any 28 days and per year, counted on rolling windows.</li>
+            <li><b>Rest:</b> at least the minimum for your rule set, at home base or away, and at least as long as the duty before it where the rules ask for that.</li>
+            <li><b>Weekly rest:</b> a rest of 36 hours (24 for FAA) in every 7 days.</li>
+            <li><b>Maximum duty:</b> the EASA table by report time and number of sectors, plus up to 1 hour for an earlier cabin crew report. Long flights of 9 hours or more are treated as augmented.</li>
+            <li><b>Fatigue score:</b> adds points for early reports, working between 02:00 and 06:00 body-clock time, long duties, short rest, big time-zone changes and busy weeks. Low under 30, moderate from 30, high from 55.</li>
+          </ul>
+        </details>
+        <p class="note">A planning aid, not your company's approved scheme. Your OM-A and your regulator decide what is legal. If you feel unfit to fly, follow your company's fatigue reporting process.</p>
+      </div>
+    </div>
+
+    <div class="rc-bg" id="rcEditBg" hidden></div>
+    <div class="rc-sheet" id="rcEdit" role="dialog" aria-modal="true" aria-labelledby="rcEdTitle" hidden>
+      <h2 id="rcEdTitle">Duty</h2>
+      <div class="rc-grid2">
+        <label class="field"><span class="label">Type</span><select id="rcEdKind"><option value="FLY">Flight</option><option value="SBY-A">Airport standby</option><option value="SBY-H">Home standby</option><option value="TRN">Training / office</option><option value="OFF">Day off</option><option value="LEAVE">Leave</option></select></label>
+        <label class="field"><span class="label">Flight number(s)</span><input id="rcEdFlt" placeholder="QR1/QR2"></label>
+        <label class="field"><span class="label">Route</span><input id="rcEdRoute" placeholder="DOH-LHR" autocapitalize="characters"></label>
+        <label class="field"><span class="label">Block time (h:mm)</span><input id="rcEdBlock" placeholder="7:00" inputmode="numeric"></label>
+      </div>
+      <label class="field"><span class="label">Report (home-base time)</span><input id="rcEdRep" type="datetime-local"></label>
+      <label class="field"><span class="label">Release (home-base time)</span><input id="rcEdRel" type="datetime-local"></label>
+      <div class="rc-grid2">
+        <label class="field"><span class="label">Destination UTC offset</span><input id="rcEdDest" type="number" step="0.5" inputmode="decimal"></label>
+        <label class="field"><span class="label">Ends at home base?</span><select id="rcEdHome"><option value="true">Yes</option><option value="false">No (layover)</option></select></label>
+      </div>
+      <p class="hint" id="rcEdMsg" role="alert" style="color:var(--bad)"></p>
+      <div class="row" style="justify-content:space-between"><button class="btn ghost" type="button" id="rcEdDel">Delete</button><span class="row"><button class="btn ghost" type="button" id="rcEdCancel">Cancel</button><button class="btn" type="button" id="rcEdSave">Save</button></span></div>
+    </div>
   </div>
 </section>
 
@@ -1244,7 +1411,7 @@ function setDest(d){
 /* ---------- tabs ---------- */
 /* Five sections in the bottom bar; some have sub-pages chosen with a segmented control */
 const TAB_ALIAS={plan:["today"],near:["explore","nearby"],ideas:["explore","ideas"],pack:["explore","nearby"],
-  tips:["notebook","notes"],lists:["notebook","notes"],journal:["notebook","journal"],fatigue:["rest"],layovers:["rest"],
+  tips:["notebook","notes"],lists:["notebook","notes"],journal:["notebook","journal"],fatigue:["rest","layovers"],layovers:["rest","layovers"],roster:["rest","roster"],
   spending:["money","summary"],allowance:["money","summary"]};
 const on=(id,ev,fn)=>{ const el=$(id); if(el) el.addEventListener(ev,fn); };
 function showSub(tab,sub){
@@ -1252,6 +1419,7 @@ function showSub(tab,sub){
   sec.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-selected",x.dataset.sub===sub));
   sec.querySelectorAll(":scope [data-panel]").forEach(p=>p.hidden=p.dataset.panel!==sub);
   if(tab==="money") $("spPeriod").hidden=sub==="add";
+  if(tab==="rest") $("fgPeriod").hidden=sub==="roster";
   if(sub==="nearby"&&nb.map) setTimeout(()=>nb.map.invalidateSize(),50);
 }
 function showTab(name,sub){
@@ -2504,7 +2672,7 @@ function applyPlan(){
     if(Plan.paywall){
       const i=Plan.info||{};
       $("planName").innerHTML=pro?'Pro <span class="probadge">PRO</span>':"Free";
-      $("planLine").textContent=!pro?"Pro unlocks the full crew feed, the fatigue dashboard and money insights."
+      $("planLine").textContent=!pro?"Pro unlocks the full crew feed, roster check, the fatigue dashboard and money insights."
         :i.cancel_at?`Your Pro plan ends on ${fmtDay(i.cancel_at)}.`
         :i.status==="past_due"?"Your last payment didn't go through. Update your card to keep Pro."
         :i.period_end?`Renews on ${fmtDay(i.period_end)}.`:"Everything is unlocked.";
@@ -2935,4 +3103,454 @@ function renderAll(){renderHeader();renderClocks();renderWeather();renderPlanner
 })();
 </script>
 
+<script>
+/* Roster Check rule engine: flight time limits + fatigue score */
+window.RosterEngine=(()=>{
+// ===== Roster Check engine (pure functions, no DOM) =====
+const H = 3600e3;
+
+const RULESETS = {
+  qatar: {
+    id: 'qatar', name: 'Qatar Airways', regulator: 'Qatar CAA (QCAR-OPS)', homeBase: 'DOH', homeOffset: 3,
+    d7: 60, d14: null, d28: 190, b28: 100, bYear: 900, bYearLabel: 'calendar year',
+    restHome: 12, restAway: 10, restAtLeastDuty: true, recoveryHours: 36,
+    fdpModel: 'easa', augCap: 18, cabinExtra: 1, status: 'baseline',
+    note: 'Subpart-Q style baseline. Qatar Airways’ approved limits are in its OM-A Chapter 7, so check these numbers against it and edit them if they differ.'
+  },
+  emirates: {
+    id: 'emirates', name: 'Emirates', regulator: 'UAE GCAA (CAR-OPS 1 Subpart Q)', homeBase: 'DXB', homeOffset: 4,
+    d7: 60, d14: 105, d28: 210, b28: 100, bYear: 900, bYearLabel: '12 months',
+    restHome: 12, restAway: 10, restAtLeastDuty: true, recoveryHours: 36,
+    fdpModel: 'easa', augCap: 18, cabinExtra: 1, status: 'baseline',
+    note: 'Block limits (100 h / 28 days, 900 h / 12 months) are from GCAA CAR-OPS 1. The cabin crew duty limits (60/105/210 h) come from a secondary source, so confirm them in the Emirates OM-A.'
+  },
+  etihad: {
+    id: 'etihad', name: 'Etihad', regulator: 'UAE GCAA (CAR-OPS 1 Subpart Q)', homeBase: 'AUH', homeOffset: 4,
+    d7: 60, d14: 105, d28: 210, b28: 100, bYear: 900, bYearLabel: '12 months',
+    restHome: 12, restAway: 10, restAtLeastDuty: true, recoveryHours: 36,
+    fdpModel: 'easa', augCap: 18, cabinExtra: 1, status: 'baseline',
+    note: 'Same GCAA baseline as Emirates. Confirm against the Etihad OM-A.'
+  },
+  singapore: {
+    id: 'singapore', name: 'Singapore Airlines', regulator: 'CAAS (ANR-121, Fifth Schedule)', homeBase: 'SIN', homeOffset: 8,
+    d7: 60, d14: null, d28: 190, b28: 100, bYear: 900, bYearLabel: 'calendar year',
+    restHome: 10, restAway: 10, restAtLeastDuty: true, recoveryHours: 36,
+    fdpModel: 'easa', augCap: 18, cabinExtra: 1, status: 'estimated',
+    note: 'Estimated. CAAS publishes its exact limits in ANR-121, and SIA has an approved fatigue scheme. Rest is set to at least 10 h, or as long as the duty before it. Enter the SIA OM-A values.'
+  },
+  easa: {
+    id: 'easa', name: 'EASA (Europe)', regulator: 'EASA ORO.FTL', homeBase: 'LHR', homeOffset: 0,
+    d7: 60, d14: 110, d28: 190, b28: 100, bYear: 900, bYearLabel: 'calendar year',
+    restHome: 12, restAway: 10, restAtLeastDuty: true, recoveryHours: 36,
+    fdpModel: 'easa', augCap: 18, cabinExtra: 1, status: 'verified',
+    note: 'ORO.FTL.210 cumulative limits and ORO.FTL.235 rest. FDP uses the acclimatised table. Augmented crew uses a simplified 18 h cap.'
+  },
+  faa: {
+    id: 'faa', name: 'FAA (US carriers)', regulator: '14 CFR 121.467', homeBase: 'JFK', homeOffset: -5,
+    d7: null, d14: null, d28: null, b28: null, bYear: null, bYearLabel: '',
+    restHome: 10, restAway: 10, restAtLeastDuty: false, recoveryHours: 24,
+    fdpModel: 'faa', faaMaxDuty: 14, augCap: 20, cabinExtra: 0, status: 'verified',
+    note: 'Flight attendants: 14 h duty (up to 20 h with extra crew), at least 10 h rest, and 24 h off in every 7 days.'
+  }
+};
+
+const toLocal = (t, off) => new Date(t + off * H); // read with getUTC*
+const dayKey = (t, off) => toLocal(t, off).toISOString().slice(0, 10);
+const fmtH = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
+
+function easaMaxFdp(reportLocalMin, sectors) {
+  const m = reportLocalMin;
+  let base;
+  if (m >= 360 && m < 810) base = 13;
+  else if (m >= 810 && m < 1020) base = 12.75 - Math.floor((m - 810) / 30) * 0.25;
+  else if (m >= 1020 || m < 300) base = 11;
+  else base = 12 + Math.floor((m - 300) / 15) * 0.25; // 05:00-05:59
+  const extra = Math.max(0, sectors - 2) * 0.5;
+  return Math.max(9, base - extra);
+}
+
+function analyse(dutiesIn, R, carry = {}) {
+  const duties = dutiesIn
+    .map(d => ({ ...d, report: +new Date(d.reportUtc), release: +new Date(d.releaseUtc),
+      fdpEnd: d.lastOnUtc ? +new Date(d.lastOnUtc) : +new Date(d.releaseUtc) - 0.5 * H }))
+    .filter(d => !isNaN(d.report) && !isNaN(d.release))
+    .sort((a, b) => a.report - b.report);
+  const off = R.homeOffset;
+  const issues = [];
+  const add = (sev, d, title, detail) => issues.push({ sev, day: d ? dayKey(d.report, off) : null, dutyId: d?.id, title, detail });
+
+  duties.forEach((d, i) => {
+    d.dutyH = (d.release - d.report) / H;
+    d.fdpH = (d.fdpEnd - d.report) / H;
+    d.blockH = (d.blockMinutes || 0) / 60;
+    d.sectors = d.route ? Math.max(1, d.route.split('-').length - 1) : 0;
+    d.augmented = d.augmented ?? (d.kind === 'FLY' && d.blockH >= 9);
+    const prev = duties[i - 1];
+    d.restBefore = prev ? (d.report - prev.release) / H : null;
+    d.fatigue = 0; d.flags = [];
+  });
+
+  // --- Per duty: FDP / max duty ---
+  duties.forEach(d => {
+    if (d.kind !== 'FLY') return;
+    const origOff = d.originUtcOffset ?? off;
+    if (R.fdpModel === 'faa') {
+      const cap = d.augmented ? R.augCap : R.faaMaxDuty;
+      d.cap = cap;
+      if (d.dutyH > cap + 1e-6) add('breach', d, 'Duty period too long', `${fmtH(d.dutyH)} on duty, limit ${fmtH(cap)}${d.augmented ? ' (extra crew)' : ''}.`);
+    } else {
+      const lt = toLocal(d.report, origOff);
+      const mins = lt.getUTCHours() * 60 + lt.getUTCMinutes();
+      const cap = (d.augmented ? R.augCap : easaMaxFdp(mins, d.sectors)) + (R.cabinExtra || 0);
+      d.cap = cap;
+      if (d.fdpH > cap + 1e-6) add('breach', d, 'Flight duty period too long', `FDP ${fmtH(d.fdpH)}, limit about ${fmtH(cap)} for this report time${d.augmented ? ' (augmented)' : ''}, including up to ${R.cabinExtra || 0} h earlier cabin crew report.`);
+    }
+  });
+
+  // --- Rest between duties ---
+  duties.forEach((d, i) => {
+    const prev = duties[i - 1];
+    if (!prev || prev.kind === 'OFF' || d.kind === 'OFF') return;
+    const atHome = prev.endsAtHomeBase !== false;
+    const min = atHome ? R.restHome : R.restAway;
+    const need = R.restAtLeastDuty ? Math.max(min, prev.dutyH) : min;
+    d.restNeed = need;
+    if (d.restBefore + 1e-6 < need) add('breach', d, 'Rest too short', `${fmtH(d.restBefore)} rest ${atHome ? 'at home base' : 'away from base'} before this duty. Needs at least ${fmtH(need)}${R.restAtLeastDuty && need > min ? ' (as long as the previous duty)' : ''}.`);
+  });
+
+  // --- Recovery: a rest of >= recoveryHours in every 168 h ---
+  const working = duties.filter(d => d.kind !== 'OFF' && d.kind !== 'LEAVE');
+  if (working.length) {
+    let lastRecoveryEnd = working[0].report; // assume rested before roster
+    working.forEach((d, i) => {
+      if (i > 0 && (d.report - working[i - 1].release) / H >= R.recoveryHours) lastRecoveryEnd = d.report;
+      if ((d.release - lastRecoveryEnd) / H > 168 + 1e-6 && !d._recFlag) {
+        add('breach', d, `No ${R.recoveryHours} h rest in 7 days`, `You've been working since ${dayKey(lastRecoveryEnd, off)} without a ${R.recoveryHours}-hour rest. One is needed in every 7 days.`);
+        lastRecoveryEnd = d.release; // report once per streak
+      }
+    });
+  }
+
+  // --- Cumulative rolling windows ---
+  const byDay = {};
+  duties.forEach(d => {
+    if (d.kind === 'OFF' || d.kind === 'LEAVE') return;
+    const k = dayKey(d.report, off);
+    byDay[k] = byDay[k] || { duty: 0, block: 0 };
+    byDay[k].duty += d.kind === 'SBY-H' ? d.dutyH * 0.25 : d.dutyH;
+    byDay[k].block += d.blockH;
+  });
+  const days = [];
+  if (duties.length) {
+    const first = new Date(dayKey(duties[0].report, off) + 'T00:00:00Z');
+    const last = new Date(dayKey(duties[duties.length - 1].report, off) + 'T00:00:00Z');
+    for (let t = +first; t <= +last; t += 24 * H) days.push(new Date(t).toISOString().slice(0, 10));
+  }
+  const firstDay = days[0];
+  const carryDutyPerDay = (carry.duty28 || 0) / 28, carryBlockPerDay = (carry.block28 || 0) / 28;
+  const sumWin = (endIdx, n, field, carryPerDay) => {
+    let s = 0;
+    for (let j = endIdx - n + 1; j <= endIdx; j++) {
+      if (j < 0) s += carryPerDay; else s += byDay[days[j]]?.[field] || 0;
+    }
+    return s;
+  };
+  const windows = [];
+  const flagged = {};
+  days.forEach((k, idx) => {
+    const w = {
+      day: k,
+      d7: sumWin(idx, 7, 'duty', carryDutyPerDay),
+      d14: sumWin(idx, 14, 'duty', carryDutyPerDay),
+      d28: sumWin(idx, 28, 'duty', carryDutyPerDay),
+      b28: sumWin(idx, 28, 'block', carryBlockPerDay)
+    };
+    windows.push(w);
+    [['d7', 'Duty hours in 7 days'], ['d14', 'Duty hours in 14 days'], ['d28', 'Duty hours in 28 days'], ['b28', 'Block hours in 28 days']].forEach(([f, label]) => {
+      if (R[f] && w[f] > R[f] + 1e-6 && byDay[k] && !flagged[f + k]) {
+        // report only the first day of each exceedance run
+        const prevW = windows[idx - 1];
+        if (!prevW || !(prevW[f] > R[f])) {
+          const d = duties.find(x => dayKey(x.report, off) === k);
+          add('breach', d, `${label} over limit`, `${fmtH(w[f])} in the window ending ${k}. Limit ${R[f]} h.`);
+        }
+        flagged[f + k] = 1;
+      }
+    });
+  });
+  const rosterBlock = duties.reduce((s, d) => s + (d.blockH || 0), 0);
+  const ytd = (carry.blockYtd || 0) + rosterBlock;
+  if (R.bYear && ytd > R.bYear) add('breach', null, `Block hours over ${R.bYear} h (${R.bYearLabel})`, `${fmtH(ytd)} including hours you entered from before this roster.`);
+
+  // --- Fatigue score ---
+  duties.forEach(d => {
+    if (d.kind === 'OFF' || d.kind === 'LEAVE') return;
+    const origOff = d.originUtcOffset ?? off;
+    const lt = toLocal(d.report, origOff);
+    const rh = lt.getUTCHours() + lt.getUTCMinutes() / 60;
+    const f = (pts, why) => { d.fatigue += pts; d.flags.push(why); };
+    if (rh >= 4 && rh < 7) f(15, 'Early report (before 07:00)');
+    // WOCL 02:00-05:59 body-clock time (home base, assumes acclimatised to base)
+    for (let t = d.report; t < d.release; t += 15 * 60e3) {
+      const h = toLocal(t, off).getUTCHours();
+      if (h >= 2 && h < 6) { f(20, 'Works through 02:00–06:00 body-clock time'); break; }
+    }
+    if (d.fdpH > 16) f(25, `Very long duty (${fmtH(d.fdpH)})`);
+    else if (d.fdpH > 13) f(15, `Long duty (${fmtH(d.fdpH)})`);
+    if (d.restBefore != null && d.restBefore < 10) f(25, `Short rest before (${fmtH(d.restBefore)})`);
+    else if (d.restBefore != null && d.restBefore < 12) f(15, `Short-ish rest before (${fmtH(d.restBefore)})`);
+    const tz = Math.abs((d.destUtcOffset ?? off) - (d.originUtcOffset ?? off));
+    if (tz >= 7) f(20, `Big time-zone jump (${tz} h)`);
+    else if (tz >= 4) f(10, `Time-zone jump (${tz} h)`);
+    const idx = days.indexOf(dayKey(d.report, off));
+    if (idx >= 0 && windows[idx].d7 > 50) f(10, `Busy week (${fmtH(windows[idx].d7)} duty in 7 days)`);
+    d.fatigue = Math.min(100, d.fatigue);
+    d.fatigueBand = d.fatigue >= 55 ? 'High' : d.fatigue >= 30 ? 'Moderate' : 'Low';
+  });
+
+  const totals = {
+    block: rosterBlock,
+    duty: duties.reduce((s, d) => s + (['OFF', 'LEAVE'].includes(d.kind) ? 0 : d.dutyH), 0),
+    max7: Math.max(0, ...windows.map(w => w.d7)),
+    max28: Math.max(0, ...windows.map(w => w.d28)),
+    maxB28: Math.max(0, ...windows.map(w => w.b28)),
+    ytd,
+    breaches: issues.filter(i => i.sev === 'breach').length,
+    highFatigue: duties.filter(d => d.fatigueBand === 'High').length
+  };
+  return { duties, issues, windows, totals };
+}
+
+function toICS(duties, R) {
+  const z = t => new Date(t).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Layover Logbook//Roster Check//EN', 'CALSCALE:GREGORIAN'];
+  duties.forEach((d, i) => {
+    const label = { FLY: '✈ ' + [d.flights, d.route].filter(Boolean).join(' '), 'SBY-A': 'Airport standby', 'SBY-H': 'Home standby', TRN: 'Training', OFF: 'Day off', LEAVE: 'Leave' }[d.kind] || d.kind;
+    lines.push('BEGIN:VEVENT', `UID:roster-${i}-${d.report}@layoverlogbook`, `DTSTAMP:${z(Date.now())}`,
+      `DTSTART:${z(d.report)}`, `DTEND:${z(d.release)}`, `SUMMARY:${label}`,
+      `DESCRIPTION:Duty ${fmtH(d.dutyH || 0)} · Block ${fmtH(d.blockH || 0)} · Fatigue ${d.fatigueBand || '-'}`, 'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+const SAMPLE = [
+  { kind: 'FLY', flights: 'QR1', route: 'DOH-LHR', reportUtc: '2026-11-02T01:15Z', lastOnUtc: '2026-11-02T09:30Z', releaseUtc: '2026-11-02T10:00Z', blockMinutes: 420, originUtcOffset: 3, destUtcOffset: 0, endsAtHomeBase: false },
+  { kind: 'FLY', flights: 'QR2', route: 'LHR-DOH', reportUtc: '2026-11-03T13:00Z', lastOnUtc: '2026-11-03T20:45Z', releaseUtc: '2026-11-03T21:15Z', blockMinutes: 390, originUtcOffset: 0, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'FLY', flights: 'QR908', route: 'DOH-SYD', reportUtc: '2026-11-04T15:30Z', lastOnUtc: '2026-11-05T07:15Z', releaseUtc: '2026-11-05T07:45Z', blockMinutes: 870, originUtcOffset: 3, destUtcOffset: 11, endsAtHomeBase: false },
+  { kind: 'FLY', flights: 'QR909', route: 'SYD-DOH', reportUtc: '2026-11-06T09:00Z', lastOnUtc: '2026-11-07T00:45Z', releaseUtc: '2026-11-07T01:15Z', blockMinutes: 870, originUtcOffset: 11, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'FLY', flights: 'QR1084/1085', route: 'DOH-KWI-DOH', reportUtc: '2026-11-07T10:30Z', lastOnUtc: '2026-11-07T14:55Z', releaseUtc: '2026-11-07T15:25Z', blockMinutes: 130, originUtcOffset: 3, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'FLY', flights: 'QR556', route: 'DOH-BOM', reportUtc: '2026-11-08T19:00Z', lastOnUtc: '2026-11-08T23:45Z', releaseUtc: '2026-11-09T00:15Z', blockMinutes: 210, originUtcOffset: 3, destUtcOffset: 5.5, endsAtHomeBase: false },
+  { kind: 'FLY', flights: 'QR557', route: 'BOM-DOH', reportUtc: '2026-11-09T22:00Z', lastOnUtc: '2026-11-10T02:45Z', releaseUtc: '2026-11-10T03:15Z', blockMinutes: 210, originUtcOffset: 5.5, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'SBY-A', reportUtc: '2026-11-13T04:00Z', releaseUtc: '2026-11-13T12:00Z', blockMinutes: 0 },
+  { kind: 'FLY', flights: 'QR701', route: 'DOH-JFK', reportUtc: '2026-11-14T03:30Z', lastOnUtc: '2026-11-14T19:15Z', releaseUtc: '2026-11-14T19:45Z', blockMinutes: 870, originUtcOffset: 3, destUtcOffset: -5, endsAtHomeBase: false },
+  { kind: 'FLY', flights: 'QR702', route: 'JFK-DOH', reportUtc: '2026-11-15T23:30Z', lastOnUtc: '2026-11-16T13:15Z', releaseUtc: '2026-11-16T13:45Z', blockMinutes: 750, originUtcOffset: -5, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'FLY', flights: 'QR39', route: 'DOH-CDG', reportUtc: '2026-11-18T22:30Z', lastOnUtc: '2026-11-19T06:30Z', releaseUtc: '2026-11-19T07:00Z', blockMinutes: 405, originUtcOffset: 3, destUtcOffset: 1, endsAtHomeBase: false },
+  { kind: 'FLY', flights: 'QR40', route: 'CDG-DOH', reportUtc: '2026-11-19T19:30Z', lastOnUtc: '2026-11-20T03:00Z', releaseUtc: '2026-11-20T03:30Z', blockMinutes: 375, originUtcOffset: 1, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'FLY', flights: 'QR944', route: 'DOH-SIN', reportUtc: '2026-11-25T14:00Z', lastOnUtc: '2026-11-25T22:45Z', releaseUtc: '2026-11-25T23:15Z', blockMinutes: 450, originUtcOffset: 3, destUtcOffset: 8, endsAtHomeBase: false },
+  { kind: 'FLY', flights: 'QR945', route: 'SIN-DOH', reportUtc: '2026-11-26T15:30Z', lastOnUtc: '2026-11-27T01:00Z', releaseUtc: '2026-11-27T01:30Z', blockMinutes: 495, originUtcOffset: 8, destUtcOffset: 3, endsAtHomeBase: true },
+  { kind: 'TRN', reportUtc: '2026-11-28T05:00Z', releaseUtc: '2026-11-28T13:00Z', blockMinutes: 0 }
+];
+
+return { RULESETS, analyse, toICS, SAMPLE, fmtH, easaMaxFdp, toLocal, dayKey };
+
+})();
+
+/* ================= Roster Check (Pro) ================= */
+(()=>{
+const RC=window.RosterEngine;
+const el=id=>document.getElementById(id);
+const isLocked=()=>document.body.classList.contains("locked");
+let ruleId=lsGet("lay.rcRule","qatar"), custom=lsGet("lay.rcCustom",{}), roster=lsGet("lay.roster",[]), carry=lsGet("lay.rcCarry",{});
+let files=[], viewMonth=null, selDay=null, result=null, editIdx=null;
+const save=()=>{ lsSet("lay.rcRule",ruleId); lsSet("lay.rcCustom",custom); lsSet("lay.roster",roster); lsSet("lay.rcCarry",carry); };
+const rules=()=>({...RC.RULESETS[ruleId],...(custom[ruleId]||{})});
+const fh=RC.fmtH;
+const KIND={FLY:"Flight","SBY-A":"Airport standby","SBY-H":"Home standby",TRN:"Training",OFF:"Day off",LEAVE:"Leave"};
+const LIM=[["d7","Duty h / 7 days"],["d14","Duty h / 14 days"],["d28","Duty h / 28 days"],["b28","Block h / 28 days"],["bYear","Block h / year"],
+  ["restHome","Min rest at base (h)"],["restAway","Min rest away (h)"],["recoveryHours","Weekly rest (h)"],["augCap","Max FDP, augmented (h)"],["cabinExtra","Cabin early report (h)"]];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function renderRules(){
+  el("rcAirline").innerHTML=Object.values(RC.RULESETS).map(r=>`<option value="${r.id}"${r.id===ruleId?" selected":""}>${r.name}</option>`).join("");
+  const R=rules();
+  el("rcBase").value=R.homeBase; el("rcOff").value=R.homeOffset;
+  el("rcReg").textContent=R.regulator;
+  const b=el("rcStatus"); b.className="rc-badge rc-"+R.status;
+  b.textContent={verified:"Checked against the regulation",baseline:"Baseline: confirm with your OM-A",estimated:"Estimated"}[R.status];
+  el("rcNote").textContent=R.note;
+  el("rcLimits").innerHTML=LIM.map(([f,l])=>`<label class="field"><span class="label">${l}</span><input type="number" step="0.5" inputmode="decimal" data-f="${f}" value="${R[f]??""}"></label>`).join("");
+  [["rcC28","block28"],["rcCD28","duty28"],["rcCY","blockYtd"]].forEach(([id,k])=>el(id).value=carry[k]??"");
+}
+function setCustom(k,v){ (custom[ruleId]=custom[ruleId]||{})[k]=v; save(); run(); }
+
+function run(){
+  const R=rules();
+  el("rcResults").hidden=!roster.length;
+  if(!roster.length){ result=null; return; }
+  roster.forEach((d,i)=>d.id=i);
+  result=RC.analyse(roster,R,carry);
+  if(!viewMonth&&result.duties.length) viewMonth=RC.dayKey(result.duties[0].report,R.homeOffset).slice(0,7);
+  renderStats(R); renderIssues(); renderCal(R); renderDuties(R);
+}
+function stat(v,l,lim){
+  let cls="",bar="";
+  if(lim){ const p=v/lim; cls=p>1?"bad":p>.9?"warn":"ok"; bar=`<div class="rc-bar"><i class="${cls}" style="width:${Math.min(100,p*100)}%"></i></div>`; }
+  return `<div class="rc-stat ${cls}"><div class="big">${typeof v==="number"?fh(v):v}</div><div class="hint">${l}${lim?` · limit ${lim} h`:""}</div>${bar}</div>`;
+}
+function renderStats(R){
+  const t=result.totals;
+  el("rcStats").innerHTML=`<div class="rc-stat ${t.breaches?"bad":"ok"}"><div class="big">${t.breaches}</div><div class="hint">Limit breaches</div></div>`+
+    `<div class="rc-stat ${t.highFatigue?"warn":"ok"}"><div class="big">${t.highFatigue}</div><div class="hint">High-fatigue duties</div></div>`+
+    stat(t.block,"Block hours in roster")+stat(t.duty,"Duty hours in roster")+stat(t.max7,"Busiest 7 days, duty",R.d7)+
+    stat(t.max28,"Busiest 28 days, duty",R.d28)+stat(t.maxB28,"Busiest 28 days, block",R.b28)+(R.bYear?stat(t.ytd,"Block, "+R.bYearLabel,R.bYear):"");
+}
+const dayLabel=k=>new Date(k+"T00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"});
+function renderIssues(){
+  const L=result.issues;
+  el("rcIssues").innerHTML=L.length?L.map(i=>`<div class="rc-issue"><b>${esc(i.title)}</b><span>${esc(i.detail)}</span>${i.day?`<small>${dayLabel(i.day)}</small>`:""}</div>`).join("")
+    :`<div class="rc-ok">No limit breaches found with these rules.</div>`;
+}
+function outstation(x,R){ const c=(x.route||"").split("-").filter(s=>s&&s!==R.homeBase); return [...new Set(c)].join("/"); }
+function renderCal(R){
+  const off=R.homeOffset, [y,m]=viewMonth.split("-").map(Number);
+  el("rcMonthLbl").textContent=new Date(Date.UTC(y,m-1,1)).toLocaleDateString("en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
+  const daysIn=new Date(Date.UTC(y,m,0)).getUTCDate(), lead=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7;
+  const by={}; result.duties.forEach(d=>{const k=RC.dayKey(d.report,off);(by[k]=by[k]||[]).push(d)});
+  const bad=new Set(result.issues.map(i=>i.day));
+  let h=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="rc-dow">${d}</div>`).join("");
+  for(let i=0;i<lead;i++) h+=`<div class="rc-day empty"></div>`;
+  for(let d=1;d<=daysIn;d++){
+    const k=`${viewMonth}-${String(d).padStart(2,"0")}`, ds=by[k]||[];
+    const w=ds.some(x=>x.fatigueBand==="High")?"High":ds.some(x=>x.fatigueBand==="Moderate")?"Moderate":"";
+    const cls=["rc-day",w&&"f-"+w,bad.has(k)&&"breach",selDay===k&&"sel"].filter(Boolean).join(" ");
+    const tags=ds.map(x=>`<span class="t k-${x.kind}${x.kind==="FLY"&&x.route&&!x.route.startsWith(R.homeBase)?" ret":""}">${esc(x.kind==="FLY"?(outstation(x,R)||x.flights||"Flight"):{"SBY-A":"SBY","SBY-H":"Home SBY",TRN:"Training",OFF:"Off",LEAVE:"Leave"}[x.kind])}</span>`).join("");
+    h+=`<button type="button" class="${cls}" data-k="${k}"><span class="n">${d}</span>${tags}</button>`;
+  }
+  el("rcCal").innerHTML=h;
+}
+function fmtLocal(t,off){ const d=RC.toLocal(t,off); return d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"})+" "+d.toISOString().slice(11,16); }
+function renderDuties(R){
+  const off=R.homeOffset; let ds=result.duties;
+  if(selDay) ds=ds.filter(d=>RC.dayKey(d.report,off)===selDay);
+  el("rcDutyHead").innerHTML=selDay?`${dayLabel(selDay)} · <button type="button" class="rc-link" id="rcAll">Show all</button>`:`${result.duties.length} duties`;
+  el("rcDuties").innerHTML=ds.length?ds.map(d=>{
+    const iss=result.issues.filter(i=>i.dutyId===d.id);
+    return `<li class="rc-duty"><div class="rc-dtop"><div><div class="t">${esc(d.kind==="FLY"?(d.route||"Flight"):KIND[d.kind])} <span class="hint">${esc(d.flights||"")}</span></div>
+      <div class="rc-meta">Report ${fmtLocal(d.report,off)} · Release ${RC.toLocal(d.release,off).toISOString().slice(11,16)}</div>
+      <div class="rc-meta">Duty ${fh(d.dutyH)}${d.kind==="FLY"?` · Block ${fh(d.blockH)} · FDP ${fh(d.fdpH)}${d.cap?" / max "+fh(d.cap):""}`:""}${d.restBefore!=null?` · Rest before ${fh(d.restBefore)}`:""}</div>
+      ${d.estimated&&d.estimated.length?`<div class="rc-est">Estimated: ${esc(d.estimated.join(", "))}</div>`:""}</div>
+      ${d.fatigueBand?`<span class="rc-fat ${d.fatigueBand}">${d.fatigueBand} ${d.fatigue}</span>`:""}</div>
+      ${iss.map(i=>`<div class="rc-issue"><b>${esc(i.title)}</b><span>${esc(i.detail)}</span></div>`).join("")}
+      ${d.flags.length?`<ul class="insights rc-flags">${d.flags.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>`:""}
+      <div><button type="button" class="btn ghost rc-sm" data-edit="${d.id}">Edit</button></div></li>`;
+  }).join(""):`<li class="hint">No duties on this day.</li>`;
+}
+
+/* ---- reading a roster picture (server function, Pro only) ---- */
+async function shrink(file){
+  const bmp=await createImageBitmap(file); const s=Math.min(1,2000/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas"); c.width=Math.round(bmp.width*s); c.height=Math.round(bmp.height*s);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  const url=c.toDataURL("image/jpeg",.85); return {type:"image/jpeg",data:url.slice(url.indexOf(",")+1)};
+}
+async function readRoster(){
+  if(isLocked()){ openPro(); return; }
+  if(!CLOUD_ON){ msg("Reading pictures needs the online version of the app. You can still type duties in."); return; }
+  if(!DB.cloud){ toast("Sign in first. Then your roster can be read."); openAccountScreen("signin"); return; }
+  const R=rules(), btn=el("rcRead"); btn.disabled=true; msg("Reading your roster… this can take up to a minute.",true);
+  try{
+    let tok; try{ tok=await validToken(); }catch(e){ tok=null; }
+    if(!tok){ msg("Sign in again to continue."); return; }
+    const images=await Promise.all(files.map(shrink));
+    let r; try{ r=await fetch(SB+"/functions/v1/roster-read",{method:"POST",headers:{apikey:SBKEY,Authorization:"Bearer "+tok,"Content-Type":"application/json"},
+      body:JSON.stringify({images,airline:R.name,homeBase:R.homeBase,homeOffset:R.homeOffset,month:el("rcMonth").value,timeBasis:el("rcBasis").value})}); }
+    catch(e){ msg("You're offline. Try again when you have a connection."); return; }
+    let j=null; try{ j=await r.json(); }catch(e){}
+    if(r.status===402){ msg("Roster check is part of Pro."); openPro(); return; }
+    if(r.status===401){ msg("Sign in again to continue."); return; }
+    if(r.status===503){ msg("Reading roster pictures isn't switched on yet. You can type duties in for now."); return; }
+    if(!r.ok||!j||!Array.isArray(j.duties)){ msg("Couldn't read that roster. Try a clearer screenshot, or type the duties in."); return; }
+    if(!j.duties.length){ msg("No duties found in that picture. Check it's your roster and try again."); return; }
+    roster=j.duties; save(); viewMonth=null; selDay=null; run();
+    msg(`Found ${roster.length} duties. Check them below and tap Edit to fix anything.`);
+    el("rcResults").scrollIntoView({behavior:"smooth"});
+  }catch(e){ msg("Couldn't read that roster. Try a clearer screenshot, or type the duties in."); }
+  finally{ btn.disabled=!files.length; }
+}
+function msg(t,spin){ el("rcMsg").innerHTML=(spin?'<span class="rc-spin"></span>':"")+esc(t); }
+
+/* ---- edit sheet ---- */
+const toIn=(iso,off)=>iso?RC.toLocal(+new Date(iso),off).toISOString().slice(0,16):"";
+const fromIn=(v,off)=>v?new Date(+new Date(v+"Z")-off*3600e3).toISOString():null;
+function openEdit(idx){
+  if(isLocked()){ openPro(); return; }
+  const off=rules().homeOffset; editIdx=idx;
+  const d=idx==null?{kind:"FLY",endsAtHomeBase:true}:roster[idx];
+  el("rcEdTitle").textContent=idx==null?"Add a duty":"Edit duty";
+  el("rcEdKind").value=d.kind; el("rcEdFlt").value=d.flights||""; el("rcEdRoute").value=d.route||"";
+  el("rcEdBlock").value=d.blockMinutes?fh(d.blockMinutes/60):""; el("rcEdRep").value=toIn(d.reportUtc,off); el("rcEdRel").value=toIn(d.releaseUtc,off);
+  el("rcEdDest").value=d.destUtcOffset??off; el("rcEdHome").value=String(d.endsAtHomeBase!==false);
+  el("rcEdDel").hidden=idx==null; el("rcEdMsg").textContent="";
+  el("rcEdit").hidden=false; el("rcEditBg").hidden=false;
+}
+function closeEdit(){ el("rcEdit").hidden=true; el("rcEditBg").hidden=true; }
+
+/* ---- calendar file ---- */
+function downloadICS(){
+  if(!result) return;
+  const blob=new Blob([RC.toICS(result.duties,rules())],{type:"text/calendar"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="roster.ics";
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+  el("rcIcsMsg").textContent="Open roster.ics to add your duties to your calendar.";
+}
+
+/* ---- wiring ---- */
+function init(){
+  if(!el("rcAirline")) return;
+  const now=new Date(); el("rcMonth").value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  renderRules(); run();
+  el("rcAirline").addEventListener("change",e=>{ ruleId=e.target.value; save(); renderRules(); run(); });
+  el("rcBase").addEventListener("change",e=>setCustom("homeBase",e.target.value.trim().toUpperCase()));
+  el("rcOff").addEventListener("change",e=>setCustom("homeOffset",+e.target.value||0));
+  el("rcLimits").addEventListener("change",e=>{ const i=e.target.closest("input[data-f]"); if(i) setCustom(i.dataset.f,i.value===""?null:+i.value); });
+  el("rcReset").addEventListener("click",()=>{ delete custom[ruleId]; save(); renderRules(); run(); });
+  [["rcC28","block28"],["rcCD28","duty28"],["rcCY","blockYtd"]].forEach(([id,k])=>el(id).addEventListener("change",e=>{ carry[k]=e.target.value===""?0:+e.target.value; save(); run(); }));
+  el("rcDrop").addEventListener("click",()=>{ if(isLocked()) openPro(); else el("rcFile").click(); });
+  el("rcFile").addEventListener("change",e=>{
+    files=[...e.target.files].slice(0,4);
+    el("rcThumbs").innerHTML=files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="Roster page">`).join("");
+    el("rcDrop").classList.toggle("has",files.length>0); el("rcRead").disabled=!files.length;
+  });
+  el("rcRead").addEventListener("click",readRoster);
+  el("rcSample").addEventListener("click",()=>{ if(isLocked()){ openPro(); return; }
+    ruleId="qatar"; roster=RC.SAMPLE.map(d=>({...d})); save(); renderRules(); viewMonth=null; selDay=null; run();
+    msg("Loaded a sample Doha-based November roster."); el("rcResults").scrollIntoView({behavior:"smooth"}); });
+  el("rcAdd").addEventListener("click",()=>openEdit(null));
+  el("rcAdd2").addEventListener("click",()=>openEdit(null));
+  el("rcClear").addEventListener("click",()=>{ roster=[]; save(); viewMonth=null; selDay=null; run(); msg(""); });
+  el("rcPrev").addEventListener("click",()=>shift(-1)); el("rcNext").addEventListener("click",()=>shift(1));
+  el("rcCal").addEventListener("click",e=>{ const b=e.target.closest("[data-k]"); if(!b) return;
+    selDay=selDay===b.dataset.k?null:b.dataset.k; renderCal(rules()); renderDuties(rules()); });
+  el("rcDutyHead").addEventListener("click",e=>{ if(e.target.id==="rcAll"){ selDay=null; renderCal(rules()); renderDuties(rules()); } });
+  el("rcDuties").addEventListener("click",e=>{ const b=e.target.closest("[data-edit]"); if(b) openEdit(+b.dataset.edit); });
+  el("rcIcs").addEventListener("click",downloadICS);
+  el("rcEdCancel").addEventListener("click",closeEdit); el("rcEditBg").addEventListener("click",closeEdit);
+  el("rcEdDel").addEventListener("click",()=>{ roster.splice(editIdx,1); save(); closeEdit(); run(); });
+  el("rcEdSave").addEventListener("click",()=>{
+    const off=rules().homeOffset, rep=fromIn(el("rcEdRep").value,off), rel=fromIn(el("rcEdRel").value,off);
+    if(!rep||!rel||+new Date(rel)<=+new Date(rep)){ el("rcEdMsg").textContent="Release must be after report."; return; }
+    const [bh,bm]=(el("rcEdBlock").value||"0:0").split(":").map(Number), prev=editIdx==null?{}:roster[editIdx];
+    const d={...prev,kind:el("rcEdKind").value,flights:el("rcEdFlt").value.trim(),route:el("rcEdRoute").value.trim().toUpperCase(),
+      reportUtc:rep,releaseUtc:rel,lastOnUtc:prev.releaseUtc===rel?prev.lastOnUtc:null,blockMinutes:(bh||0)*60+(bm||0),
+      destUtcOffset:+el("rcEdDest").value||0,endsAtHomeBase:el("rcEdHome").value==="true",originUtcOffset:prev.originUtcOffset??off,estimated:[]};
+    if(editIdx==null) roster.push(d); else roster[editIdx]=d;
+    roster.sort((a,b)=>+new Date(a.reportUtc)-+new Date(b.reportUtc)); save(); closeEdit(); run();
+  });
+}
+function shift(n){ const [y,m]=viewMonth.split("-").map(Number); viewMonth=new Date(Date.UTC(y,m-1+n,1)).toISOString().slice(0,7); renderCal(rules()); }
+init();
+})();
+
+</script>
 </html>
