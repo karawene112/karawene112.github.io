@@ -30,10 +30,15 @@ window.LAYOVER_WEB=true;
   };
   const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
   const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{"Content-Type":"application/json"}});
-  async function first(urls,init){
-    for(const u of urls){ try{ const r=await net(u,init); if(r.ok) return r; }catch(e){} }
+  async function first(urls,init,ms){
+    for(const u of urls){
+      const ac=ms&&typeof AbortController!=="undefined"?new AbortController():null, t=ac&&setTimeout(()=>ac.abort(),ms);
+      try{ const r=await net(u,ac?{...init,signal:ac.signal}:init); if(r.ok) return r; }catch(e){}
+      finally{ if(t) clearTimeout(t); }
+    }
     return json({error:"unavailable"},502);
   }
+  const placeCache=new Map(); /* same search within 10 minutes answers instantly */
   const coord=(q)=>{const la=+q.get("lat"),lo=+q.get("lon");return (isFinite(la)&&isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180)?[la,lo]:null};
   window.fetch=async(input,init)=>{
     const url=typeof input==="string"?input:input.url;
@@ -52,7 +57,11 @@ window.LAYOVER_WEB=true;
         const c=coord(q), sel=CATS[q.get("cat")]; if(!c||!sel) return json({},400);
         const r=Math.min(5000,Math.max(200,parseInt(q.get("r"),10)||1000));
         const ql=`[out:json][timeout:25];(${sel}(around:${r},${c[0].toFixed(6)},${c[1].toFixed(6)}););out center 150;`;
-        return first(OVERPASS,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(ql)});
+        const key=ql, hit=placeCache.get(key);
+        if(hit&&Date.now()-hit.t<600000) return json(hit.d);
+        const res=await first(OVERPASS,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(ql)},9000);
+        if(!res.ok) return res;
+        try{ const d=await res.json(); placeCache.set(key,{t:Date.now(),d}); return json(d); }catch(e){ return json({error:"unavailable"},502); }
       }
       case "/api/rates":{
         try{ const r=await net("https://open.er-api.com/v6/latest/QAR"); if(r.ok) return r; }catch(e){}
@@ -93,7 +102,12 @@ window.LAYOVER_WEB=true;
 <meta name="twitter:image" content="https://karawene112.github.io/layover/og-layover.jpg">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="dns-prefetch" href="https://tile.openstreetmap.org">
+<link rel="dns-prefetch" href="https://overpass-api.de">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap"></noscript>
 <style>
 /* Layout: a crew phone app. Compact app bar, a boarding-pass hero on Today, five sections in a bottom bar,
    sub-pages as segmented controls, and long explanations folded into "How this works" disclosures. */
@@ -1852,11 +1866,13 @@ function nbLinks(){
   $("nbCount").textContent="Live search runs in the desktop app. Here, each button opens Google Maps around you:";
   $("nbList").innerHTML=`<li style="display:block"><div class="links">${Object.values(NB_CATS).map(c=>`<a href="${gmaps(c.g+" near "+near())}" target="_blank" rel="noopener">${c.l} →</a>`).join("")}</div></li>`;
 }
+let leafletP=null;
 function loadLeaflet(){
-  if(window.L) return Promise.resolve();
-  return new Promise((ok,fail)=>{
+  if(window.L&&window.L.map) return Promise.resolve();
+  if(leafletP) return leafletP;
+  return leafletP=new Promise((ok,fail)=>{
     const css=document.createElement("link");css.rel="stylesheet";css.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(css);
-    const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=ok;s.onerror=fail;document.head.appendChild(s);
+    const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=ok;s.onerror=()=>{leafletP=null;fail();};document.head.appendChild(s);
   });
 }
 function distM(a,b){const R=6371e3,t=x=>x*Math.PI/180,dLat=t(b.lat-a.lat),dLon=t(b.lon-a.lon);
@@ -1868,6 +1884,7 @@ async function nbRun(){
   if(!nb.base) return;
   const r=$("nbR").value, cat=nb.cat;
   $("nbResults").hidden=false; $("nbCount").textContent="Loading places…"; $("nbList").innerHTML="";
+  const mapReady=loadLeaflet(); mapReady.catch(()=>{}); /* map library downloads while places load */
   let data;
   try{ const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}`); if(!resp.ok) throw 0; data=await resp.json(); }
   catch(err){ $("nbCount").textContent="Couldn't load places. Check your internet connection and try again."; return; }
@@ -1890,11 +1907,11 @@ async function nbRun(){
       <span class="m">${esc(p.type)} · ${p.d<1000?Math.round(p.d)+" m":(p.d/1000).toFixed(1)+" km"} · ${walk} min walk${extra?" · "+extra:""}</span></li>`;
   }).join("") + `<li class="place"><span class="m"><a href="${gmaps(NB_CATS[cat].g+" near "+near())}" target="_blank" rel="noopener">See more on Google Maps →</a></span></li>`;
   try{
-    await loadLeaflet(); $("map").hidden=false;
+    await mapReady; $("map").hidden=false;
     if(!nb.map){
       nb.map=L.map("map");
       /* Map tiles come through the app itself, so no map key is needed */
-      L.tileLayer(WEBAPP?"https://tile.openstreetmap.org/{z}/{x}/{y}.png":"/tile/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(nb.map);
+      L.tileLayer(WEBAPP?"https://tile.openstreetmap.org/{z}/{x}/{y}.png":"/tile/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors",updateWhenIdle:true,keepBuffer:1}).addTo(nb.map);
       nb.layer=L.layerGroup().addTo(nb.map);
     }
     nb.layer.clearLayers();
