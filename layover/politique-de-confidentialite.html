@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layover Logbook – Politique de confidentialité</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; color: #16202F; line-height: 1.6; background: #F7F4EE; }
+  h1 { color: #13233F; margin-bottom: 4px; }
+  h2 { color: #13233F; margin-top: 32px; font-size: 1.15rem; }
+  .muted { color: #6B7280; }
+</style>
+</head>
+<body>
+<h1>Politique de confidentialité</h1>
+<p class="muted">Layover Logbook · En vigueur au 14 novembre 2026 · <a href="privacy-policy.html" hreflang="en" lang="en">English version</a></p>
+
+<p>Layover Logbook (« le site ») aide le personnel navigant à organiser ses escales : temps libre et repos, lieux à proximité, dépenses et indemnités, fatigue et notes personnelles. Cette politique explique ce que l'application fait de vos informations. En bref : pas de publicité, pas de suivi, et votre carnet reste privé. Un compte est facultatif.</p>
+
+<h2>1. Localisation</h2>
+<p>Avec votre accord, l'application lit votre position <strong>uniquement quand vous appuyez pour l'utiliser</strong>, et seulement tant que la page est ouverte. Elle ne vous suit jamais en arrière-plan.</p>
+<p>Pour trouver des lieux à proximité, l'application envoie une position <strong>approximative</strong> (arrondie à environ 100 mètres) et la catégorie choisie au service public OpenStreetMap Overpass (overpass-api.de, avec overpass.kumi.systems en secours). Ces services renvoient une liste de lieux. Nous ne recevons pas, ne conservons pas et ne gardons aucun historique de votre position. Les opérateurs de ces services peuvent conserver des journaux techniques habituels, comme l'adresse IP, selon leurs propres règles.</p>
+<p>Pour afficher le nom de votre ville, ou trouver une ville ou un hôtel que vous recherchez, le site utilise le service OpenStreetMap Nominatim (nominatim.openstreetmap.org), là encore avec la position approximative seulement.</p>
+<p>Vous pouvez désactiver la localisation à tout moment dans les réglages de votre téléphone (iPhone : Réglages → Safari → Position). La recherche par ville et le carnet fonctionnent sans elle.</p>
+
+<h2>2. Votre carnet et votre compte</h2>
+<p><strong>Sans compte</strong>, les escales, dépenses, portefeuille, notes, envies et pages de journal que vous enregistrez sont stockés uniquement dans le navigateur de cet appareil. Ils ne sont pas envoyés et nous ne pouvons pas les voir. Effacer les données du site, ou supprimer l'application de l'écran d'accueil, les supprime. Utilisez le fichier de sauvegarde dans Notebook pour en garder une copie.</p>
+<p><strong>Avec un compte</strong>, nous conservons votre adresse e-mail, un mot de passe chiffré de façon sécurisée (haché) et une copie de votre carnet pour le retrouver sur un nouveau téléphone. Ces données sont hébergées chez notre prestataire Supabase, sur des serveurs situés dans l'Union européenne (Irlande). Les règles de la base de données permettent à vous seul de lire ou modifier votre carnet. Les noms et adresses d'hôtels ne sont jamais enregistrés sur votre compte.</p>
+<p>Vous pouvez supprimer votre compte, avec tout ce qu'il contient, à tout moment depuis Notebook → Account and data → Delete account.</p>
+
+<h2>3. Fil de l'équipage (Crew feed)</h2>
+<p>Les publications, photos, vidéos, notes, mentions « j'aime » et commentaires que vous partagez dans le fil de l'équipage sont visibles uniquement par les membres du fil, sous le <strong>nom d'équipage</strong> que vous choisissez. Votre adresse e-mail n'est jamais affichée. Choisissez un pseudonyme si vous ne voulez pas que vos collègues vous reconnaissent.</p>
+<p>Les photos sont redimensionnées sur votre téléphone avant l'envoi, ce qui supprime aussi les données cachées de localisation et d'appareil photo que les téléphones ajoutent. Les vidéos ne sont pas réencodées : l'application efface les informations de localisation et de description que les téléphones écrivent dans les fichiers vidéo avant l'envoi, mais la date d'enregistrement reste dans le fichier. Photos et vidéos sont stockées chez Supabase dans l'Union européenne et ne peuvent être ouvertes que par les membres du fil. Ne publiez pas d'hôtels d'équipage, d'uniformes, de visages d'autres personnes sans leur accord, ni de détails de vols.</p>
+<p>Le fil de l'équipage fonctionne sur invitation. Pour le rejoindre, vous saisissez un code d'invitation à usage unique donné par un membre. Nous enregistrons le code utilisé et la personne qui vous l'a donné, afin de pouvoir retrouver et retirer un compte qui ne devrait pas être là. Nous ne demandons ni votre compagnie aérienne, ni votre numéro d'employé, ni de pièce d'identité.</p>
+<p>Vous pouvez supprimer vos publications et commentaires à tout moment. Supprimer votre compte supprime votre nom d'équipage, vos publications, photos, vidéos, commentaires et mentions « j'aime ». Les publications signalées par d'autres utilisateurs peuvent être masquées et examinées.</p>
+
+<h2>4. Vérification du planning (Roster check)</h2>
+<p>La vérification du planning (fonction Pro) compare le planning que vous ajoutez aux limites de temps de vol et estime la fatigue. Les services que vous saisissez ou qui sont lus sur votre planning, les limites que vous réglez et les résultats sont stockés <strong>uniquement dans le navigateur de cet appareil</strong>. Ils ne sont pas enregistrés sur votre compte.</p>
+<p>Si vous appuyez sur <strong>Read my roster</strong>, les captures d'écran choisies sont réduites sur votre téléphone, puis envoyées par une connexion chiffrée à notre fonction serveur chez Supabase (Union européenne). De là, elles sont transmises à <strong>Anthropic</strong>, l'entreprise qui développe le modèle d'IA Claude, qui lit les services et les renvoie. Nous ne conservons pas les images, et elles servent uniquement à lire votre planning. Anthropic les traite selon ses conditions commerciales et sa politique de confidentialité (anthropic.com/legal), qui prévoient que les données envoyées de cette façon ne servent pas à entraîner ses modèles par défaut. Anthropic peut les conserver pendant une durée limitée, par exemple pour détecter les abus.</p>
+<p>Masquez votre nom, votre numéro d'employé et tout ce que vous ne souhaitez pas partager avant d'envoyer un planning. La vérification du planning est une aide à la planification. C'est le système approuvé de votre compagnie qui fait foi.</p>
+
+<h2>5. Paiements</h2>
+<p>Layover Logbook Pro est vendu par l'intermédiaire de Paddle (Paddle.com Market Ltd), qui agit en tant que revendeur officiel (merchant of record). Paddle recueille directement vos informations de paiement et votre pays de facturation. <strong>Nous ne voyons ni ne conservons jamais votre numéro de carte.</strong> Paddle nous transmet uniquement le statut de votre abonnement, la formule, la date de renouvellement et ses numéros de référence client et d'abonnement, que nous conservons avec votre compte. Le traitement de vos données par Paddle relève de sa propre politique de confidentialité sur paddle.com.</p>
+
+<h2>6. Autres services utilisés par le site</h2>
+<ul>
+  <li><strong>Météo et heure locale :</strong> Open-Meteo (api.open-meteo.com) reçoit les coordonnées de la ville de destination.</li>
+  <li><strong>Taux de change :</strong> ExchangeRate-API (open.er-api.com). Aucune donnée personnelle n'est envoyée.</li>
+  <li><strong>Cartes :</strong> les images de carte proviennent de CARTO (basemaps.cartocdn.com), à partir des données OpenStreetMap.</li>
+  <li><strong>Itinéraires :</strong> appuyer sur « Directions » ouvre Google Maps.</li>
+</ul>
+<p>Ces services peuvent conserver des journaux techniques habituels, comme l'adresse IP, selon leurs propres règles.</p>
+
+<h2>7. Application Android</h2>
+<p>L'application Layover Logbook sur Google Play ouvre ce site en plein écran via Chrome sur votre téléphone. Elle fonctionne comme le site et ne collecte rien de plus. Google Play peut collecter des informations d'installation et de plantage selon la politique de confidentialité de Google. Pro ne peut pas être acheté dans l'application Android. Si vous avez déjà Pro, connectez-vous avec le même compte.</p>
+
+<h2>8. Ce que nous ne faisons pas</h2>
+<ul>
+  <li>Pas de publicité ni d'identifiants publicitaires.</li>
+  <li>Pas d'outils de mesure d'audience ni de suivi.</li>
+  <li>Nous ne vendons ni ne partageons vos données personnelles.</li>
+</ul>
+
+<h2>9. Enfants</h2>
+<p>L'application est destinée aux adultes et ne s'adresse pas aux enfants de moins de 13 ans.</p>
+
+<h2>10. Modifications</h2>
+<p>Si cette politique change, nous mettrons à jour cette page et la date d'entrée en vigueur ci-dessus.</p>
+
+<h2>11. Contact</h2>
+<p>Questions ou demandes : <a href="mailto:karawen.ben.cheikh@gmail.com">karawen.ben.cheikh@gmail.com</a></p>
+<p class="muted">En cas de différence entre les deux versions, la version anglaise fait foi.</p>
+</body>
+</html>
