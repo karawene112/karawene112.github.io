@@ -757,7 +757,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.4</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.5</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -2098,8 +2098,7 @@ async function nbRun(){
   const run=nb.run=(nb.run||0)+1;
   let data, cachedMin=0;
   try{
-    const halalOn=$("nbHalal").checked&&NB_CATS[cat].food;
-    const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}${halalOn?"&halal=1":""}`);
+    const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}`);
     if(!resp.ok) throw 0; cachedMin=+(resp.headers.get("X-Cache-Age")||0); data=await resp.json();
   }catch(err){
     if(run!==nb.run) return;
@@ -2112,12 +2111,13 @@ async function nbRun(){
   let places=(data.elements||[]).map(el=>{
     const t=el.tags||{}, lat=el.lat??el.center?.lat, lon=el.lon??el.center?.lon;
     return {name:t["name:en"]||t.name||t.brand||t.operator||(t.amenity==="atm"?"ATM":""),lat,lon,t,type:nice(t.shop||t.amenity||t.tourism),
-      halal:/^(yes|only)$/.test(t["diet:halal"]||""), d:distM(nb.base,{lat,lon})};
+      halal:/^(yes|only)$/.test(t["diet:halal"]||"")||/halal|حلال/i.test((t.name||"")+" "+(t.cuisine||"")), d:distM(nb.base,{lat,lon})};
   }).filter(p=>p.name&&p.lat!=null);
   if($("nbHalal").checked && NB_CATS[cat].food) places=places.filter(p=>p.halal);
   places.sort((a,b)=>a.d-b.d); places=places.slice(0,60);
-  const halalNote=$("nbHalal").checked&&NB_CATS[cat].food?" with “halal” in their name":"";
-  $("nbCount").textContent=(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()}${halalNote} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.")
+  const halalOn=$("nbHalal").checked&&NB_CATS[cat].food, halalNote=halalOn?" marked halal":"";
+  if(halalOn&&!places.length) $("nbCount").textContent="";
+  else $("nbCount").textContent=(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()}${halalNote} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.")
     +(cachedMin>=60?` · saved ${cachedMin>=1440?Math.round(cachedMin/1440)+" d":Math.round(cachedMin/60)+" h"} ago, updating`:"");
 
   nb.places=places;
@@ -2129,7 +2129,9 @@ async function nbRun(){
     const been=visitedHere(p.name);
     return `<li class="place"><span class="t">${esc(p.name)}${p.halal?'<span class="pill">Halal</span>':""}</span><span style="display:flex;gap:10px;align-items:center">${been?'<span class="saved"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Been</span>':`<button class="went" type="button" data-pi="${i}">I went here</button>`}<a href="${dir}" target="_blank" rel="noopener">Directions →</a></span>
       <span class="m">${esc(p.type)} · ${p.d<1000?Math.round(p.d)+" m":(p.d/1000).toFixed(1)+" km"} · ${walk} min walk${extra?" · "+extra:""}</span></li>`;
-  }).join("") + `<li class="place"><span class="m"><a href="${gmaps(NB_CATS[cat].g+" near "+near())}" target="_blank" rel="noopener">See more on Google Maps →</a></span></li>`;
+  }).join("") + (halalOn?`<li class="place" style="display:block"><span class="m">${places.length?"Halal information in free map data is often missing.":"No places are marked halal nearby in the free map data, which often misses this."}</span>
+      <a class="btn" style="margin-top:8px" href="${gmaps("halal "+NB_CATS[cat].g+" near "+near())}" target="_blank" rel="noopener">Halal ${esc(NB_CATS[cat].l.toLowerCase())} on Google Maps</a></li>`:"")
+    + `<li class="place"><span class="m"><a href="${gmaps(NB_CATS[cat].g+" near "+near())}" target="_blank" rel="noopener">See more on Google Maps →</a></span></li>`;
   try{
     await mapReady; $("map").hidden=false;
     if(!nb.map){
