@@ -52,13 +52,14 @@ window.LAYOVER_WEB=true;
     const ac=new AbortController(), timer=setTimeout(()=>ac.abort(),8000);
     try{
       let url;
-      if(halal){ /* Photon has no halal tag: look for places with "halal" in their name inside the area */
-        const dLat=r/111320, dLon=r/(111320*Math.cos(la*Math.PI/180));
-        url=`${PHOTON}/api/?q=halal&lat=${la}&lon=${lo}&limit=50${tags}&bbox=${(+lo-dLon).toFixed(4)},${(+la-dLat).toFixed(4)},${(+lo+dLon).toFixed(4)},${(+la+dLat).toFixed(4)}`;
+      if(halal){ /* Photon has no halal tag: look for places with "halal" in their name, closest to you first */
+        url=`${PHOTON}/api/?q=halal&lat=${la}&lon=${lo}&location_bias_scale=0.1&limit=50${tags}`;
       } else url=`${PHOTON}/reverse?lat=${la}&lon=${lo}&radius=${(r/1000).toFixed(1)}&limit=50${tags}`;
       const res=await net(url,{signal:ac.signal}); if(!res.ok) return null;
       const j=await res.json(); if(!j||!Array.isArray(j.features)) return null;
-      const els=j.features.map(phEl).filter(e=>e.tags.name&&isFinite(e.lat));
+      let els=j.features.map(phEl).filter(e=>e.tags.name&&isFinite(e.lat));
+      if(halal){ const R=6371e3,t=x=>x*Math.PI/180; /* keep only those inside the chosen distance */
+        els=els.filter(e=>{ const dLa=t(e.lat-la),dLo=t(e.lon-lo),h=Math.sin(dLa/2)**2+Math.cos(t(la))*Math.cos(t(e.lat))*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h))<=r; }); }
       if(halal) els.forEach(e=>e.tags["diet:halal"]="yes");
       return {elements:els,source:"photon"};
     }catch(e){ return null; } finally{ clearTimeout(timer); }
@@ -756,7 +757,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.3</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.4</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
