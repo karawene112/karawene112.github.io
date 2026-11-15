@@ -29,8 +29,41 @@ window.LAYOVER_WEB=true;
     money:'nwr["amenity"~"^(atm|bureau_de_change|bank)$"]',
     sight:'nwr["tourism"~"^(attraction|museum|viewpoint|gallery)$"]'
   };
-  /* Three public Overpass servers are asked at the same time; the first good answer wins and the others are cancelled. */
-  const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter"];
+  /* Places come from Photon (photon.komoot.io), a fast public OpenStreetMap search made for apps.
+     overpass-api.de now refuses app traffic (406) and bans clients that retry, so it is no longer used;
+     two other Overpass servers are only a backup, asked at the same time. */
+  const PHOTON="https://photon.komoot.io";
+  const PH_TAGS={
+    groc:["shop:supermarket","shop:convenience","shop:greengrocer","shop:bakery"],
+    food:["amenity:restaurant","amenity:fast_food","amenity:food_court"],
+    cafe:["amenity:cafe"],
+    night:["amenity:bar","amenity:pub","amenity:nightclub"],
+    shop:["shop:mall","shop:department_store","shop:clothes","shop:cosmetics","shop:perfumery","shop:shoes","shop:gift","shop:jewelry"],
+    pharm:["amenity:pharmacy"],
+    money:["amenity:atm","amenity:bureau_de_change","amenity:bank"],
+    sight:["tourism:attraction","tourism:museum","tourism:viewpoint","tourism:gallery"]
+  };
+  const phEl=f=>{ const p=f.properties||{}, c=(f.geometry||{}).coordinates||[];
+    const tags={name:p.name}; if(p.osm_key) tags[p.osm_key]=p.osm_value;
+    if(p.street) tags["addr:street"]=p.street; if(p.housenumber) tags["addr:housenumber"]=p.housenumber;
+    return {type:"node",lat:c[1],lon:c[0],tags}; };
+  async function photonPlaces(cat,la,lo,r,halal){
+    const tags=(PH_TAGS[cat]||[]).map(t=>"&osm_tag="+encodeURIComponent(t)).join("");
+    const ac=new AbortController(), timer=setTimeout(()=>ac.abort(),8000);
+    try{
+      let url;
+      if(halal){ /* Photon has no halal tag: look for places with "halal" in their name inside the area */
+        const dLat=r/111320, dLon=r/(111320*Math.cos(la*Math.PI/180));
+        url=`${PHOTON}/api/?q=halal&lat=${la}&lon=${lo}&limit=50${tags}&bbox=${(+lo-dLon).toFixed(4)},${(+la-dLat).toFixed(4)},${(+lo+dLon).toFixed(4)},${(+la+dLat).toFixed(4)}`;
+      } else url=`${PHOTON}/reverse?lat=${la}&lon=${lo}&radius=${(r/1000).toFixed(1)}&limit=50${tags}`;
+      const res=await net(url,{signal:ac.signal}); if(!res.ok) return null;
+      const j=await res.json(); if(!j||!Array.isArray(j.features)) return null;
+      const els=j.features.map(phEl).filter(e=>e.tags.name&&isFinite(e.lat));
+      if(halal) els.forEach(e=>e.tags["diet:halal"]="yes");
+      return {elements:els,source:"photon"};
+    }catch(e){ return null; } finally{ clearTimeout(timer); }
+  }
+  const OVERPASS=["https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter"];
   async function raceOverpass(ql,ms){
     const ctl=OVERPASS.map(()=>new AbortController()), timer=setTimeout(()=>ctl.forEach(c=>c.abort()),ms);
     const body="data="+encodeURIComponent(ql), init={method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body};
@@ -52,9 +85,13 @@ window.LAYOVER_WEB=true;
     const keys=Object.keys(all).sort((a,b)=>all[b].t-all[a].t); keys.slice(30).forEach(x=>delete all[x]);
     localStorage.setItem(PLACE_KEY,JSON.stringify(all)); }catch(e){} };
   const inflight=new Map();
-  function fetchPlaces(k,ql){
+  function fetchPlaces(k,ql,cat,la,lo,r,halal){
     if(inflight.has(k)) return inflight.get(k);
-    const p=raceOverpass(ql,12000).then(d=>{ inflight.delete(k); if(d) pcWrite(k,d); return d; });
+    const p=(async()=>{
+      let d=await photonPlaces(cat,la,lo,r,halal);
+      if(!d||(!d.elements.length&&!halal)) d=await raceOverpass(ql,9000)||d;
+      inflight.delete(k); if(d&&d.elements&&d.elements.length) pcWrite(k,d); return d;
+    })();
     inflight.set(k,p); return p;
   }
   const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{"Content-Type":"application/json"}});
@@ -74,6 +111,15 @@ window.LAYOVER_WEB=true;
     switch(u.pathname){
       case "/api/geocode":{
         const s=(q.get("q")||"").trim().slice(0,200); if(!s) return json([],400);
+        const bl=q.get("lat"), bo=q.get("lon");
+        try{
+          const ac=new AbortController(), t=setTimeout(()=>ac.abort(),6000);
+          const r=await net(`${PHOTON}/api/?q=${encodeURIComponent(s)}&limit=5&lang=en${bl&&bo?`&lat=${bl}&lon=${bo}`:""}`,{signal:ac.signal}); clearTimeout(t);
+          if(r.ok){ const j=await r.json(); const out=(j.features||[]).map(f=>{ const p=f.properties||{}, c=f.geometry.coordinates;
+              const parts=[p.name,[p.housenumber,p.street].filter(Boolean).join(" "),p.district||p.locality,p.city,p.country].filter(Boolean);
+              return {lat:c[1],lon:c[0],display_name:[...new Set(parts)].join(", ")}; }).filter(x=>x.display_name);
+            if(out.length) return json(out); }
+        }catch(e){}
         const vb=q.get("vb"); /* prefer results near the layover city */
         return first(["https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&accept-language=en"+(vb?"&viewbox="+encodeURIComponent(vb):"")+"&q="+encodeURIComponent(s)],undefined,8000);
       }
@@ -85,13 +131,14 @@ window.LAYOVER_WEB=true;
         const c=coord(q), cat=q.get("cat"), sel=CATS[cat]; if(!c||!sel) return json({},400);
         const r=Math.min(5000,Math.max(200,parseInt(q.get("r"),10)||1000));
         /* position rounded to about 100 m: enough to search, and more private */
-        const la=c[0].toFixed(3), lo=c[1].toFixed(3), k=`${cat}|${r}|${la}|${lo}`;
+        const halal=q.get("halal")==="1"&&["food","cafe"].includes(cat);
+        const la=c[0].toFixed(3), lo=c[1].toFixed(3), k=`${cat}|${r}|${la}|${lo}${halal?"|h":""}|v2`;
         const named=cat==="money"?"":'["name"]';
         const ql=`[out:json][timeout:10];(${sel}${named}(around:${r},${la},${lo}););out center qt 120;`;
         const hit=pcRead()[k], age=hit?Date.now()-hit.t:Infinity;
         if(hit&&age<FRESH) return json(hit.d,200);
-        if(hit&&age<KEEP){ fetchPlaces(k,ql); return new Response(JSON.stringify(hit.d),{status:200,headers:{"Content-Type":"application/json","X-Cache-Age":String(Math.round(age/6e4))}}); }
-        const d=await fetchPlaces(k,ql);
+        if(hit&&age<KEEP){ fetchPlaces(k,ql,cat,la,lo,r,halal); return new Response(JSON.stringify(hit.d),{status:200,headers:{"Content-Type":"application/json","X-Cache-Age":String(Math.round(age/6e4))}}); }
+        const d=await fetchPlaces(k,ql,cat,la,lo,r,halal);
         return d?json(d):json({error:"unavailable"},502);
       }
       case "/api/rates":{
@@ -709,7 +756,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.2</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.3</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -2002,7 +2049,8 @@ $("nbForm").addEventListener("submit",async e=>{
   $("nbMatches").innerHTML=`<p class="hint">Searching…</p>`;
   try{
     const vb=isFinite(state.dest.lat)?`${state.dest.lon-0.6},${state.dest.lat+0.6},${state.dest.lon+0.6},${state.dest.lat-0.6}`:"";
-    let res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q+", "+placeText())+(vb?"&vb="+vb:""))).json();
+    const near=isFinite(state.dest.lat)?`&lat=${state.dest.lat}&lon=${state.dest.lon}`:"";
+    let res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q+", "+state.dest.name)+near+(vb?"&vb="+vb:""))).json();
     if(!res.length) res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q))).json();
     if(!res.length){ $("nbMatches").innerHTML=`<p class="hint">No match for "${esc(nb.q)}". Try the street address instead.</p>`; return; }
     if(res.length===1) return nbSetBase(res[0]);
@@ -2049,7 +2097,8 @@ async function nbRun(){
   const run=nb.run=(nb.run||0)+1;
   let data, cachedMin=0;
   try{
-    const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}`);
+    const halalOn=$("nbHalal").checked&&NB_CATS[cat].food;
+    const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}${halalOn?"&halal=1":""}`);
     if(!resp.ok) throw 0; cachedMin=+(resp.headers.get("X-Cache-Age")||0); data=await resp.json();
   }catch(err){
     if(run!==nb.run) return;
@@ -2066,13 +2115,15 @@ async function nbRun(){
   }).filter(p=>p.name&&p.lat!=null);
   if($("nbHalal").checked && NB_CATS[cat].food) places=places.filter(p=>p.halal);
   places.sort((a,b)=>a.d-b.d); places=places.slice(0,60);
-  $("nbCount").textContent=(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.")
+  const halalNote=$("nbHalal").checked&&NB_CATS[cat].food?" with “halal” in their name":"";
+  $("nbCount").textContent=(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()}${halalNote} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.")
     +(cachedMin>=60?` · saved ${cachedMin>=1440?Math.round(cachedMin/1440)+" d":Math.round(cachedMin/60)+" h"} ago, updating`:"");
-  nbPrefetch(r,cat);
+
   nb.places=places;
   $("nbList").innerHTML=places.map((p,i)=>{
     const walk=Math.max(1,Math.round(p.d/80));
-    const extra=[p.t.cuisine&&nice(p.t.cuisine.split(";")[0]),p.t.opening_hours&&("Hours: "+p.t.opening_hours)].filter(Boolean).map(esc).join(" · ");
+    const addr=[p.t["addr:housenumber"],p.t["addr:street"]].filter(Boolean).join(" ");
+    const extra=[p.t.cuisine&&nice(p.t.cuisine.split(";")[0]),p.t.opening_hours&&("Hours: "+p.t.opening_hours),addr].filter(Boolean).map(esc).join(" · ");
     const dir=`https://www.google.com/maps/dir/?api=1&origin=${nb.base.lat},${nb.base.lon}&destination=${p.lat},${p.lon}&travelmode=walking`;
     const been=visitedHere(p.name);
     return `<li class="place"><span class="t">${esc(p.name)}${p.halal?'<span class="pill">Halal</span>':""}</span><span style="display:flex;gap:10px;align-items:center">${been?'<span class="saved"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Been</span>':`<button class="went" type="button" data-pi="${i}">I went here</button>`}<a href="${dir}" target="_blank" rel="noopener">Directions →</a></span>
