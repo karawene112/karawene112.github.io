@@ -587,6 +587,25 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 .rc-sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-width:560px;margin:0 auto;background:var(--surface);border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;max-height:88vh;overflow:auto}
 .rc-sheet h2{margin:0}
 
+
+/* ---- in-app privacy policy and terms ---- */
+.legal-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:360px){.legal-links{grid-template-columns:1fr}}
+.legal-links .btn{text-align:center;justify-content:center}
+.legal-sheet{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column}
+.legal-bar{display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.legal-bar h2{flex:1;margin:0;font-size:1.0625rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legal-bar .legal-close{min-height:44px;padding:8px 12px}
+.legal-lang{flex:none;width:auto}
+.legal-lang button{min-height:44px;padding:6px 12px}
+.legal-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:20px 20px calc(32px + env(safe-area-inset-bottom,0px));max-width:720px;width:100%;margin:0 auto;line-height:1.6;color:var(--ink);overflow-wrap:anywhere}
+.legal-body h1{font-size:1.5rem;line-height:1.2;margin:0 0 6px}
+.legal-body h2{font-size:1.125rem;margin:24px 0 6px}
+.legal-body p,.legal-body li{color:var(--ink)}
+.legal-body .muted{color:var(--muted);font-size:.875rem}
+.legal-body a,#legalCard a,#authAgree a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+#authAgree a{color:inherit}
+.legal-body ul{padding-left:20px}
 /* ---- form validation ---- */
 input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--bad)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 22%,transparent)}
 .ferr{color:var(--bad);font-size:.875rem;font-weight:500;margin:4px 0 0}
@@ -636,6 +655,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
         <p class="authmsg" id="authMsg" hidden role="status"></p>
         <div class="hp" aria-hidden="true"><label for="authWebsite">Leave this empty</label><input id="authWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
         <button class="btn wide" type="submit" id="authGo">Sign in</button>
+        <p class="hint" id="authAgree" hidden style="font-size:.8125rem;text-align:center">By creating an account you agree to the <a href="terms.html" data-legal="terms">Terms</a> and the <a href="privacy-policy.html" data-legal="privacy">Privacy policy</a>.</p>
         <button class="linkbtn" type="button" id="authForgot">Forgot password?</button>
         <button class="linkbtn" type="button" id="authBack" hidden>Back to sign in</button>
       </form>
@@ -1246,7 +1266,6 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
       <button class="btn ghost" type="button" id="acctOut" hidden>Sign out</button>
       <button class="btn ghost" type="button" id="acctDel" hidden>Delete account</button>
     </div>
-    <p class="hint" style="font-size:.8125rem"><a href="privacy-policy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="politique-de-confidentialite.html" target="_blank" rel="noopener" lang="fr">Politique de confidentialité</a> · <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="conditions-generales.html" target="_blank" rel="noopener" lang="fr">Conditions générales</a></p>
     <div class="banner" id="delConfirm" hidden><span>This permanently deletes your account and everything saved in it</span><span class="row"><button class="btn" type="button" id="delYes" style="background:var(--bad);color:#fff">Delete forever</button><button class="btn ghost" type="button" id="delNo">Cancel</button></span></div>
     <details class="more" id="siteStats" hidden>
       <summary>Site statistics (only you see this)</summary>
@@ -1266,6 +1285,16 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <div class="banner" id="bkConfirm" hidden><span id="bkInfo"></span><span class="row"><button class="btn" type="button" id="bkYes">Replace my data</button><button class="btn ghost" type="button" id="bkNo">Cancel</button></span></div>
     <p class="hint" id="bkMsg" aria-live="polite"></p>
     </details>
+  </div>
+  <div class="card" id="legalCard">
+    <div class="cardhead"><h2>About and legal</h2></div>
+    <p class="hint">How the app handles your data, and the rules for using it and Pro.</p>
+    <div class="legal-links">
+      <a class="btn ghost" href="privacy-policy.html" data-legal="privacy">Privacy policy</a>
+      <a class="btn ghost" href="terms.html" data-legal="terms">Terms and refunds</a>
+    </div>
+    <p class="hint" style="font-size:.8125rem">En français : <a href="politique-de-confidentialite.html" data-legal="privacy" data-lang="fr" lang="fr">Politique de confidentialité</a> · <a href="conditions-generales.html" data-legal="terms" data-lang="fr" lang="fr">Conditions générales</a></p>
+    <p class="hint" style="font-size:.8125rem">Questions: karawen.ben.cheikh@gmail.com</p>
   </div>
 </section>
 
@@ -2520,6 +2549,7 @@ function setView(v,msg,kind){
   $("authSeg").hidden=v==="forgot"||v==="newpass";
   $("authSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
   $("fEmail").hidden=v==="newpass"; $("fPass").hidden=v==="forgot";
+  if($("authAgree")) $("authAgree").hidden=v!=="signup";
   $("authPassLbl").textContent=v==="signin"?"Password":v==="newpass"?"New password":"Password, at least 8 characters";
   $("authPass").autocomplete=v==="signin"?"current-password":"new-password";
   $("authForgot").hidden=v!=="signin"; $("authBack").hidden=v!=="forgot";
@@ -3703,5 +3733,67 @@ function shift(n){ const [y,m]=viewMonth.split("-").map(Number); viewMonth=new D
 init();
 })();
 
+</script>
+
+<div class="legal-sheet" id="legalSheet" role="dialog" aria-modal="true" aria-labelledby="legalTitle" hidden>
+  <div class="legal-bar">
+    <button class="btn ghost legal-close" type="button" id="legalClose" aria-label="Close">‹ Back</button>
+    <h2 id="legalTitle">Privacy policy</h2>
+    <div class="seg legal-lang" role="tablist" aria-label="Language">
+      <button type="button" data-lang="en" aria-selected="true">EN</button>
+      <button type="button" data-lang="fr" aria-selected="false">FR</button>
+    </div>
+  </div>
+  <article class="legal-body" id="legalBody" tabindex="-1"></article>
+</div>
+<script>
+/* ---- Privacy policy and terms, read inside the app ---- */
+(()=>{
+  const PAGES={privacy:{en:["privacy-policy.html","Privacy policy"],fr:["politique-de-confidentialite.html","Politique de confidentialité"]},
+               terms:{en:["terms.html","Terms and refunds"],fr:["conditions-generales.html","Conditions générales"]}};
+  const byFile={}; for(const k in PAGES) for(const l in PAGES[k]) byFile[PAGES[k][l][0]]={doc:k,lang:l};
+  const sheet=document.getElementById("legalSheet"), body=document.getElementById("legalBody"), title=document.getElementById("legalTitle");
+  let cur=null, opener=null; const cache={};
+  async function show(doc,lang){
+    cur={doc,lang}; const [file,name]=PAGES[doc][lang];
+    title.textContent=name;
+    sheet.querySelectorAll(".legal-lang [data-lang]").forEach(b=>b.setAttribute("aria-selected",b.dataset.lang===lang));
+    body.innerHTML='<p class="hint">Loading…</p>';
+    try{
+      if(!cache[file]){
+        const r=await fetch(file,{cache:"no-cache"}); const html=await r.text();
+        const d=new DOMParser().parseFromString(html,"text/html");
+        if(!r.ok||!d.querySelector("h1")||d.getElementById("tab-today")) throw new Error("offline");
+        d.querySelectorAll("script,style,link,meta,noscript,#cookieNotice").forEach(x=>x.remove());
+        cache[file]=d.body.innerHTML;
+      }
+      body.innerHTML=cache[file]; body.lang=lang; body.scrollTop=0; body.focus({preventScroll:true});
+    }catch(e){
+      body.innerHTML=`<p>${lang==="fr"?"Cette page ne s'est pas chargée. Vérifiez votre connexion et réessayez.":"This page didn't load. Check your connection and try again."}</p>`;
+    }
+  }
+  function open(doc,lang){
+    opener=document.activeElement; sheet.hidden=false; document.body.style.overflow="hidden";
+    history.pushState({legal:1},""); show(doc,lang);
+  }
+  function close(fromPop){
+    if(sheet.hidden) return; sheet.hidden=true; document.body.style.overflow="";
+    if(!fromPop&&history.state&&history.state.legal) history.back();
+    if(opener&&opener.focus) opener.focus();
+  }
+  document.addEventListener("click",e=>{
+    const a=e.target.closest("a[href]"); if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey) return;
+    const file=(a.getAttribute("href")||"").split("#")[0].split("/").pop(), hit=byFile[file];
+    if(!hit) return;
+    e.preventDefault();
+    if(!sheet.hidden&&cur){ show(hit.doc,hit.lang); return; }   // link from one policy to the other
+    open(hit.doc,hit.lang);
+  });
+  document.getElementById("legalClose").addEventListener("click",()=>close(false));
+  sheet.querySelector(".legal-lang").addEventListener("click",e=>{ const b=e.target.closest("[data-lang]"); if(b&&cur) show(cur.doc,b.dataset.lang); });
+  sheet.addEventListener("keydown",e=>{ if(e.key==="Escape") close(false); });
+  addEventListener("popstate",()=>close(true));
+  window.openLegal=open;
+})();
 </script>
 </html>

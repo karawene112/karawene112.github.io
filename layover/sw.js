@@ -1,6 +1,7 @@
 /* Keeps the app working offline. Bump the version when you upload a new build. */
-const CACHE = "layover-v4.0";
-const SHELL = ["./app.html", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
+const CACHE = "layover-v4.1";
+const SHELL = ["./app.html", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
+  "./privacy-policy.html", "./politique-de-confidentialite.html", "./terms.html", "./conditions-generales.html"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
