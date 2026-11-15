@@ -29,7 +29,34 @@ window.LAYOVER_WEB=true;
     money:'nwr["amenity"~"^(atm|bureau_de_change|bank)$"]',
     sight:'nwr["tourism"~"^(attraction|museum|viewpoint|gallery)$"]'
   };
-  const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+  /* Three public Overpass servers are asked at the same time; the first good answer wins and the others are cancelled. */
+  const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter"];
+  async function raceOverpass(ql,ms){
+    const ctl=OVERPASS.map(()=>new AbortController()), timer=setTimeout(()=>ctl.forEach(c=>c.abort()),ms);
+    const body="data="+encodeURIComponent(ql), init={method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body};
+    try{
+      return await Promise.any(OVERPASS.map((u,i)=>net(u,{...init,signal:ctl[i].signal}).then(async r=>{
+        if(!r.ok) throw new Error("http "+r.status);
+        const d=await r.json();
+        if(!d||!Array.isArray(d.elements)||/runtime error|timed out|too busy/i.test(d.remark||"")) throw new Error("busy");
+        ctl.forEach((c,j)=>{ if(j!==i) c.abort(); });
+        return d;
+      })));
+    }catch(e){ return null; }
+    finally{ clearTimeout(timer); }
+  }
+  /* Places are remembered on the phone: fresh for 6 hours, and shown instantly (then refreshed) for up to 7 days */
+  const PLACE_KEY="lay.places", FRESH=6*36e5, KEEP=7*864e5;
+  const pcRead=()=>{ try{ return JSON.parse(localStorage.getItem(PLACE_KEY)||"{}"); }catch(e){ return {}; } };
+  const pcWrite=(k,d)=>{ try{ const all=pcRead(); all[k]={t:Date.now(),d};
+    const keys=Object.keys(all).sort((a,b)=>all[b].t-all[a].t); keys.slice(30).forEach(x=>delete all[x]);
+    localStorage.setItem(PLACE_KEY,JSON.stringify(all)); }catch(e){} };
+  const inflight=new Map();
+  function fetchPlaces(k,ql){
+    if(inflight.has(k)) return inflight.get(k);
+    const p=raceOverpass(ql,12000).then(d=>{ inflight.delete(k); if(d) pcWrite(k,d); return d; });
+    inflight.set(k,p); return p;
+  }
   const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{"Content-Type":"application/json"}});
   async function first(urls,init,ms){
     for(const u of urls){
@@ -39,7 +66,6 @@ window.LAYOVER_WEB=true;
     }
     return json({error:"unavailable"},502);
   }
-  const placeCache=new Map(); /* same search within 10 minutes answers instantly */
   const coord=(q)=>{const la=+q.get("lat"),lo=+q.get("lon");return (isFinite(la)&&isFinite(lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180)?[la,lo]:null};
   window.fetch=async(input,init)=>{
     const url=typeof input==="string"?input:input.url;
@@ -48,21 +74,25 @@ window.LAYOVER_WEB=true;
     switch(u.pathname){
       case "/api/geocode":{
         const s=(q.get("q")||"").trim().slice(0,200); if(!s) return json([],400);
-        return first(["https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&accept-language=en&q="+encodeURIComponent(s)]);
+        const vb=q.get("vb"); /* prefer results near the layover city */
+        return first(["https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&accept-language=en"+(vb?"&viewbox="+encodeURIComponent(vb):"")+"&q="+encodeURIComponent(s)],undefined,8000);
       }
       case "/api/weather":{
         const c=coord(q); if(!c) return json({},400);
         return first([`https://api.open-meteo.com/v1/forecast?latitude=${c[0].toFixed(4)}&longitude=${c[1].toFixed(4)}&timezone=auto&current=temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1`]);
       }
       case "/api/places":{
-        const c=coord(q), sel=CATS[q.get("cat")]; if(!c||!sel) return json({},400);
+        const c=coord(q), cat=q.get("cat"), sel=CATS[cat]; if(!c||!sel) return json({},400);
         const r=Math.min(5000,Math.max(200,parseInt(q.get("r"),10)||1000));
-        const ql=`[out:json][timeout:25];(${sel}(around:${r},${c[0].toFixed(6)},${c[1].toFixed(6)}););out center 150;`;
-        const key=ql, hit=placeCache.get(key);
-        if(hit&&Date.now()-hit.t<600000) return json(hit.d);
-        const res=await first(OVERPASS,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(ql)},9000);
-        if(!res.ok) return res;
-        try{ const d=await res.json(); placeCache.set(key,{t:Date.now(),d}); return json(d); }catch(e){ return json({error:"unavailable"},502); }
+        /* position rounded to about 100 m: enough to search, and more private */
+        const la=c[0].toFixed(3), lo=c[1].toFixed(3), k=`${cat}|${r}|${la}|${lo}`;
+        const named=cat==="money"?"":'["name"]';
+        const ql=`[out:json][timeout:10];(${sel}${named}(around:${r},${la},${lo}););out center qt 120;`;
+        const hit=pcRead()[k], age=hit?Date.now()-hit.t:Infinity;
+        if(hit&&age<FRESH) return json(hit.d,200);
+        if(hit&&age<KEEP){ fetchPlaces(k,ql); return new Response(JSON.stringify(hit.d),{status:200,headers:{"Content-Type":"application/json","X-Cache-Age":String(Math.round(age/6e4))}}); }
+        const d=await fetchPlaces(k,ql);
+        return d?json(d):json({error:"unavailable"},502);
       }
       case "/api/rates":{
         try{ const r=await net("https://open.er-api.com/v6/latest/QAR"); if(r.ok) return r; }catch(e){}
@@ -588,6 +618,18 @@ button.leg{background:none;border:0;padding:0;color:inherit;font:inherit;text-al
 .rc-sheet h2{margin:0}
 
 
+
+/* ---- Nearby: location question ---- */
+.nb-ask{display:grid;gap:10px;background:var(--accent-soft);border-radius:14px;padding:14px}
+.nb-ask-q{margin:0;color:var(--ink)}
+.nb-ask-btns{display:grid;gap:8px}
+.nb-ask-btns .btn,.nb-quick .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.nb-quick{gap:8px}
+#nbAsk:not([hidden]) ~ .nb-quick{display:none}
+.nb-skel{display:grid;gap:10px;margin:6px 0}
+.nb-skel i{display:block;height:44px;border-radius:10px;background:linear-gradient(90deg,var(--line) 0%,color-mix(in srgb,var(--line) 40%,transparent) 50%,var(--line) 100%);background-size:200% 100%;animation:nbsk 1.2s linear infinite}
+@keyframes nbsk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.nb-skel i{animation:none}}
 /* ---- in-app privacy policy and terms ---- */
 .legal-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 @media (max-width:360px){.legal-links{grid-template-columns:1fr}}
@@ -667,7 +709,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v3.6</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.2</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -814,11 +856,22 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   <div data-panel="nearby" class="panel">
     <div class="card">
       <h2>What's around you</h2>
+      <div class="nb-ask" id="nbAsk">
+        <p class="nb-ask-q"><b>Use your phone's location?</b><br>We'll show what's around you right now. Or type your hotel instead.</p>
+        <div class="nb-ask-btns">
+          <button class="btn" type="button" id="nbLocYes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Yes, use my location</button>
+          <button class="btn ghost" type="button" id="nbLocNo">No, I'll type my hotel</button>
+        </div>
+        <p class="hint" style="font-size:.8125rem">Your location is only used for this search. It's never saved or shared.</p>
+      </div>
       <form class="row" id="nbForm">
-        <input id="nbQ" placeholder="Your hotel or an address" aria-label="Hotel or address" maxlength="150" autocomplete="off">
+        <input id="nbQ" placeholder="Your hotel or an address" aria-label="Hotel or address" maxlength="150" autocomplete="off" enterkeyhint="search">
         <button class="btn" type="submit">Find</button>
       </form>
-      <button class="btn ghost" type="button" id="nbCentre" style="justify-self:start">Use the city centre instead</button>
+      <div class="row nb-quick">
+        <button class="btn ghost" type="button" id="nbLoc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>My location</button>
+        <button class="btn ghost" type="button" id="nbCentre">City centre</button>
+      </div>
       <div class="matches" id="nbMatches"></div>
       <div class="base" id="nbBase" hidden></div>
       <div class="chips" id="nbCats" aria-label="Looking for"></div>
@@ -827,11 +880,12 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
           <select id="nbR"><option value="500">500 m · 6 min walk</option><option value="1000" selected>1 km · 12 min walk</option><option value="2000">2 km · 25 min walk</option><option value="5000">5 km · taxi</option></select></label>
         <label class="check" id="nbHalalWrap"><input type="checkbox" id="nbHalal"> Halal only</label>
       </div>
-      <p class="hint">Your hotel stays on this device and is never saved or shared.</p>
+      <p class="hint">Your hotel and location stay on this device and are never saved or shared.</p>
     </div>
     <div class="card" id="nbResults" hidden>
       <div id="map" hidden></div>
-      <p class="hint" id="nbCount"></p>
+      <p class="hint" id="nbCount" aria-live="polite"></p>
+      <div class="row" id="nbRetry" hidden><button class="btn" type="button" id="nbRetryBtn">Try again</button><a class="btn ghost" id="nbGmaps" target="_blank" rel="noopener">Open in Google Maps</a></div>
       <ul class="list" id="nbList"></ul>
       <p class="hint" style="font-size:.8125rem">Map data © OpenStreetMap contributors. Hours and halal tags can be missing, so check before you go.</p>
     </div>
@@ -1902,19 +1956,53 @@ function nbSync(){
 $("nbCats").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;nb.cat=b.dataset.cat;nbSync();nbRun()});
 $("nbR").addEventListener("change",()=>nbRun());
 $("nbHalal").addEventListener("change",()=>nbRun());
-$("nbCentre").addEventListener("click",()=>nbUseCentre());
+$("nbCentre").addEventListener("click",()=>{ nbAsked(); nbUseCentre(); });
+/* ---- phone location ---- */
+const NB_ASKED="lay.nbAsked";
+function nbAsked(){ $("nbAsk").hidden=true; try{ sessionStorage.setItem(NB_ASKED,"1"); }catch(e){} }
+(()=>{ try{ if(sessionStorage.getItem(NB_ASKED)) $("nbAsk").hidden=true; }catch(e){} })();
+async function nbLocate(){
+  nbAsked();
+  if(!("geolocation" in navigator)){ $("nbMatches").innerHTML=`<p class="hint">This phone can't share its location here. Type your hotel instead.</p>`; $("nbQ").focus(); return; }
+  nb.q=""; $("nbQ").value="";
+  $("nbMatches").innerHTML=`<p class="hint"><span class="rc-spin"></span>Finding where you are…</p>`;
+  const got=await new Promise(res=>navigator.geolocation.getCurrentPosition(
+    p=>res({ok:true,lat:p.coords.latitude,lon:p.coords.longitude}),
+    e=>res({ok:false,code:e.code}),
+    {enableHighAccuracy:false,timeout:10000,maximumAge:300000}));
+  if(!got.ok){
+    const why=got.code===1?"Location is turned off for this app. You can allow it in your phone's settings (Safari or Chrome → Location), or type your hotel below."
+      :"Couldn't find your location quickly. Type your hotel below, or try again outside.";
+    $("nbMatches").innerHTML=`<p class="hint">${why}</p>`; $("nbQ").focus(); return;
+  }
+  const here={lat:got.lat,lon:got.lon}, dest={lat:state.dest.lat,lon:state.dest.lon};
+  const km=isFinite(dest.lat)?distM(here,dest)/1000:0;
+  if(km>60){
+    $("nbMatches").innerHTML=`<div class="banner" style="display:grid;gap:8px"><span>You're about ${Math.round(km).toLocaleString("en-GB")} km from ${esc(state.dest.name)}. Where should we search?</span>
+      <span class="row"><button class="btn" type="button" id="nbHere">Around me</button><button class="btn ghost" type="button" id="nbThere">${esc(state.dest.name)} city centre</button></span></div>`;
+    $("nbHere").onclick=()=>nbSetBase({lat:here.lat,lon:here.lon,display_name:"Your location"});
+    $("nbThere").onclick=()=>nbUseCentre();
+    return;
+  }
+  nbSetBase({lat:here.lat,lon:here.lon,display_name:"Your location"});
+}
+$("nbLocYes").addEventListener("click",nbLocate);
+$("nbLoc").addEventListener("click",nbLocate);
+$("nbLocNo").addEventListener("click",()=>{ nbAsked(); $("nbQ").focus(); });
 function nbUseCentre(){
   nb.q=""; if(!LIVE){ nbLinks(); return; }
   nbSetBase({lat:state.dest.lat,lon:state.dest.lon,display_name:`${state.dest.name} city centre`});
 }
 
 $("nbForm").addEventListener("submit",async e=>{
-  e.preventDefault(); nb.q=$("nbQ").value.trim(); if(!nb.q) return;
+  e.preventDefault(); nb.q=$("nbQ").value.trim(); nbAsked();
+  if(!nb.q) return fieldError("nbQ","Type your hotel name or an address.");
   nb.base=null; $("nbBase").hidden=true;
   if(!LIVE){ nbLinks(); return; }
   $("nbMatches").innerHTML=`<p class="hint">Searching…</p>`;
   try{
-    let res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q+", "+placeText()))).json();
+    const vb=isFinite(state.dest.lat)?`${state.dest.lon-0.6},${state.dest.lat+0.6},${state.dest.lon+0.6},${state.dest.lat-0.6}`:"";
+    let res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q+", "+placeText())+(vb?"&vb="+vb:""))).json();
     if(!res.length) res=await (await fetch("/api/geocode?q="+encodeURIComponent(nb.q))).json();
     if(!res.length){ $("nbMatches").innerHTML=`<p class="hint">No match for "${esc(nb.q)}". Try the street address instead.</p>`; return; }
     if(res.length===1) return nbSetBase(res[0]);
@@ -1929,7 +2017,7 @@ function nbSetBase(m){
   $("nbMatches").innerHTML="";
   $("nbBase").hidden=false;
   $("nbBase").innerHTML=`<span>Searching around <b>${esc(nb.base.name)}</b></span><button class="btn ghost" type="button" id="nbClear">Change</button>`;
-  $("nbClear").onclick=()=>{nb.base=null;$("nbBase").hidden=true;$("nbResults").hidden=true;$("nbQ").focus()};
+  $("nbClear").onclick=()=>{nb.base=null;$("nbBase").hidden=true;$("nbResults").hidden=true;$("nbAsk").hidden=false;$("nbAsk").scrollIntoView({block:"nearest"})};
   nbRun();
 }
 function nbLinks(){
@@ -1954,20 +2042,33 @@ async function nbRun(){
   if(!LIVE){ if(nb.q) nbLinks(); return; }
   if(!nb.base) return;
   const r=$("nbR").value, cat=nb.cat;
-  $("nbResults").hidden=false; $("nbCount").textContent="Loading places…"; $("nbList").innerHTML="";
+  $("nbResults").hidden=false; $("nbRetry").hidden=true;
+  $("nbCount").textContent=`Looking for ${NB_CATS[cat].l.toLowerCase()}…`;
+  $("nbList").innerHTML='<li class="nb-skel" aria-hidden="true"><i></i><i></i><i></i></li>';
   const mapReady=loadLeaflet(); mapReady.catch(()=>{}); /* map library downloads while places load */
-  let data;
-  try{ const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}`); if(!resp.ok) throw 0; data=await resp.json(); }
-  catch(err){ $("nbCount").textContent="Couldn't load places. Check your internet connection and try again."; return; }
-  if(cat!==nb.cat) return;
+  const run=nb.run=(nb.run||0)+1;
+  let data, cachedMin=0;
+  try{
+    const resp=await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${cat}`);
+    if(!resp.ok) throw 0; cachedMin=+(resp.headers.get("X-Cache-Age")||0); data=await resp.json();
+  }catch(err){
+    if(run!==nb.run) return;
+    $("nbList").innerHTML="";
+    $("nbCount").textContent=navigator.onLine===false?"You're offline. Connect to the internet and try again."
+      :"The free map service is busy right now. Try again in a moment, or open the search in Google Maps.";
+    $("nbGmaps").href=gmaps(NB_CATS[cat].g+" near "+near()); $("nbRetry").hidden=false; return;
+  }
+  if(cat!==nb.cat||run!==nb.run) return;
   let places=(data.elements||[]).map(el=>{
     const t=el.tags||{}, lat=el.lat??el.center?.lat, lon=el.lon??el.center?.lon;
-    return {name:t["name:en"]||t.name,lat,lon,t,type:nice(t.shop||t.amenity||t.tourism),
+    return {name:t["name:en"]||t.name||t.brand||t.operator||(t.amenity==="atm"?"ATM":""),lat,lon,t,type:nice(t.shop||t.amenity||t.tourism),
       halal:/^(yes|only)$/.test(t["diet:halal"]||""), d:distM(nb.base,{lat,lon})};
   }).filter(p=>p.name&&p.lat!=null);
   if($("nbHalal").checked && NB_CATS[cat].food) places=places.filter(p=>p.halal);
   places.sort((a,b)=>a.d-b.d); places=places.slice(0,60);
-  $("nbCount").textContent=places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.";
+  $("nbCount").textContent=(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.")
+    +(cachedMin>=60?` · saved ${cachedMin>=1440?Math.round(cachedMin/1440)+" d":Math.round(cachedMin/60)+" h"} ago, updating`:"");
+  nbPrefetch(r,cat);
   nb.places=places;
   $("nbList").innerHTML=places.map((p,i)=>{
     const walk=Math.max(1,Math.round(p.d/80));
@@ -1991,6 +2092,15 @@ async function nbRun(){
     nb.map.setView([nb.base.lat,nb.base.lon], r<=500?16:r<=1000?15:r<=2000?14:13);
     setTimeout(()=>nb.map.invalidateSize(),50);
   }catch(err){ $("map").hidden=true; }
+}
+$("nbRetryBtn").addEventListener("click",()=>nbRun());
+/* after the first results, quietly load the most-used categories so switching is instant */
+let nbPre="";
+function nbPrefetch(r,cat){
+  const key=`${nb.base.lat.toFixed(3)},${nb.base.lon.toFixed(3)},${r}`; if(nbPre===key) return; nbPre=key;
+  const next=["food","cafe","groc"].filter(c=>c!==cat).slice(0,2);
+  (async()=>{ for(const c of next){ await new Promise(ok=>setTimeout(ok,600)); if(nbPre!==key) return;
+    try{ await fetch(`/api/places?lat=${nb.base.lat}&lon=${nb.base.lon}&r=${r}&cat=${c}`); }catch(e){} } })();
 }
 $("nbList").addEventListener("click",e=>{
   const b=e.target.closest("[data-pi]"); if(!b||!nb.places) return;
