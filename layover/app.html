@@ -757,7 +757,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.5</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.6</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -2087,10 +2087,10 @@ function distM(a,b){const R=6371e3,t=x=>x*Math.PI/180,dLat=t(b.lat-a.lat),dLon=t
   const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
 const nice = s => s ? s.replace(/_/g," ").replace(/^./,c=>c.toUpperCase()) : "";
 
-async function nbRun(){
+async function nbRun(widerR){
   if(!LIVE){ if(nb.q) nbLinks(); return; }
   if(!nb.base) return;
-  const r=$("nbR").value, cat=nb.cat;
+  const chosen=+$("nbR").value, r=widerR||chosen, cat=nb.cat;
   $("nbResults").hidden=false; $("nbRetry").hidden=true;
   $("nbCount").textContent=`Looking for ${NB_CATS[cat].l.toLowerCase()}…`;
   $("nbList").innerHTML='<li class="nb-skel" aria-hidden="true"><i></i><i></i><i></i></li>';
@@ -2115,9 +2115,14 @@ async function nbRun(){
   }).filter(p=>p.name&&p.lat!=null);
   if($("nbHalal").checked && NB_CATS[cat].food) places=places.filter(p=>p.halal);
   places.sort((a,b)=>a.d-b.d); places=places.slice(0,60);
+  /* free map data is thin in some cities: with fewer than 8 places, look a little further, once */
+  const WIDER={500:2000,1000:3000,2000:5000};
+  if(!widerR&&places.length<8&&WIDER[chosen]){ nb.fewer=places.length; return nbRun(WIDER[chosen]); }
+  const km=x=>x>=1000?x/1000+" km":x+" m";
+  const widerNote=widerR?`Only ${nb.fewer} within ${km(chosen)} in the free map data, so this shows up to ${km(r)}. `:"";
   const halalOn=$("nbHalal").checked&&NB_CATS[cat].food, halalNote=halalOn?" marked halal":"";
   if(halalOn&&!places.length) $("nbCount").textContent="";
-  else $("nbCount").textContent=(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()}${halalNote} within ${r>=1000?r/1000+" km":r+" m"}, closest first`:"Nothing found. Try a bigger radius or another category.")
+  else $("nbCount").textContent=widerNote+(places.length?`${places.length} ${NB_CATS[cat].l.toLowerCase()}${halalNote} within ${km(r)}, closest first`:"Nothing found. Try a bigger radius or another category.")
     +(cachedMin>=60?` · saved ${cachedMin>=1440?Math.round(cachedMin/1440)+" d":Math.round(cachedMin/60)+" h"} ago, updating`:"");
 
   nb.places=places;
