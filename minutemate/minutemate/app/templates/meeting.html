@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+{% set label, color = status_labels.get(m.status, (m.status, 'grey')) %}
+<p><a href="/" class="muted">← All meetings</a></p>
+{% if flash %}<p class="alert info">{{ flash }}</p>{% endif %}
+
+<section class="card">
+  <div class="headrow">
+    <div>
+      <h1>{{ notes.title if notes else m.title }}</h1>
+      <p class="muted">{{ m.platform }} · <a href="{{ m.meeting_url }}" target="_blank" rel="noopener">meeting link</a>
+        {% if m.join_at %} · scheduled {{ m.join_at }}{% endif %}</p>
+    </div>
+    <span class="badge {{ color }} big" id="statusBadge">{{ label }}</span>
+  </div>
+  <p class="muted" id="statusDetail">{{ m.status_detail }}</p>
+
+  <div class="actions">
+    {% if m.pdf_path %}
+      <a class="btn primary" href="/meetings/{{ m.id }}/download/pdf">Download PDF</a>
+      <a class="btn primary" href="/meetings/{{ m.id }}/download/docx">Download Word</a>
+      {% if email_enabled and emails %}
+      <form method="post" action="/meetings/{{ m.id }}/email"><button class="btn">{{ 'Re-send' if m.emailed_at else 'Send' }} email to attendees</button></form>
+      {% endif %}
+    {% endif %}
+    {% if m.status in ['scheduled', 'joining', 'recording'] %}
+      <form method="post" action="/meetings/{{ m.id }}/refresh"><button class="btn">Check status now</button></form>
+      <form method="post" action="/meetings/{{ m.id }}/stop"><button class="btn danger">{{ 'Cancel bot' if m.status == 'scheduled' else 'Make bot leave' }}</button></form>
+    {% endif %}
+    {% if m.status == 'failed' and m.bot_id %}
+      <form method="post" action="/meetings/{{ m.id }}/retry"><button class="btn">Retry notes</button></form>
+    {% endif %}
+    <form method="post" action="/meetings/{{ m.id }}/delete" onsubmit="return confirm('Delete this meeting and its files?')">
+      <button class="btn danger ghost">Delete</button></form>
+  </div>
+  {% if m.emailed_at %}<p class="muted small">Emailed to attendees on {{ m.emailed_at[:16].replace('T',' ') }} UTC</p>{% endif %}
+</section>
+
+{% if notes %}
+<section class="card notes">
+  <h2>Summary</h2>
+  <p dir="auto">{{ notes.summary }}</p>
+
+  {% if notes.key_points %}<h2>Key points</h2><ul dir="auto">{% for p in notes.key_points %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+  {% if notes.decisions %}<h2>Decisions</h2><ul dir="auto">{% for p in notes.decisions %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+
+  {% if notes.action_items %}
+  <h2>Action items</h2>
+  <table class="list"><thead><tr><th>Task</th><th>Owner</th><th>Due</th></tr></thead><tbody>
+    {% for a in notes.action_items %}<tr dir="auto"><td>{{ a.task }}</td><td>{{ a.owner }}</td><td>{{ a.due or '—' }}</td></tr>{% endfor %}
+  </tbody></table>
+  {% endif %}
+
+  {% if notes.open_questions %}<h2>Open questions</h2><ul dir="auto">{% for p in notes.open_questions %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+  {% if notes.topics %}
+    <h2>Discussion by topic</h2>
+    {% for t in notes.topics %}<h3 dir="auto">{{ t.topic }}</h3><ul dir="auto">{% for n in t.notes %}<li>{{ n }}</li>{% endfor %}</ul>{% endfor %}
+  {% endif %}
+  {% if notes.next_meeting %}<h2>Next meeting</h2><p>{{ notes.next_meeting }}</p>{% endif %}
+</section>
+
+<details class="card">
+  <summary><strong>Edit the notes</strong> <span class="muted">(PDF and Word are regenerated)</span></summary>
+  <form method="post" action="/meetings/{{ m.id }}/notes" class="stack">
+    <label>Title <input name="title" value="{{ notes.title }}"></label>
+    <label>Summary <textarea name="summary" rows="4" dir="auto">{{ notes.summary }}</textarea></label>
+    <label>Key points (one per line) <textarea name="key_points" rows="5" dir="auto">{{ notes.key_points|join('\n') }}</textarea></label>
+    <label>Decisions (one per line) <textarea name="decisions" rows="3" dir="auto">{{ notes.decisions|join('\n') }}</textarea></label>
+    <label>Action items (one per line: task | owner | due)
+      <textarea name="action_items" rows="4" dir="auto">{% for a in notes.action_items %}{{ a.task }} | {{ a.owner }} | {{ a.due }}
+{% endfor %}</textarea></label>
+    <label>Open questions (one per line) <textarea name="open_questions" rows="3" dir="auto">{{ notes.open_questions|join('\n') }}</textarea></label>
+    <button class="btn primary">Save and regenerate files</button>
+  </form>
+</details>
+{% endif %}
+
+<details class="card">
+  <summary><strong>Attendees</strong> <span class="muted">({{ emails|length }} email{{ '' if emails|length == 1 else 's' }})</span></summary>
+  <form method="post" action="/meetings/{{ m.id }}/attendees" class="stack">
+    <textarea name="attendee_emails" rows="2">{{ m.attendee_emails }}</textarea>
+    <button class="btn">Save attendees</button>
+  </form>
+</details>
+
+{% if lines %}
+<details class="card">
+  <summary><strong>Full transcript</strong> <span class="muted">({{ lines|length }} turns)</span></summary>
+  <div class="transcript">
+    {% for l in lines %}<p dir="auto"><span class="time">{{ l.time }}</span> <strong>{{ l.speaker }}:</strong> {{ l.text }}</p>{% endfor %}
+  </div>
+</details>
+{% endif %}
+
+{% if m.status in ['scheduled', 'joining', 'recording', 'processing'] %}
+<script>
+  // Live status: reload the page when it changes
+  const start = "{{ m.status }}";
+  setInterval(async () => {
+    const r = await fetch("/meetings/{{ m.id }}/status");
+    if (!r.ok) return;
+    const s = await r.json();
+    document.getElementById('statusDetail').textContent = s.detail;
+    if (s.status !== start) location.reload();
+  }, 5000);
+</script>
+{% endif %}
+{% endblock %}

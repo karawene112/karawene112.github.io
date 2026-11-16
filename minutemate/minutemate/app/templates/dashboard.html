@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+{% for w in warnings %}<p class="alert warn">{{ w }}</p>{% endfor %}
+{% if error %}<p class="alert error">{{ error }}</p>{% endif %}
+
+<section class="card">
+  <h1>Send the notetaker to a meeting</h1>
+  <p class="muted">Paste a Zoom, Microsoft Teams or Google Meet link. The bot joins, records everyone,
+    and when the meeting ends you get the notes as PDF and Word.</p>
+  <form method="post" action="/meetings" class="stack" id="newMeeting">
+    <label>Meeting link *
+      <input name="meeting_url" type="url" placeholder="https://zoom.us/j/... or https://meet.google.com/..." required>
+    </label>
+    <div class="row">
+      <label>Meeting title
+        <input name="title" placeholder="e.g. Weekly operations review">
+      </label>
+      <label>Join at (leave empty = join now)
+        <input name="join_at" type="datetime-local">
+      </label>
+    </div>
+    <label>Attendee emails (to receive the notes)
+      <textarea name="attendee_emails" rows="2" placeholder="anna@company.com, omar@company.com"></textarea>
+    </label>
+    <label>Notes language
+      <select name="output_language">
+        <option value="same">Same as the meeting</option>
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="ar">Arabic</option>
+      </select>
+    </label>
+    <input type="hidden" name="tz_offset" id="tz_offset" value="0">
+    <button class="btn primary">Send bot</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Meetings</h2>
+  {% if not meetings %}
+    <p class="muted">No meetings yet.</p>
+  {% else %}
+  <table class="list">
+    <thead><tr><th>Meeting</th><th>Platform</th><th>Status</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+    {% for m in meetings %}
+      {% set label, color = status_labels.get(m.status, (m.status, 'grey')) %}
+      <tr>
+        <td><a href="/meetings/{{ m.id }}">{{ (m.summary.title if m.summary else m.title) }}</a></td>
+        <td>{{ m.platform }}</td>
+        <td><span class="badge {{ color }}">{{ label }}</span></td>
+        <td class="muted">{{ m.created_at[:16].replace('T', ' ') }} UTC</td>
+        <td class="right">
+          {% if m.pdf_path %}
+            <a class="btn small" href="/meetings/{{ m.id }}/download/pdf">PDF</a>
+            <a class="btn small" href="/meetings/{{ m.id }}/download/docx">Word</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+<script>document.getElementById('tz_offset').value = new Date().getTimezoneOffset();</script>
+{% endblock %}
