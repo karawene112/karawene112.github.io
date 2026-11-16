@@ -9,11 +9,11 @@
   var fr = /^fr\b/i.test(navigator.language || "");
   var t = fr ? {
     title: "Cookies et stockage",
-    body: "Ce site n'utilise aucun cookie publicitaire ni de suivi. Il garde seulement dans votre navigateur ce qui est nécessaire au fonctionnement de l'application (votre carnet, vos réglages, votre connexion). Le paiement Pro, géré par Paddle, peut utiliser ses propres cookies au moment du paiement.",
+    body: "Aucun cookie publicitaire ni de suivi. Seulement ce dont l'app a besoin.",
     link: "Politique de confidentialité", href: "/layover/politique-de-confidentialite.html", ok: "J'ai compris"
   } : {
     title: "Cookies and storage",
-    body: "This site uses no advertising or tracking cookies. It only keeps what the app needs to work in your browser (your logbook, settings and sign-in). Pro payments, handled by Paddle, may use Paddle's own cookies when you pay.",
+    body: "No ads, no tracking. Only what the app needs to work.",
     link: "Privacy policy", href: "/layover/privacy-policy.html", ok: "Got it"
   };
 
