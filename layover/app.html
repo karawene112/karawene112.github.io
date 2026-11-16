@@ -737,7 +737,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
         <button type="button" data-view="signin" aria-selected="true">Sign in</button>
         <button type="button" data-view="signup" aria-selected="false">Create account</button>
       </div>
-      <p class="setup" id="authSetup" hidden>Accounts aren't switched on yet. Add your Supabase details to config.js, as described in the setup guide. Until then, use the app without an account.</p>
+      <p class="setup" id="authSetup" hidden>Accounts are off for now. You can still use the app as a guest.</p>
       <form id="authForm" novalidate>
         <div class="field" id="fEmail"><label class="label" for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required></div>
         <div class="field" id="fPass"><label class="label" for="authPass" id="authPassLbl">Password</label>
@@ -751,13 +751,13 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
       </form>
     </div>
     <button class="guestbtn" type="button" id="authGuest">Continue as guest</button>
-    <p class="fine">As a guest, your data stays on this phone only. You can sign up any time from the button at the top. With one, only you can see your data. Hotel names and locations are never saved.</p>
+    <p class="fine">Guest data stays on this phone. Hotels are never saved.</p>
   </div>
 </div>
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.6</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.7</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -787,9 +787,9 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   <h2 id="proTitle">Layover Logbook <span class="probadge">PRO</span></h2>
   <ul class="insights">
     <li><b>The full crew feed:</b> every post, photo and video, in every city.</li>
-    <li><b>Fatigue dashboard:</b> routes checked against the rules, your 7-day load, trip-by-trip charts.</li>
+    <li><b>Fatigue dashboard:</b> rules, weekly load, trip charts.</li>
     <li><b>Money insights:</b> allowance kept, cost of each layover, Excel export.</li>
-    <li><b>Roster check:</b> your roster as a calendar, checked against flight time limits and fatigue.</li>
+    <li><b>Roster check:</b> roster to calendar, limits and fatigue checked.</li>
   </ul>
   <div class="plans" id="proPlans">
     <button class="planbtn best" type="button" data-plan="yearly"><b>Yearly</b><span class="p" id="proYear"></span><small>per year · best value</small></button>
@@ -797,13 +797,13 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   </div>
   <p class="hint" id="proMsg" aria-live="polite"></p>
   <button class="btn ghost" type="button" id="proClose">Not now</button>
-  <p class="hint" id="proLinks" style="font-size:.8125rem">Secure payment by Paddle. Your logbook, planner, money entries and notes stay free. <a href="./" target="_blank" rel="noopener">Website</a> · <a href="pricing.html" target="_blank" rel="noopener">Pricing</a> · <a href="terms.html" target="_blank" rel="noopener">Terms and refunds</a> · <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy</a></p>
+  <p class="hint" id="proLinks" style="font-size:.8125rem">Secure payment by Paddle. Core features stay free. <a href="./" target="_blank" rel="noopener">Website</a> · <a href="pricing.html" target="_blank" rel="noopener">Pricing</a> · <a href="terms.html" target="_blank" rel="noopener">Terms and refunds</a> · <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy</a></p>
 </div>
 
 <div class="backdrop" id="homeBackdrop" hidden></div>
 <form class="sheet" id="homeForm" hidden aria-label="Home base">
   <h2>Where are you based?</h2>
-  <p class="hint">Your body clock, time differences and fatigue checks are measured from your home base. Works for any airline.</p>
+  <p class="hint">Time differences are measured from here.</p>
   <div class="field"><label class="label" for="homeQ">Home city or airport</label><input id="homeQ" list="destList" placeholder="e.g. DXB, Singapore, Paris" autocomplete="off" maxlength="80"></div>
   <div class="matches" id="homeMatches"></div>
   <div class="field"><label class="label" for="homeCur">Show my money in</label><select id="homeCur"></select></div>
@@ -816,7 +816,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 <!-- ===================== TODAY ===================== -->
 <section class="panel" id="tab-today">
   <div class="banner" id="installTip" hidden>
-    <span id="installText">Add this app to your home screen. iPhone: tap Share, then Add to Home Screen. Android: tap the ⋮ menu, then Install app.</span>
+    <span id="installText">Add to home screen: Share → Add (iPhone) · ⋮ → Install (Android)</span>
     <span class="row"><button class="btn" type="button" id="installBtn" hidden>Install</button><button class="btn ghost" type="button" id="installClose">Got it</button></span>
   </div>
   <div class="pass">
@@ -874,7 +874,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <div class="row" style="align-items:center"><button class="btn" type="button" id="trSave">Save layover</button><span class="hint" id="trMsg" aria-live="polite"></span></div>
     <details class="more">
       <summary>How this works</summary>
-      <p class="hint">The check uses the destination's time difference with your home base and the arrival and pickup times above. Save the layover to add it to your fatigue history in Rest and your allowance in Money. To add a past layover, change the dates first, then save.</p>
+      <p class="hint">Save to add it to Rest and Money. Past layover? Change the dates first.</p>
     </details>
   </div>
 
@@ -905,12 +905,12 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <div class="card">
       <h2>What's around you</h2>
       <div class="nb-ask" id="nbAsk">
-        <p class="nb-ask-q"><b>Use your phone's location?</b><br>We'll show what's around you right now. Or type your hotel instead.</p>
+        <p class="nb-ask-q"><b>Use your location?</b></p>
         <div class="nb-ask-btns">
           <button class="btn" type="button" id="nbLocYes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Yes, use my location</button>
           <button class="btn ghost" type="button" id="nbLocNo">No, I'll type my hotel</button>
         </div>
-        <p class="hint" style="font-size:.8125rem">Your location is only used for this search. It's never saved or shared.</p>
+        <p class="hint" style="font-size:.8125rem">Never saved or shared.</p>
       </div>
       <form class="row" id="nbForm">
         <input id="nbQ" placeholder="Your hotel or an address" aria-label="Hotel or address" maxlength="150" autocomplete="off" enterkeyhint="search">
@@ -928,14 +928,13 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
           <select id="nbR"><option value="500">500 m · 6 min walk</option><option value="1000" selected>1 km · 12 min walk</option><option value="2000">2 km · 25 min walk</option><option value="5000">5 km · taxi</option></select></label>
         <label class="check" id="nbHalalWrap"><input type="checkbox" id="nbHalal"> Halal only</label>
       </div>
-      <p class="hint">Your hotel and location stay on this device and are never saved or shared.</p>
     </div>
     <div class="card" id="nbResults" hidden>
       <div id="map" hidden></div>
       <p class="hint" id="nbCount" aria-live="polite"></p>
       <div class="row" id="nbRetry" hidden><button class="btn" type="button" id="nbRetryBtn">Try again</button><a class="btn ghost" id="nbGmaps" target="_blank" rel="noopener">Open in Google Maps</a></div>
       <ul class="list" id="nbList"></ul>
-      <p class="hint" style="font-size:.8125rem">Map data © OpenStreetMap contributors. Hours and halal tags can be missing, so check before you go.</p>
+      <p class="hint" style="font-size:.8125rem">© OpenStreetMap · Check hours before you go</p>
     </div>
   </div>
 
@@ -963,7 +962,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
       <h2>Good areas and late food</h2>
       <ul class="list" id="areas"></ul>
     </div>
-    <p class="note">Guides cover cities and neighbourhoods only. Crew hotel names and locations are never stored or shown.</p>
+    <p class="note">Crew hotels are never shown.</p>
   </div>
 </section>
 
@@ -978,25 +977,25 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   </div>
   <div class="card guesthero" id="crewGuest" hidden>
     <h2>Where crew really go on layovers</h2>
-    <p class="hint">Photos, videos, places and tips shared by crew of every airline, in every city. The feed is private to crew: you need to be invited by a crew member who already uses the app, and each invite code can be used only once.</p>
+    <p class="hint">Tips and photos from crew worldwide. Invite only.</p>
     <button class="btn" type="button" id="crewJoin" style="justify-self:start">Create free account</button>
   </div>
   <form class="card" id="crewJoinCard" hidden>
     <h2>Crew only</h2>
-    <p class="hint">The crew feed is private to airline crew. To join, you need to be invited by a crew member who already uses Layover Logbook.</p>
+    <p class="hint">Crew only. Ask a colleague for an invite code.</p>
     <ol class="hint" style="margin:0;padding-left:20px;display:grid;gap:4px">
       <li>Ask a colleague who uses the app for an invite code.</li>
       <li>Type the code below and tap Join.</li>
       <li>You're in, with 3 codes of your own to invite crew you know.</li>
     </ol>
-    <p class="hint"><b>Each code can be used only once.</b> If a code doesn't work, it may already have been used: ask your colleague for a new one.</p>
+    <p class="hint">Code not working? Ask for a new one.</p>
     <div class="row cform"><input id="crewCode" maxlength="12" placeholder="Invite code, e.g. K7QM2XPD" aria-label="Invite code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" type="submit">Join</button></div>
     <p class="hint" id="crewCodeMsg" aria-live="polite"></p>
     <p class="hint" style="font-size:.8125rem">Your own logbook, planner, money and notes work without a code.</p>
   </form>
   <form class="card" id="crewNameCard" hidden>
     <h2>Pick your crew name</h2>
-    <p class="hint">It appears on your posts and comments. Your email is never shown. Use a nickname if you'd rather not be recognised.</p>
+    <p class="hint">Shown on your posts. A nickname is fine.</p>
     <div class="row cform"><input id="crewName" maxlength="20" placeholder="e.g. SkyNomad" aria-label="Crew name" autocomplete="off"><button class="btn" type="submit">Save name</button></div>
     <p class="hint" id="crewNameMsg" aria-live="polite"></p>
   </form>
@@ -1014,7 +1013,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     </div>
     <input type="file" id="crewFile" accept="image/*,video/mp4,video/quicktime" hidden>
     <p class="hint" id="crewMsg" aria-live="polite"></p>
-    <p class="hint" style="font-size:.8125rem">Keep crew safe: no crew hotels, uniforms, colleagues' faces or flight details.</p>
+    <p class="hint" style="font-size:.8125rem">No hotels, uniforms, faces or flight details.</p>
   </form>
   <div class="feed" id="crewFeed"></div>
   <div class="banner" id="crewMore" hidden><span id="crewMoreText"></span><button class="btn proGo" type="button">Unlock with Pro</button></div>
@@ -1022,7 +1021,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   <div class="card" id="crewInviteCard" hidden>
     <details class="more" id="crewInvites" style="border:0;padding:0">
       <summary>Invite crew you know</summary>
-      <p class="hint">Give a code only to crew you know personally. Each code can be used only once: after your colleague joins, it shows as Used. The people you invite are linked to your account.</p>
+      <p class="hint">Only for crew you know. One use per code.</p>
       <ul class="list" id="crewInviteList"></ul>
     </details>
   </div>
@@ -1073,14 +1072,14 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     </div>
     <div class="card prolock">
       <div class="cardhead"><h2>Money insights</h2><span class="probadge">PRO</span></div>
-      <p class="hint">See how much of each allowance you keep, what every layover really costs, and export your entries to Excel.</p>
+      <p class="hint">What you keep, what you spend, export to Excel.</p>
       <button class="btn proGo" type="button" style="justify-self:start">Unlock with Pro</button>
     </div>
     <div class="card" data-pro>
       <h2>Allowance vs spending</h2>
       <div class="banner exBanner" hidden><span>Showing example layovers</span><button class="btn ghost exRemove" type="button">Remove examples</button></div>
       <div id="alEmpty" class="field" hidden>
-        <p class="hint">Save your layovers with their allowance on the Today screen to see how much of each allowance you spend and keep.</p>
+        <p class="hint">Save a layover on Today to start.</p>
         <div class="row"><button class="btn goPlan" type="button">Save a layover</button><button class="btn ghost exAdd" type="button">See an example</button></div>
       </div>
       <div id="alBody" class="field" style="gap:18px">
@@ -1123,7 +1122,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <div class="banner exBanner" hidden><span>Showing example layovers</span><button class="btn ghost exRemove" type="button">Remove examples</button></div>
     <div id="fgEmpty" class="field" hidden>
       <h2>Your fatigue and time-zone load</h2>
-      <p class="hint">Save each layover on the Today screen, including past ones, and you'll see how hard your schedule is on your body clock.</p>
+      <p class="hint">Save a layover on Today to start.</p>
       <div class="row"><button class="btn goPlan" type="button">Save a layover</button><button class="btn ghost exAdd" type="button">See an example</button></div>
     </div>
     <div id="fgTop" class="field" style="gap:16px">
@@ -1133,12 +1132,12 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   </div>
   <div class="card prolock">
     <div class="cardhead"><h2>Fatigue dashboard</h2><span class="probadge">PRO</span></div>
-    <p class="hint">Your routes checked against the flight time rules, your 7-day load, and rest, fatigue and money for every trip.</p>
+    <p class="hint">Rules, weekly load and every trip at a glance.</p>
     <button class="btn proGo" type="button" style="justify-self:start">Unlock with Pro</button>
   </div>
   <div class="card fgCard" data-pro>
     <div class="cardhead"><h2>Route check, by the rules</h2><span class="hint">Up = east, down = west</span></div>
-    <p class="hint">Each bar is one trip from your home base, its height the time difference. The colour shows the result of the flight time rule checks. Under the chart: nights of rest at home between trips, had / needed. Swipe sideways to see older trips.</p>
+    <p class="hint">One bar per trip · swipe for older</p>
     <div class="chartbox" id="fgShift"></div>
     <div class="legend"><span style="--c:var(--good)">Within the rules</span><span style="--c:var(--mod)">Body clock in unknown state</span><span style="--c:var(--bad)">Not enough rest, away or at home</span></div>
   </div>
@@ -1150,7 +1149,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <div class="cardhead"><h2>Trip by trip: rest, fatigue and money</h2><span class="hint" id="dashN"></span></div>
     <div id="dash"></div>
     <div class="legend"><span style="--c:var(--navy)">Duty</span><span style="--c:var(--good)">Rest</span><span style="--c:var(--bad)">Below minimum rest</span><span style="--c:var(--accent)">Spent</span><span style="--c:color-mix(in srgb,var(--navy) 30%,transparent)">Allowance</span></div>
-    <p class="hint">The tick on each rest bar is the minimum rest; faded duty bars are estimates (10 hours). Dashed lines in fatigue mark moderate (5) and heavy (10) trips.</p>
+    <p class="hint">Tick = minimum rest · faded = estimated</p>
     <div class="field"><div class="label">What the data shows</div><ul class="insights" id="dashIns"></ul></div>
   </div>
   <div class="card fgCard" data-pro>
@@ -1182,18 +1181,18 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
         <li>A layover is light below 5 points, moderate from 5, heavy from 10. A week is moderate from 10 and heavy from 20.</li>
       </ul>
     </details>
-    <p class="note">A personal guide to plan rest, not a medical tool or your company's flight time limits. If you feel unfit to fly, follow your company's fatigue reporting process.</p>
+    <p class="note">A planning guide, not your company's rules. Unfit to fly? Report it.</p>
   </div>
   </div>
   <div data-panel="roster" class="panel" hidden>
     <div class="card prolock">
       <div class="cardhead"><h2>Roster check</h2><span class="probadge">PRO</span></div>
-      <p class="hint">Upload a screenshot of your roster. The app turns it into a calendar and checks every duty against your airline's flight time limits and your fatigue risk.</p>
+      <p class="hint">Upload your roster. Get a checked calendar.</p>
       <ul class="insights">
-        <li>Duty hours in 7, 14 and 28 days, block hours, rest between duties, the weekly 36-hour rest and maximum duty length</li>
-        <li>Rule sets for Qatar Airways, Emirates, Etihad, Singapore Airlines, EASA and FAA, with your own OM-A numbers if they differ</li>
-        <li>Breaches and high-fatigue days highlighted on a month calendar</li>
-        <li>Add your whole month to your phone's calendar in one tap</li>
+        <li>Duty, block and rest limits</li>
+        <li>QR, EK, EY, SQ, EASA and FAA</li>
+        <li>Breaches and fatigue highlighted</li>
+        <li>Sync to your calendar</li>
       </ul>
       <button class="btn proGo" type="button" style="justify-self:start">Unlock with Pro</button>
     </div>
@@ -1218,7 +1217,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
             <label class="field"><span class="label">Duty h, previous 28 days</span><input type="number" id="rcCD28" min="0" step="0.5" inputmode="decimal" placeholder="0"></label>
             <label class="field"><span class="label">Block h so far this year</span><input type="number" id="rcCY" min="0" step="0.5" inputmode="decimal" placeholder="0"></label>
           </div>
-          <p class="hint" style="margin-top:8px">The 7-, 14- and 28-day limits are rolling, so the first weeks of a month also count hours from the month before.</p>
+          <p class="hint" style="margin-top:8px">Limits roll over from last month.</p>
         </details>
       </div>
 
@@ -1236,7 +1235,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
           <button class="btn ghost" type="button" id="rcAdd">Type a duty</button>
         </div>
         <p class="hint" id="rcMsg" role="status"></p>
-        <p class="note">Hide your staff number and name before you upload. Pictures are read once and not stored.</p>
+        <p class="note">Hide your name and staff number. Pictures aren't stored.</p>
       </div>
 
       <div class="rc-wrap" id="rcResults" hidden>
@@ -1267,7 +1266,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
             <li><b>Fatigue score:</b> adds points for early reports, working between 02:00 and 06:00 body-clock time, long duties, short rest, big time-zone changes and busy weeks. Low under 30, moderate from 30, high from 55.</li>
           </ul>
         </details>
-        <p class="note">A planning aid, not your company's approved scheme. Your OM-A and your regulator decide what is legal. If you feel unfit to fly, follow your company's fatigue reporting process.</p>
+        <p class="note">A planning guide. Your OM-A decides what's legal.</p>
       </div>
     </div>
 
@@ -1338,7 +1337,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
       <ul class="list" id="tipList"></ul>
       <details class="more">
         <summary>How notes work</summary>
-        <p class="hint">Write down anything useful you learn on a layover. Notes are kept per destination and come back the next time you fly there. They're saved only on this device. Notes marked "example" are samples you can delete.</p>
+        <p class="hint">Saved per city, on this phone.</p>
       </details>
     </div>
   </div>
@@ -1377,11 +1376,11 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
         <button type="button" data-days="90" aria-selected="false">90 days</button>
       </div>
       <div id="stBody" aria-live="polite"><p class="hint">Loading…</p></div>
-      <p class="hint" style="font-size:.8125rem">Counted without cookies or personal data. Visitors with "Do Not Track" turned on are not counted.</p>
+      <p class="hint" style="font-size:.8125rem">No cookies, no personal data.</p>
     </details>
     <details class="more">
       <summary>Backup file</summary>
-      <p class="hint">Download a copy of your data, or restore one. Useful without an account, or before deleting it.</p>
+      <p class="hint">Download or restore a copy.</p>
       <div class="row"><button class="btn ghost" type="button" id="bkSave">Download backup</button><button class="btn ghost" type="button" id="bkLoad">Restore backup</button></div>
     <input type="file" id="bkFile" accept=".json,application/json" hidden>
     <div class="banner" id="bkConfirm" hidden><span id="bkInfo"></span><span class="row"><button class="btn" type="button" id="bkYes">Replace my data</button><button class="btn ghost" type="button" id="bkNo">Cancel</button></span></div>
@@ -1589,7 +1588,7 @@ $("destForm").addEventListener("submit",async e=>{
     if(!res.length){ $("destHint").textContent=`No place called "${q}" found. Check the spelling or add the country.`; return; }
     $("destHint").textContent="";
     showDestMatches(res.map(m=>({label:m.display_name,m})));
-  }catch(err){ $("destHint").textContent="Couldn't reach the map service. Check your internet connection and try again."; }
+  }catch(err){ $("destHint").textContent="No connection. Try again."; }
 });
 function showDestMatches(items){
   state.destItems=items;
@@ -2057,7 +2056,7 @@ $("nbForm").addEventListener("submit",async e=>{
     if(res.length===1) return nbSetBase(res[0]);
     nb.matches=res;
     $("nbMatches").innerHTML=`<div class="label">Which one?</div>`+res.map((m,i)=>`<button class="match" type="button" data-i="${i}">${esc(m.display_name)}</button>`).join("");
-  }catch(err){ $("nbMatches").innerHTML=`<p class="hint">Couldn't reach the map service. Check your internet connection and try again.</p>`; }
+  }catch(err){ $("nbMatches").innerHTML=`<p class="hint">No connection. Try again.</p>`; }
 });
 $("nbMatches").addEventListener("click",e=>{const b=e.target.closest(".match");if(b)nbSetBase(nb.matches[+b.dataset.i])});
 
@@ -2241,7 +2240,7 @@ function renderTrips(){
     const hrs=(tr.pickUTC-tr.arrUTC)/36e5;
     const meta=[tr.ex?"Example":"",`${fmtDate(tr.arr.slice(0,10))} → ${fmtDate(tr.pick.slice(0,10))}`,`${fmtH(hrs)} on the ground`,`${fmtShift(tr.diff)} vs ${Home.short}`,tr.allow?`Allowance ${fmtMoney(tr.allowCur,tr.allow)}`:"No allowance entered"].filter(Boolean).map(esc).join(" · ");
     return `<li><span class="t">${esc(tr.dest)}</span><button class="x" type="button" data-tr="${tr.id}" aria-label="Delete layover">×</button><span class="m">${meta}</span></li>`;
-  }).join(""):`<li class="empty">No layovers saved yet. On the Today screen, fill in your times and press Save layover.</li>`;
+  }).join(""):`<li class="empty">No layovers yet. Save one on Today.</li>`;
 }
 $("trList").addEventListener("click",e=>{
   const b=e.target.closest("[data-tr]"); if(!b) return;
@@ -3172,7 +3171,7 @@ function drawCrew(){
   const f=$("crewFeed");
   if(!Crew.posts){ f.innerHTML='<div class="post skel"></div><div class="post skel"></div>'; $("crewMore").hidden=true; $("crewLoad").hidden=true; return; }
   f.innerHTML=Crew.posts.length?Crew.posts.map(postHTML).join("")
-    :`<div class="card"><h2>Nothing ${Crew.scope==="all"?"shared":"from "+esc(state.dest.name)} yet</h2><p class="hint">Be the first. Share a café, a view or a tip other crew will thank you for.</p></div>`;
+    :`<div class="card"><h2>Nothing ${Crew.scope==="all"?"shared":"from "+esc(state.dest.name)} yet</h2><p class="hint">Be the first to share a tip.</p></div>`;
   const more=Math.max(0,Crew.total-Crew.posts.length);
   $("crewMore").hidden=Crew.full||!more; if(!Crew.full&&more) $("crewMoreText").textContent=`${more} more ${more===1?"post":"posts"} with Pro`;
   $("crewLoad").hidden=!Crew.full||!more;
