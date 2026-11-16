@@ -349,6 +349,10 @@ details.more summary::-webkit-details-marker{display:none}
 details.more summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
 details.more[open] summary::before{transform:rotate(45deg)}
 details.more > :not(summary){margin-top:12px}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;box-sizing:border-box;text-align:left}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
+.field input[type=date],.field input[type=time]{width:100%;display:block}
+details.more summary::before{flex-shrink:0;margin:0 2px 0 3px}
 
 /* boarding pass */
 .pass{background:var(--board);color:var(--board-ink);border-radius:20px;padding:20px;display:grid;gap:16px;position:relative;overflow:hidden}
@@ -757,7 +761,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.8</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.9</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -1052,12 +1056,9 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
           <div class="field"><label class="label" for="walCur">Currency</label><select id="walCur"></select></div>
           <div class="field spendOnly"><label class="label" for="walCat">Category</label><select id="walCat"><option>Food</option><option>Transport</option><option>Shopping</option><option>Activities</option><option>Beauty &amp; health</option><option>Other</option></select></div>
           <div class="field spendOnly"><label class="label" for="walPay">Paid by</label><select id="walPay"><option value="cash">Cash</option><option value="card">Card</option></select></div>
-        </div>
-        <div class="field"><label class="label" for="walNote">Note</label><input id="walNote" placeholder="What for, e.g. dinner with the crew" maxlength="80"></div>
-        <details class="more">
-          <summary>Different date</summary>
+          <div class="field"><label class="label" for="walNote">Note</label><input id="walNote" placeholder="e.g. crew dinner" maxlength="80"></div>
           <div class="field"><label class="label" for="walDate">Date</label><input id="walDate" type="date"></div>
-        </details>
+        </div>
         <button class="btn wide" type="submit" id="walSave">Save spending</button>
         <p class="hint" id="walMsg" aria-live="polite"></p>
       </form>
@@ -1833,7 +1834,7 @@ function syncWalType(){
   document.querySelectorAll("#walType .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.type===walType));
   document.querySelectorAll(".spendOnly").forEach(el=>el.hidden=walType!=="spend");
   $("walSave").textContent="Save spending";
-  $("walNote").placeholder="What for, e.g. dinner with the crew";
+  $("walNote").placeholder="e.g. crew dinner";
 }
 on("walType","click",e=>{const b=e.target.closest(".chip");if(!b)return;walType=b.dataset.type;syncWalType();$("walMsg").textContent=""});
 $("walCur").addEventListener("change",()=>walTouched=true);
