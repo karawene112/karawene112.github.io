@@ -162,7 +162,7 @@ window.LAYOVER_WEB=true;
 <link rel="icon" href="/layover/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/layover/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/layover/apple-touch-icon.png">
-<meta name="theme-color" content="#14223A">
+<meta name="theme-color" content="#13233F">
 <meta name="description" content="Plan rest and free time, find places nearby, track spending and allowance, and check fatigue and your roster on every layover.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://karawene112.github.io/layover/app.html">
@@ -183,10 +183,13 @@ window.LAYOVER_WEB=true;
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<script src="globe3d.js" defer></script>
+<script src="postcards.js"></script>
+<link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
 <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
 <link rel="dns-prefetch" href="https://overpass-api.de">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@600;700;800&display=swap"></noscript>
 <style>
 /* Layout: a crew phone app. Compact app bar, a boarding-pass hero on Today, five sections in a bottom bar,
    sub-pages as segmented controls, and long explanations folded into "How this works" disclosures. */
@@ -726,10 +729,257 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 @media (max-width:345px){.tabbar button{font-size:.6875rem}}
 @media (max-width:360px){.rc-cal{gap:2px}.rc-day{padding:3px 2px;min-height:54px}.rc-day .t{font-size:.5625rem}}
 
+/* ---- v5.0 look: matches the website. Chart paper, night board, airway magenta, beacon amber, 3D route globe ---- */
+:root{
+  --bg:#DCE6EB; --surface:#F7FAFB; --sub:#CCD9E0; --ink:#13233F; --muted:#4A5D73; --line:#C3D1D9;
+  --accent:#B0136E; --accent-ink:#FFFFFF; --accent-soft:#F6DDEA;
+  --board:#13233F; --board-2:#1C2F50; --board-ink:#F3F7F9; --board-muted:#9FB2C6; --board-line:#34507A;
+  --good:#13774A; --warn:#A8460A; --navy:#2E4E86; --mod:#8A6400; --bad:#C3271F;
+  --beacon:#F0B429; --heart:#D81B60; --star:#F0B429;
+  --hot:var(--ink); --sky:var(--board);
+  --shadow:0 1px 0 rgba(19,35,63,.04),0 12px 28px -18px rgba(19,35,63,.35);
+  --t-xfer:#8EA3B3; --t-rest:#2E4E86;
+  --display:"Big Shoulders Display","Arial Narrow",sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"Big Shoulders Display","Arial Narrow",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1729; --surface:#14233D; --sub:#1D3050; --ink:#E8EEF4; --muted:#A3B5C8; --line:#2A3F62;
+  --accent:#E2589F; --accent-ink:#13233F; --accent-soft:#3B1F36;
+  --board:#081222; --board-2:#13243F; --board-line:#2C4670;
+  --good:#5CC489; --warn:#F0A24C; --navy:#8FA8D8; --mod:#E3B341; --bad:#F2766B;
+  --shadow:0 12px 28px -18px rgba(0,0,0,.7); --t-rest:#5872A8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1729; --surface:#14233D; --sub:#1D3050; --ink:#E8EEF4; --muted:#A3B5C8; --line:#2A3F62;
+  --accent:#E2589F; --accent-ink:#13233F; --accent-soft:#3B1F36;
+  --board:#081222; --board-2:#13243F; --board-line:#2C4670;
+  --good:#5CC489; --warn:#F0A24C; --navy:#8FA8D8; --mod:#E3B341; --bad:#F2766B;
+  --shadow:0 12px 28px -18px rgba(0,0,0,.7); --t-rest:#5872A8; color-scheme:dark}
+
+body{font-family:var(--body);letter-spacing:0}
+b,strong{font-weight:700}
+h1{font-weight:800;font-size:2.5rem;line-height:.95}
+h2{font-weight:800;font-size:1.65rem;line-height:1;letter-spacing:.005em}
+.big{font-weight:700;font-size:2rem;line-height:1;letter-spacing:.02em}
+.trio .big{font-size:1.75rem}.wallet .big{font-size:1.6rem}.fgnow .big{font-size:1.7rem}
+/* small figures read better in the body face */
+.tag,.ver,.tour-step,.rc-meta,.months span,.months b,.pairs span,.bar .v,.timeline,.amt,.planbtn small{font-family:var(--body)}
+.c-txt{font:11px var(--body)}.c-code{font:700 10px var(--body)}
+.probadge,.rc-badge{font-family:var(--display);font-weight:800;letter-spacing:.06em;text-transform:none}
+.probadge{background:var(--beacon);color:#13233F}
+
+/* app bar */
+.appbar{box-shadow:0 1px 0 var(--board-line)}
+.brand{font-weight:800;font-size:1.6rem}
+.brand b{color:var(--beacon);font-weight:800}
+.destbtn{border-radius:999px;padding:6px 14px}
+.destbtn #hChip{font-family:var(--display);font-weight:800;font-size:1.1rem;color:var(--beacon);letter-spacing:.05em}
+.joinbtn{background:var(--beacon);color:#13233F;border-radius:999px;font-weight:700}
+.avatar{color:var(--beacon)}
+
+/* buttons */
+.btn{background:var(--ink);color:var(--bg);border-radius:999px;box-shadow:none;font-weight:700;padding:11px 18px}
+.btn:hover{filter:none;background:var(--accent);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.ghost:hover{background:var(--surface);color:var(--ink)}
+.linkbtn,.place a,#proSheet a{color:var(--accent)}
+.banner .btn,.base .btn{border-radius:999px}
+.guesthero .btn{background:var(--beacon);color:#13233F}
+.guesthero .btn:hover{background:#fff}
+
+/* cards */
+.card{border-radius:18px;border-color:var(--line);box-shadow:var(--shadow)}
+.note{border-left-color:var(--accent)}
+.seg{border-radius:999px}
+.seg button{border-radius:999px;font-weight:700}
+.seg button[aria-selected="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
+.typeseg{border-radius:999px}.typeseg .chip{border-radius:999px}
+.typeseg .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
+.chip{font-weight:700}
+.tile{border-radius:14px;background:var(--surface)}
+.tile b{font-family:var(--display);font-weight:800;font-size:1.3rem;line-height:1.05}
+.tile:hover{border-color:var(--accent)}
+.field input,.field select,.row input,.row select,.sheet input,.whenrow input,.composer textarea,.opts select{background:var(--surface);border-width:1.5px}
+.field input:focus,.field select:focus,.row input:focus,.sheet input:focus,.whenrow input:focus,.composer textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+:focus-visible{outline-color:var(--accent)}
+
+/* Today: the boarding pass becomes a departures board with a live globe */
+.pass{background:var(--board);box-shadow:0 30px 50px -30px rgba(19,35,63,.7);padding-top:0;--board-muted:#9FB2C6;--board-line:#34507A}
+.pass-globe{display:block;width:calc(100% + 40px);height:200px;margin:0 -20px -6px;cursor:grab;touch-action:pan-y}
+.pass-globe:active{cursor:grabbing}
+:root:not(.has-globe) .pass-globe{height:12px}
+.pass .route{position:relative}
+.leg .code{font-family:var(--display);font-weight:800;font-size:3rem;letter-spacing:.03em}
+.leg .from{font-size:1.9rem;color:var(--board-muted)}
+.pass .code:not(.from),.leg.right .code{color:var(--beacon)}
+.leg .city{font-weight:800;font-size:1.4rem}
+.flight{color:#E2589F}
+.flight line{stroke-dasharray:2 6;stroke-width:2.5}
+.perf::before,.perf::after{background:var(--bg)}
+.times .t{font-family:var(--display);font-weight:700;font-size:1.9rem;letter-spacing:.03em}
+.pass .status{color:var(--beacon)}
+.pass .status.ok{color:#7FE0A9}
+.wxline{border-radius:999px;padding:8px 14px}
+.wxline b{font-family:var(--display);font-weight:700;font-size:1.05rem}
+
+/* planner + charts */
+.timeline{border-radius:999px;font-weight:700}
+.t-free{background:var(--accent)!important;color:#fff!important}
+.legend span[style*="--good"]{--c:var(--accent)!important}
+.bar .fill,.months i,.pairs .s,.c-spent,.c-dot{background:var(--accent);fill:var(--accent)}
+.c-line{stroke:var(--accent)}.c-area{fill:var(--accent)}
+
+/* bottom bar */
+.tabbar{background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.tabbar button{font-weight:700}
+.tabbar button[aria-selected="true"]{color:var(--ink)}
+.tabbar button[aria-selected="true"] svg{background:var(--ink);stroke:var(--bg)}
+
+/* crew feed */
+.post{border-radius:22px}
+.pav{background:hsl(var(--h) 55% 38%)}
+.pact .ptag{background:var(--accent-soft);color:var(--accent)}
+.guesthero{background:var(--board)}
+.prolock{background:color-mix(in srgb,var(--beacon) 14%,var(--surface));border-color:var(--beacon)}
+.planbtn{border-radius:16px}
+.planbtn.best{border-color:var(--accent)}
+.planbtn .p{font-family:var(--display);font-weight:800;font-size:1.6rem}
+
+/* roster */
+.rc-day.sel{outline-color:var(--accent)}
+.rc-drop.has{border-color:var(--accent)}
+.rc-link{color:var(--accent)}
+
+/* sign-in screen with a turning globe */
+.login{overflow-x:hidden}
+.login .wrap{position:relative;align-content:end;padding-top:min(52vh,420px)}
+.login-globe{position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(760px,135vw);height:min(60vh,520px);pointer-events:auto;cursor:grab;touch-action:pan-y}
+.login-globe::after{content:none}
+.login-hero,.login .card,.guestbtn,.login .fine{position:relative}
+.login-hero h1{font-size:3.2rem;line-height:.9}
+.login-route{font-family:var(--display);font-weight:800;font-size:1.4rem}
+.login-route i{border-top-color:#E2589F}
+.login-route b{color:var(--beacon);font-weight:800}
+.login .card{border:0}
+.guestbtn{border-radius:999px}
+:root:not(.has-globe) .login .wrap{align-content:center;padding-top:32px}
+@media (min-width:900px){
+  .login .wrap{max-width:1100px;grid-template-columns:1fr 420px;align-content:center;column-gap:48px;padding-top:32px}
+  .login-globe{left:auto;right:auto;transform:none;left:-6%;top:50%;margin-top:-300px;width:min(680px,56vw);height:600px}
+  .login-hero{grid-column:1;align-self:end;z-index:1}
+  .login .card,.login .guestbtn,.login .fine{grid-column:2}
+  .login-hero{grid-row:1/span 3;align-self:end;padding-bottom:12px}
+}
+@media (max-width:380px){h1{font-size:2.2rem}.leg .code{font-size:2.5rem}.times .t{font-size:1.6rem}.pass-globe{height:170px}}
+
+/* ---- v5.1 polish ---- */
+body{background:
+  radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%),
+  linear-gradient(color-mix(in srgb,var(--ink) 4.5%,transparent) 1px,transparent 1px) 0 0/44px 44px,
+  linear-gradient(90deg,color-mix(in srgb,var(--ink) 4.5%,transparent) 1px,transparent 1px) 0 0/44px 44px,
+  var(--bg);background-attachment:fixed}
+.brand{font-size:1.45rem;flex:1 1 auto}
+@media (max-width:400px){.brand{font-size:1.3rem}.destbtn .lbl{display:none}.destbtn{padding:6px 12px}}
+.appbar{background:color-mix(in srgb,var(--board) 94%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+
+/* page heads */
+.pagehead h1{font-size:2.9rem;line-height:.9;padding-top:4px}
+.pagehead h1 .dn{display:block;color:var(--accent);font-weight:700;font-size:.62em;letter-spacing:.02em;margin-top:2px}
+.seg{background:color-mix(in srgb,var(--ink) 8%,transparent);border:1px solid var(--line)}
+
+/* cards: lighter edge, softer depth */
+.card{border-radius:22px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 100%,#fff 0%),var(--surface));
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 18px 36px -26px rgba(19,35,63,.45)}
+.card > h2,.cardhead h2{position:relative;padding-left:14px}
+.card > h2::before,.cardhead h2::before{content:"";position:absolute;left:0;top:.12em;bottom:.12em;width:4px;border-radius:4px;background:var(--accent)}
+
+/* Today pass: night glow behind the globe */
+.pass{border-radius:26px;background:
+  radial-gradient(80% 55% at 50% 22%,rgba(226,88,159,.22),transparent 70%),
+  radial-gradient(60% 45% at 20% 0%,rgba(78,124,214,.35),transparent 70%),
+  var(--board)}
+.times > div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 12px}
+.times .lbl{font-size:.75rem}
+.bodyline{background:rgba(240,180,41,.08);border-radius:14px;padding:10px 12px}
+
+/* free-time bar */
+.timeline{height:34px;box-shadow:inset 0 0 0 1px var(--line)}
+.freebox{background:color-mix(in srgb,var(--accent) 7%,var(--surface));border-radius:16px;padding:14px 16px}
+#freeH{color:var(--accent);font-size:2.6rem}
+
+/* fatigue level stripe */
+.fgnow{border-left:6px solid var(--c,var(--line));background:color-mix(in srgb,var(--c,var(--ink)) 8%,var(--surface))}
+.fgnow.low{--c:var(--good)}.fgnow.mod{--c:var(--mod)}.fgnow.high{--c:var(--bad)}
+.fgnow .big{font-size:2.4rem}
+.rulebox{border-radius:16px;background:var(--surface)}
+
+/* quick finds with icons */
+.tiles{gap:10px}
+.tile{gap:6px;padding:14px 12px;border-radius:18px;min-width:0;transition:transform .15s var(--ease),border-color .15s var(--ease),box-shadow .15s var(--ease)}
+.tile b{font-size:1.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .ti{width:38px;height:38px;padding:8px;border-radius:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:#fff;background:var(--tc,var(--ink));margin-bottom:4px}
+.tile[data-go="food"]{--tc:#B0136E}.tile[data-go="groc"]{--tc:#13774A}.tile[data-go="pharm"]{--tc:#C3271F}
+.tile[data-go="cafe"]{--tc:#8A5A2B}.tile[data-go="money"]{--tc:#2E4E86}.tile[data-go="sight"]{--tc:#C98A00}
+.tile:hover{box-shadow:0 12px 24px -16px rgba(19,35,63,.5)}
+.tile:active{transform:scale(.97)}
+.tile span{white-space:normal;line-height:1.3}
+@media (max-width:400px){.tile{padding:12px 10px}.tile b{font-size:1.1rem}}
+
+/* floating bottom bar */
+.tabbar{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:4px;border:1px solid var(--line);border-radius:26px;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);box-shadow:0 18px 40px -18px rgba(19,35,63,.55);max-width:560px;margin:0 auto}
+.tabbar button{padding:6px 2px 6px;border-radius:20px}
+main .wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(96px + env(safe-area-inset-bottom,0px));border-radius:18px;padding:12px 20px;background:var(--board);color:#F3F7F9;border:1px solid var(--board-line);text-align:center;font-weight:700}
+
+/* sheets and banners */
+.backdrop{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);background:rgba(8,18,34,.45)}
+.sheet{border-radius:26px;box-shadow:0 30px 60px -20px rgba(8,18,34,.55)}
+.sheet h2{font-size:2rem}
+.banner,.base{border-radius:18px;background:var(--board);color:#F3F7F9}
+.banner .btn{background:var(--beacon);color:#13233F}
+.banner .btn.ghost,.base .btn.ghost{background:transparent;color:#F3F7F9;border-color:rgba(255,255,255,.4)}
+.base .btn{background:var(--beacon);color:#13233F}
+.nb-ask{border-radius:18px;background:color-mix(in srgb,var(--accent) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 22%,transparent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.post{box-shadow:0 18px 36px -26px rgba(19,35,63,.5)}
+.empty,.card > .hint:only-of-type{font-style:normal}
+
+@media (prefers-reduced-motion:no-preference){
+  .pass{animation:passin .6s var(--ease) both}
+  @keyframes passin{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card{box-shadow:0 18px 36px -26px rgba(0,0,0,.8)}}
+:root[data-theme="dark"] .card{box-shadow:0 18px 36px -26px rgba(0,0,0,.8)}
+
+/* ---- v5.2 postcards ---- */
+.postcard{margin:0;position:relative;border-radius:26px;overflow:hidden;aspect-ratio:16/11;background:var(--board);
+  box-shadow:0 26px 44px -28px rgba(19,35,63,.75);border:6px solid var(--surface);outline:1px solid var(--line);opacity:0;transform:translateY(8px) rotate(-.6deg);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.postcard.in{opacity:1;transform:rotate(-.6deg)}
+.postcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.postcard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,18,34,0) 45%,rgba(8,18,34,.82) 100%);pointer-events:none}
+.postcard figcaption{position:absolute;left:18px;right:96px;bottom:16px;z-index:1;color:#fff;display:grid;gap:2px}
+.pc-from{font-size:.875rem;font-weight:700;color:var(--beacon)}
+.pc-what{font-family:var(--display);font-weight:800;font-size:2.1rem;line-height:.95;text-wrap:balance;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.pc-stamp{position:absolute;top:14px;right:14px;z-index:1;width:70px;height:82px;background:#F7FAFB;padding:5px;border-radius:3px;transform:rotate(4deg);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.pc-stamp::after{content:"";position:absolute;left:-22px;bottom:-14px;width:52px;height:52px;border-radius:50%;border:2px solid rgba(247,250,251,.85);background:repeating-linear-gradient(0deg,transparent 0 7px,rgba(247,250,251,.7) 7px 9px);-webkit-mask:radial-gradient(circle,#000 60%,transparent 62%);mask:radial-gradient(circle,#000 60%,transparent 62%);opacity:.8}
+.pc-stamp b{display:grid;place-items:center;height:100%;border:2px solid #B0136E;color:#13233F;font-family:var(--display);font-weight:800;font-size:1.5rem;letter-spacing:.04em;
+  background:repeating-linear-gradient(135deg,#FCE4EF 0 6px,#F7FAFB 6px 12px)}
+.pc-credit{position:absolute;right:14px;bottom:12px;z-index:1;color:rgba(255,255,255,.8);font-size:.72rem;text-decoration:none}
+.pc-credit:hover{text-decoration:underline}
+.list li.withpic{grid-template-columns:56px 1fr auto;column-gap:14px}
+.list li.withpic .m{grid-column:2/-1}
+.trpic{grid-row:span 2;align-self:start;width:56px;height:56px;border-radius:14px;background:var(--board) center/cover no-repeat;color:var(--beacon);
+  display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;overflow:hidden;transition:color .3s}
+.trpic.in{color:transparent}
+@media (max-width:380px){.pc-what{font-size:1.75rem}.pc-stamp{width:58px;height:68px}.postcard figcaption{right:80px}}
+@media (prefers-reduced-motion:reduce){.postcard,.postcard.in{transition:none;transform:none}}
 </style>
 
 <div class="login" id="login" hidden>
   <div class="wrap">
+    <canvas class="login-globe" id="loginGlobe" aria-hidden="true"></canvas>
     <div class="login-hero">
       <div class="brand">Layover <b>Logbook</b></div>
       <div class="login-route" aria-hidden="true">HOME <i></i> <b>ANY</b></div>
@@ -761,7 +1011,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
 
 <div class="appbar">
   <div class="wrap">
-    <div class="brand">Layover <b>Logbook</b> <span class="ver">v4.9</span></div>
+    <div class="brand">Layover <b>Logbook</b> <span class="ver">v5.2</span></div>
     <div class="barright">
     <button class="avatar" type="button" id="acctBtn" hidden aria-label="Your account"></button>
     <button class="joinbtn" type="button" id="joinBtn" hidden>Sign up</button>
@@ -824,6 +1074,7 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <span class="row"><button class="btn" type="button" id="installBtn" hidden>Install</button><button class="btn ghost" type="button" id="installClose">Got it</button></span>
   </div>
   <div class="pass">
+    <canvas class="pass-globe" id="passGlobe" aria-label="Globe showing your route from home to this layover. Drag to turn it." role="img"></canvas>
     <div class="route">
       <button class="leg homeleg" type="button" id="homeBtn" aria-label="Change your home base"><span class="code from hs">DOH</span><span class="ctry"><span class="hn">Doha</span>, change</span></button>
       <div class="flight" aria-hidden="true">
@@ -840,6 +1091,16 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
     <div class="bodyline"><span id="bodyStatus"></span><p id="bodyAdvice"></p></div>
     <div class="wxline" id="wxCard" hidden><span id="wx"></span><span id="wxTip"></span></div>
   </div>
+
+  <figure class="postcard" id="postcard" hidden>
+    <img alt="" decoding="async">
+    <figcaption>
+      <span class="pc-from"></span>
+      <b class="pc-what"></b>
+    </figcaption>
+    <span class="pc-stamp" aria-hidden="true"><b></b></span>
+    <a class="pc-credit" href="#" target="_blank" rel="noopener">Photo: Wikipedia</a>
+  </figure>
 
   <div class="card">
     <div class="cardhead"><h2>Your free time</h2><span class="hint">Rest comes first</span></div>
@@ -885,12 +1146,12 @@ input[aria-invalid="true"],textarea[aria-invalid="true"],select[aria-invalid="tr
   <div class="card">
     <h2>Quick finds near you</h2>
     <div class="tiles">
-      <button class="tile" type="button" data-go="food"><b>Food</b><span>Restaurants</span></button>
-      <button class="tile" type="button" data-go="groc"><b>Groceries</b><span>Supermarkets</span></button>
-      <button class="tile" type="button" data-go="pharm"><b>Pharmacy</b><span>Open nearby</span></button>
-      <button class="tile" type="button" data-go="cafe"><b>Coffee</b><span>Cafés</span></button>
-      <button class="tile" type="button" data-go="money"><b>Cash</b><span>ATM, exchange</span></button>
-      <button class="tile" type="button" data-go="sight"><b>Sights</b><span>Things to see</span></button>
+      <button class="tile" type="button" data-go="food"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 1-3 4-3 7h3v11"/></svg><b>Food</b><span>Restaurants</span></button>
+      <button class="tile" type="button" data-go="groc"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg><b>Groceries</b><span>Supermarkets</span></button>
+      <button class="tile" type="button" data-go="pharm"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg><b>Pharmacy</b><span>Open nearby</span></button>
+      <button class="tile" type="button" data-go="cafe"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 3v3M12 3v3"/></svg><b>Coffee</b><span>Cafés</span></button>
+      <button class="tile" type="button" data-go="money"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg><b>Cash</b><span>ATM, exchange</span></button>
+      <button class="tile" type="button" data-go="sight"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V10l7-5 7 5v10M9 20v-5h6v5"/></svg><b>Sights</b><span>Things to see</span></button>
     </div>
   </div>
 </section>
@@ -1424,6 +1685,7 @@ const Home={code:"DOH",name:"Doha",cc:"QA",tz:"Asia/Qatar",cur:"QAR",short:"DOH"
 /* Built-in destinations: code|city|country|timezone|lat|lon. Any other place can be searched in the desktop app. */
 const DEST_DATA = `DOH|Doha|QA|Asia/Qatar|25.286|51.533;DXB|Dubai|AE|Asia/Dubai|25.205|55.271;LHR|London|GB|Europe/London|51.507|-0.128;MAN|Manchester|GB|Europe/London|53.481|-2.243;BHX|Birmingham|GB|Europe/London|52.486|-1.890;EDI|Edinburgh|GB|Europe/London|55.953|-3.189;DUB|Dublin|IE|Europe/Dublin|53.350|-6.260;CDG|Paris|FR|Europe/Paris|48.857|2.352;NCE|Nice|FR|Europe/Paris|43.710|7.262;FRA|Frankfurt|DE|Europe/Berlin|50.110|8.682;MUC|Munich|DE|Europe/Berlin|48.137|11.576;BER|Berlin|DE|Europe/Berlin|52.520|13.405;DUS|Düsseldorf|DE|Europe/Berlin|51.227|6.773;AMS|Amsterdam|NL|Europe/Amsterdam|52.370|4.895;BRU|Brussels|BE|Europe/Brussels|50.850|4.352;ZRH|Zurich|CH|Europe/Zurich|47.377|8.541;GVA|Geneva|CH|Europe/Zurich|46.204|6.143;VIE|Vienna|AT|Europe/Vienna|48.208|16.373;FCO|Rome|IT|Europe/Rome|41.903|12.496;MXP|Milan|IT|Europe/Rome|45.464|9.190;VCE|Venice|IT|Europe/Rome|45.441|12.316;MAD|Madrid|ES|Europe/Madrid|40.417|-3.704;BCN|Barcelona|ES|Europe/Madrid|41.385|2.173;LIS|Lisbon|PT|Europe/Lisbon|38.722|-9.139;ATH|Athens|GR|Europe/Athens|37.984|23.728;IST|Istanbul|TR|Europe/Istanbul|41.008|28.978;CPH|Copenhagen|DK|Europe/Copenhagen|55.676|12.568;OSL|Oslo|NO|Europe/Oslo|59.913|10.752;ARN|Stockholm|SE|Europe/Stockholm|59.329|18.069;HEL|Helsinki|FI|Europe/Helsinki|60.170|24.938;WAW|Warsaw|PL|Europe/Warsaw|52.230|21.012;PRG|Prague|CZ|Europe/Prague|50.075|14.438;BUD|Budapest|HU|Europe/Budapest|47.498|19.040;OTP|Bucharest|RO|Europe/Bucharest|44.427|26.103;SOF|Sofia|BG|Europe/Sofia|42.698|23.322;TBS|Tbilisi|GE|Asia/Tbilisi|41.716|44.783;GYD|Baku|AZ|Asia/Baku|40.409|49.867;EVN|Yerevan|AM|Asia/Yerevan|40.179|44.499;ALA|Almaty|KZ|Asia/Almaty|43.238|76.946;TAS|Tashkent|UZ|Asia/Tashkent|41.299|69.240;JFK|New York|US|America/New_York|40.713|-74.006;BOS|Boston|US|America/New_York|42.360|-71.059;IAD|Washington|US|America/New_York|38.907|-77.037;PHL|Philadelphia|US|America/New_York|39.953|-75.165;MIA|Miami|US|America/New_York|25.762|-80.192;ATL|Atlanta|US|America/New_York|33.749|-84.388;ORD|Chicago|US|America/Chicago|41.878|-87.630;DFW|Dallas|US|America/Chicago|32.777|-96.797;IAH|Houston|US|America/Chicago|29.760|-95.370;LAX|Los Angeles|US|America/Los_Angeles|34.052|-118.244;SFO|San Francisco|US|America/Los_Angeles|37.775|-122.419;SEA|Seattle|US|America/Los_Angeles|47.606|-122.332;YUL|Montreal|CA|America/Toronto|45.502|-73.567;YYZ|Toronto|CA|America/Toronto|43.653|-79.383;GRU|São Paulo|BR|America/Sao_Paulo|-23.551|-46.633;EZE|Buenos Aires|AR|America/Argentina/Buenos_Aires|-34.604|-58.382;BOG|Bogotá|CO|America/Bogota|4.711|-74.072;CAI|Cairo|EG|Africa/Cairo|30.044|31.236;CMN|Casablanca|MA|Africa/Casablanca|33.573|-7.589;RAK|Marrakech|MA|Africa/Casablanca|31.629|-7.981;TUN|Tunis|TN|Africa/Tunis|36.806|10.181;ALG|Algiers|DZ|Africa/Algiers|36.754|3.059;NBO|Nairobi|KE|Africa/Nairobi|-1.292|36.822;ADD|Addis Ababa|ET|Africa/Addis_Ababa|9.030|38.740;DAR|Dar es Salaam|TZ|Africa/Dar_es_Salaam|-6.792|39.208;ZNZ|Zanzibar|TZ|Africa/Dar_es_Salaam|-6.165|39.199;EBB|Entebbe|UG|Africa/Kampala|0.051|32.443;KGL|Kigali|RW|Africa/Kigali|-1.944|30.062;LOS|Lagos|NG|Africa/Lagos|6.524|3.379;ABV|Abuja|NG|Africa/Lagos|9.077|7.399;ACC|Accra|GH|Africa/Accra|5.604|-0.187;JNB|Johannesburg|ZA|Africa/Johannesburg|-26.204|28.047;CPT|Cape Town|ZA|Africa/Johannesburg|-33.925|18.424;DUR|Durban|ZA|Africa/Johannesburg|-29.858|31.022;MPM|Maputo|MZ|Africa/Maputo|-25.969|32.573;LUN|Lusaka|ZM|Africa/Lusaka|-15.388|28.322;HRE|Harare|ZW|Africa/Harare|-17.829|31.053;WDH|Windhoek|NA|Africa/Windhoek|-22.560|17.066;SEZ|Mahé|SC|Indian/Mahe|-4.620|55.455;MRU|Mauritius|MU|Indian/Mauritius|-20.161|57.501;RUH|Riyadh|SA|Asia/Riyadh|24.713|46.675;JED|Jeddah|SA|Asia/Riyadh|21.486|39.193;MED|Medina|SA|Asia/Riyadh|24.467|39.611;DMM|Dammam|SA|Asia/Riyadh|26.420|50.089;KWI|Kuwait City|KW|Asia/Kuwait|29.376|47.977;BAH|Bahrain|BH|Asia/Bahrain|26.228|50.586;MCT|Muscat|OM|Asia/Muscat|23.588|58.383;AMM|Amman|JO|Asia/Amman|31.954|35.911;BEY|Beirut|LB|Asia/Beirut|33.894|35.502;BGW|Baghdad|IQ|Asia/Baghdad|33.315|44.366;EBL|Erbil|IQ|Asia/Baghdad|36.191|44.009;IKA|Tehran|IR|Asia/Tehran|35.689|51.389;KHI|Karachi|PK|Asia/Karachi|24.861|67.010;LHE|Lahore|PK|Asia/Karachi|31.520|74.359;ISB|Islamabad|PK|Asia/Karachi|33.684|73.048;DEL|Delhi|IN|Asia/Kolkata|28.614|77.209;BOM|Mumbai|IN|Asia/Kolkata|19.076|72.878;BLR|Bengaluru|IN|Asia/Kolkata|12.972|77.595;MAA|Chennai|IN|Asia/Kolkata|13.083|80.271;HYD|Hyderabad|IN|Asia/Kolkata|17.385|78.487;COK|Kochi|IN|Asia/Kolkata|9.931|76.267;CCU|Kolkata|IN|Asia/Kolkata|22.573|88.364;CMB|Colombo|LK|Asia/Colombo|6.927|79.861;MLE|Malé|MV|Indian/Maldives|4.175|73.509;KTM|Kathmandu|NP|Asia/Kathmandu|27.717|85.324;DAC|Dhaka|BD|Asia/Dhaka|23.811|90.413;BKK|Bangkok|TH|Asia/Bangkok|13.756|100.502;HKT|Phuket|TH|Asia/Bangkok|7.880|98.392;KUL|Kuala Lumpur|MY|Asia/Kuala_Lumpur|3.139|101.687;SIN|Singapore|SG|Asia/Singapore|1.290|103.852;CGK|Jakarta|ID|Asia/Jakarta|-6.208|106.846;DPS|Bali|ID|Asia/Makassar|-8.650|115.216;MNL|Manila|PH|Asia/Manila|14.599|120.984;SGN|Ho Chi Minh City|VN|Asia/Ho_Chi_Minh|10.823|106.630;HAN|Hanoi|VN|Asia/Ho_Chi_Minh|21.028|105.854;PNH|Phnom Penh|KH|Asia/Phnom_Penh|11.556|104.928;HKG|Hong Kong|HK|Asia/Hong_Kong|22.319|114.169;PVG|Shanghai|CN|Asia/Shanghai|31.230|121.474;PEK|Beijing|CN|Asia/Shanghai|39.904|116.407;CAN|Guangzhou|CN|Asia/Shanghai|23.129|113.264;TPE|Taipei|TW|Asia/Taipei|25.033|121.565;ICN|Seoul|KR|Asia/Seoul|37.566|126.978;NRT|Tokyo|JP|Asia/Tokyo|35.681|139.767;KIX|Osaka|JP|Asia/Tokyo|34.694|135.502;SYD|Sydney|AU|Australia/Sydney|-33.869|151.209;MEL|Melbourne|AU|Australia/Melbourne|-37.814|144.963;BNE|Brisbane|AU|Australia/Brisbane|-27.470|153.026;PER|Perth|AU|Australia/Perth|-31.951|115.861;ADL|Adelaide|AU|Australia/Adelaide|-34.929|138.601;AKL|Auckland|NZ|Pacific/Auckland|-36.849|174.763`;
 const DESTS = DEST_DATA.split(";").map(s=>{const [code,name,cc,tz,lat,lon]=s.split("|");return {code,name,cc,tz,lat:+lat,lon:+lon}});
+window.LAYOVER_DESTS=DESTS;
 
 /* Country basics: currency code, currency name, plug types, voltage, emergency numbers (null = confirm locally) */
 const COUNTRY = {
@@ -1536,6 +1798,7 @@ const $ = id => document.getElementById(id);
 let regionNames; try{regionNames=new Intl.DisplayNames(["en"],{type:"region"})}catch(e){}
 const countryName = cc => { try{return regionNames?regionNames.of(cc):cc}catch(e){return cc} };
 
+window.LAYOVER_STATE=()=>({home:state.home||{code:"DOH",name:"Doha",tz:"Asia/Qatar"},dest:state.dest});
 let state = {dest:DESTS.find(d=>d.code==="LHR"),len:8,en:"any",tips:{},wish:{},wallet:{},tx:[],visits:[],rates:null,trips:[]};
 function loadState(){
   state = {
@@ -1653,6 +1916,8 @@ function renderHeader(){
   $("hCode").textContent=d.code||d.cc||"—"; $("hName").textContent=d.name; $("hCountry").textContent=d.cc?countryName(d.cc):"";
   $("hChip").textContent=d.code||d.name;
   document.querySelectorAll(".dn").forEach(e=>e.textContent=d.name);
+  if(window.LGlobe) LGlobe.update();
+  if(window.LayoverPostcard) LayoverPostcard.today(d);
 }
 function renderClocks(){
   const d=state.dest;
@@ -2240,8 +2505,9 @@ function renderTrips(){
   $("trList").innerHTML=list.length?list.map(tr=>{
     const hrs=(tr.pickUTC-tr.arrUTC)/36e5;
     const meta=[tr.ex?"Example":"",`${fmtDate(tr.arr.slice(0,10))} → ${fmtDate(tr.pick.slice(0,10))}`,`${fmtH(hrs)} on the ground`,`${fmtShift(tr.diff)} vs ${Home.short}`,tr.allow?`Allowance ${fmtMoney(tr.allowCur,tr.allow)}`:"No allowance entered"].filter(Boolean).map(esc).join(" · ");
-    return `<li><span class="t">${esc(tr.dest)}</span><button class="x" type="button" data-tr="${tr.id}" aria-label="Delete layover">×</button><span class="m">${meta}</span></li>`;
+    return `<li class="withpic"><span class="trpic" data-pc="${esc(tr.code||"")}" data-pcn="${esc(tr.dest)}" aria-hidden="true">${esc((tr.code||tr.dest).slice(0,3))}</span><span class="t">${esc(tr.dest)}</span><button class="x" type="button" data-tr="${tr.id}" aria-label="Delete layover">×</button><span class="m">${meta}</span></li>`;
   }).join(""):`<li class="empty">No layovers yet. Save one on Today.</li>`;
+  if(window.LayoverPostcard) LayoverPostcard.fill($("trList"));
 }
 $("trList").addEventListener("click",e=>{
   const b=e.target.closest("[data-tr]"); if(!b) return;
@@ -2907,7 +3173,7 @@ function renderCheck(){
   const wk=scored.filter(s=>s.tr.arrUTC>arrUTC-7*864e5&&s.tr.arrUTC<=arrUTC).reduce((a,s)=>a+s.s,0), wl=weekLvl(wk);
   const why=x.f.length?x.f.join(" · "):"No big time change and plenty of time on the ground";
   const tip={low:"Your body clock should cope well with this one.",mod:"Plan your sleep around home time and keep caffeine early.",high:"Make rest your priority on this layover. If you feel unfit to fly, use your company's fatigue reporting process."}[x.lvl];
-  el.innerHTML=`<div class="fgnow"><div><span class="label">${esc(d.name)}, ${fmtShift(x.tr.diff)} vs ${esc(Home.short)}</span><div class="big">${x.s} points<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span></div></div><p class="hint" style="flex:1 1 200px">${esc(why)}. ${tip}</p></div>
+  el.innerHTML=`<div class="fgnow ${x.lvl}"><div><span class="label">${esc(d.name)}, ${fmtShift(x.tr.diff)} vs ${esc(Home.short)}</span><div class="big">${x.s} points<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span></div></div><p class="hint" style="flex:1 1 200px">${esc(why)}. ${tip}</p></div>
     <div class="rulebox ${rc.v}"><span class="label">Flight time rules (EASA reference)</span><b>${esc(rc.label)}</b><span>${esc(rc.lines.join(" · "))}</span></div>
     <p class="hint">With the layovers you saved in the 7 days before it: <b>${Math.round(wk*10)/10} points, ${LVL[wl].toLowerCase()} week</b>.${state.trips.length?"":" Save your layovers to include them."}</p>`;
 }
