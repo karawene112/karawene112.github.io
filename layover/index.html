@@ -21,7 +21,7 @@
 <link rel="icon" href="/layover/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/layover/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/layover/apple-touch-icon.png">
-<meta name="theme-color" content="#14223A">
+<meta name="theme-color" content="#13233F">
 <meta name="description" content="Plan every layover around your body clock, check your roster against flight time limits, track your allowance and see where crew go. Free for any airline.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://karawene112.github.io/layover/">
@@ -40,353 +40,478 @@
 <meta name="twitter:image" content="https://karawene112.github.io/layover/og-layover.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<style>
-  :root{
-    --night:#0d1838; --night-2:#16245a; --tile:#111c44; --tile-line:#2a3a78;
-    --flap:#ffd34d; --signal:#ff7a1a; --good:#5ee0a0; --rest:#9fb4ff;
-    --paper:#eef2fb; --surface:#ffffff; --ink:#0d1838; --muted:#46557f; --line:#cfd8ee;
-    --sky:linear-gradient(140deg,#131f5c 0%,#4b2a93 42%,#d83f7d 78%,#ff9440 100%);
-    --display:"Barlow Condensed",system-ui,sans-serif; --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{--paper:#0a1130;--surface:#121b44;--ink:#eef2ff;--muted:#aeb9de;--line:#26346c}
-  }
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-  body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.6 var(--body);-webkit-font-smoothing:antialiased}
-  a{color:inherit}
-  img{max-width:100%;display:block}
-  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
-  :focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}
-
-  /* ---------- top bar ---------- */
-  .top{position:sticky;top:0;z-index:10;background:rgba(13,24,56,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
-  .top .wrap{display:flex;align-items:center;gap:20px;height:60px}
-  .brand{font:700 1.375rem/1 var(--display);letter-spacing:.01em;text-decoration:none;margin-right:auto;white-space:nowrap}
-  .brand span{color:var(--signal)}
-  .top nav{display:flex;gap:20px;font-weight:500}
-  .top nav a{text-decoration:none;opacity:.85}
-  .top nav a:hover{opacity:1}
-  .cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 1rem/1 var(--body);text-decoration:none;border-radius:999px;padding:13px 20px;background:linear-gradient(135deg,#ff9a2e,#ff6a2a);color:#1c0d00;border:0;cursor:pointer;white-space:nowrap}
-  .cta.small{padding:10px 16px;font-size:.9375rem}
-  .hero .lede,.hero .note{overflow-wrap:break-word}
-  .cta.line{background:transparent;color:inherit;box-shadow:inset 0 0 0 1.5px currentColor}
-  @media (max-width:720px){.top nav{display:none}}
-  @media (max-width:360px){.top .wrap{gap:10px;padding:0 14px}.brand{font-size:1.2rem}.top .cta.small{padding:9px 12px;font-size:.875rem}.wrap{padding:0 14px}.pass .code{font-size:1.875rem;letter-spacing:.16em}}
-
-  /* ---------- hero ---------- */
-  .hero{background:var(--night);color:#fff;position:relative;overflow:hidden}
-  .hero::before{content:"";position:absolute;inset:auto -10% -55% -10%;height:90%;background:var(--sky);filter:blur(60px);opacity:.55;border-radius:50%}
-  .hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center;padding-top:72px;padding-bottom:88px}
-  .hero h1{font:700 clamp(2.75rem,6vw,4.25rem)/.95 var(--display);margin:0 0 20px;letter-spacing:-.005em}
-  .hero p.lede{font-size:1.1875rem;color:rgba(255,255,255,.86);max-width:34ch;margin:0 0 28px}
-  .hero .actions{display:flex;flex-wrap:wrap;gap:12px}
-  .hero .note{margin:20px 0 0;font-size:.9375rem;color:rgba(255,255,255,.7)}
-  @media (max-width:900px){.hero .wrap{grid-template-columns:minmax(0,1fr);padding-top:48px;gap:40px}}
-
-  /* ---------- departure board ---------- */
-  .board{background:#070e26;border:1px solid var(--tile-line);border-radius:18px;padding:18px 18px 14px;box-shadow:0 30px 60px rgba(0,0,0,.45)}
-  .boardhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-  .boardhead h2{font:600 1.25rem/1 var(--display);margin:0;color:#fff;letter-spacing:.02em}
-  .base{display:flex;align-items:center;gap:8px;font-size:.9375rem;color:rgba(255,255,255,.8)}
-  .base select{font:600 1rem var(--display);letter-spacing:.06em;background:var(--tile);color:var(--flap);border:1px solid var(--tile-line);border-radius:8px;padding:6px 28px 6px 10px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--flap) 50%),linear-gradient(135deg,var(--flap) 50%,transparent 50%);background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;background-size:5px 5px;background-repeat:no-repeat}
-  table.flaps{width:100%;border-collapse:separate;border-spacing:0 6px;font:600 1.125rem/1 var(--display);letter-spacing:.06em}
-  table.flaps th{font:500 .8125rem/1 var(--body);letter-spacing:0;color:rgba(255,255,255,.6);text-align:left;padding:0 6px 4px}
-  table.flaps td{padding:0 6px;white-space:nowrap}
-  .f{display:inline-flex;gap:2px}
-  .f i{font-style:normal;display:inline-grid;place-items:center;width:.9em;height:1.45em;background:var(--tile);border-radius:3px;color:var(--flap);position:relative;overflow:hidden}
-  .f i::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.55)}
-  .f.city i{color:#fff}
-  .f.st-ok i{color:var(--good)} .f.st-low i{color:var(--flap)} .f.st-sleep i{color:var(--rest)}
-  @media (prefers-reduced-motion:no-preference){.f i.flip{animation:flip .32s ease-in-out}}
-  @keyframes flip{0%{transform:scaleY(1)}45%{transform:scaleY(.08)}55%{transform:scaleY(.08)}100%{transform:scaleY(1)}}
-  .boardfoot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:.8125rem;color:rgba(255,255,255,.6)}
-  .legend{display:flex;gap:14px}
-  .legend b{font-weight:600}
-  .legend .ok{color:var(--good)} .legend .low{color:var(--flap)} .legend .sl{color:var(--rest)}
-  @media (max-width:560px){
-    table.flaps{font-size:.8125rem;border-spacing:0 5px}
-    table.flaps td,table.flaps th{padding:0 3px}
-    .f{gap:1px}
-    .board{padding:14px 8px 12px}
-    td.c-local, th.c-local{display:none}
-  }
-  @media (max-width:380px){table.flaps{font-size:.75rem}}
-
-  /* ---------- feature rows ---------- */
-  section{padding:96px 0}
-  .intro{max-width:40ch}
-  .intro h2,.sec-title{font:700 clamp(2.125rem,4.5vw,3.25rem)/1 var(--display);margin:0 0 16px}
-  .intro p{color:var(--muted);margin:0}
-  .feature{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center;margin-top:88px}
-  .feature:nth-of-type(even) .phone{order:2}
-  .feature h3{font:700 clamp(1.75rem,3.4vw,2.375rem)/1.05 var(--display);margin:0 0 14px}
-  .feature p{color:var(--muted);margin:0 0 16px;max-width:46ch}
-  .feature ul{margin:0;padding:0;list-style:none;display:grid;gap:10px;max-width:46ch}
-  .feature li{padding-left:22px;position:relative}
-  .feature li::before{content:"";position:absolute;left:0;top:.6em;width:10px;height:10px;border-radius:50%;background:var(--signal)}
-  .phone{justify-self:center;width:min(300px,78vw);border-radius:42px;padding:10px;background:#0b1230;box-shadow:0 30px 60px rgba(13,24,56,.25),inset 0 0 0 1px #2a3a78}
-  .phone img{border-radius:32px;width:100%;height:auto}
-  .caption{font-size:.875rem;color:var(--muted);text-align:center;margin-top:10px}
-  .crewband .caption{color:rgba(255,255,255,.8)}
-  .phone .caption{color:#c3cdee}
-  @media (max-width:860px){.feature{grid-template-columns:minmax(0,1fr);gap:32px;margin-top:72px}.feature:nth-of-type(even) .phone{order:0}}
-
-  /* ---------- crew-only band ---------- */
-  .crewband{background:var(--sky);color:#fff}
-  .crewband .wrap{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:56px;align-items:center}
-  .crewband h2{font:700 clamp(2.125rem,4.5vw,3.25rem)/1 var(--display);margin:0 0 16px}
-  .crewband p{color:rgba(255,255,255,.9);max-width:46ch}
-  .pass{--ink:#0d1838;--muted:#46557f;--line:#cfd8ee;background:#fff;color:var(--ink);border-radius:20px;padding:24px;display:grid;gap:14px;box-shadow:0 24px 48px rgba(13,24,56,.3);position:relative}
-  .pass::before,.pass::after{content:"";position:absolute;top:58%;width:22px;height:22px;border-radius:50%;background:#9a3a86}
-  .pass::before{left:-11px} .pass::after{right:-11px}
-  .pass .lbl{font-size:.875rem;color:var(--muted)}
-  .pass .code{font:700 2.25rem/1 var(--display);letter-spacing:.22em}
-  .pass hr{border:0;border-top:2px dashed var(--line);margin:4px 0}
-  .pass ol{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted);font-size:.9375rem}
-  @media (max-width:860px){.crewband .wrap{grid-template-columns:minmax(0,1fr);gap:40px}}
-
-  /* ---------- pricing ---------- */
-  .plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:40px;max-width:880px}
-  .plan{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:14px}
-  .plan.pro{border:2px solid var(--signal)}
-  .plan h3{font:700 1.75rem/1 var(--display);margin:0}
-  .price{font:700 2.75rem/1 var(--display)}
-  .price small{font:400 1rem var(--body);color:var(--muted)}
-  .plan p{margin:0;color:var(--muted)}
-  .plan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;flex:1;align-content:start}
-  .plan li{padding-left:24px;position:relative}
-  .plan li::before{content:"✓";position:absolute;left:0;color:#0f9d58;font-weight:700}
-  .plan .cta{align-self:flex-start}
-  .billing{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;margin-top:8px}
-  .billing button{font:600 .9375rem var(--body);border:0;background:none;color:var(--muted);border-radius:999px;padding:8px 16px;cursor:pointer}
-  .billing button[aria-pressed="true"]{background:var(--night);color:#fff}
-  @media (prefers-color-scheme:dark){.billing button[aria-pressed="true"]{background:var(--signal);color:#1c0d00}}
-  @media (max-width:720px){.plans{grid-template-columns:minmax(0,1fr)}}
-
-  /* ---------- install ---------- */
-  .install{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:40px 0 0;padding:0;list-style:none;counter-reset:s}
-  .steps li{counter-increment:s}
-  .steps li::before{content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--night);color:#fff;font:700 1.25rem var(--display);margin-bottom:14px}
-  @media (prefers-color-scheme:dark){.steps li::before{background:var(--signal);color:#1c0d00}}
-  .steps h3{font:700 1.375rem/1.1 var(--display);margin:0 0 6px}
-  .steps p{margin:0;color:var(--muted)}
-  @media (max-width:760px){.steps{grid-template-columns:minmax(0,1fr)}}
-
-  /* ---------- closing + footer ---------- */
-  .closing{text-align:left}
-  .closing .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-  .closing h2{font:700 clamp(2rem,4vw,3rem)/1 var(--display);margin:0;max-width:20ch}
-  footer{background:var(--night);color:rgba(255,255,255,.75);padding:40px 0 56px;font-size:.9375rem}
-  footer nav{display:flex;flex-wrap:wrap;gap:10px 24px;margin-bottom:16px}
-  footer nav a{text-decoration:none;color:#fff}
-  footer p{margin:6px 0;max-width:70ch}
-
-  /* ---- touch targets ---- */
-  @media (pointer:coarse){
-    .brand{display:inline-flex;align-items:center;min-height:44px}
-    .cta.small{min-height:44px}
-    #base{min-height:44px}
-    .billing button{min-height:44px;padding:8px 18px}
-    footer a{display:inline-flex;align-items:center;min-height:44px}
-    summary{min-height:44px;display:flex;align-items:center}
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <script src="/consent.js" defer></script>
 <script src="/analytics.js" defer></script>
+<script src="config.js"></script>
+<style>
+:root{
+  --sky:#DCE6EB; --paper:#F3F7F9; --ink:#13233F; --ink-2:#2E4363;
+  --airway:#B0136E; --beacon:#F0B429; --haze:#6E8496; --line:#C3D1D9;
+  --display:"Big Shoulders Display",Impact,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --wrap:min(1180px,100% - 2.5rem);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:
+  linear-gradient(rgba(19,35,63,.045) 1px,transparent 1px) 0 0/48px 48px,
+  linear-gradient(90deg,rgba(19,35,63,.045) 1px,transparent 1px) 0 0/48px 48px,var(--sky);
+  color:var(--ink);font:400 1.0625rem/1.6 var(--body);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img,svg,canvas{display:block}
+:focus-visible{outline:3px solid var(--airway);outline-offset:3px;border-radius:4px}
+.wrap{width:var(--wrap);margin-inline:auto}
+.skip{position:absolute;left:-999px;top:0;background:var(--ink);color:var(--paper);padding:.6rem 1rem;z-index:99}
+.skip:focus{left:1rem;top:1rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:20;background:rgba(220,230,235,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:border-color .2s}
+.nav.scrolled{border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:1.5rem;height:4.25rem}
+.brand{display:flex;align-items:center;gap:.6rem;text-decoration:none;font:800 1.55rem/1 var(--display);letter-spacing:.01em;white-space:nowrap}
+.brand svg{width:30px;height:30px;flex:none}
+.nav ul{display:flex;gap:1.6rem;list-style:none;margin-left:auto}
+.nav ul a{text-decoration:none;font-weight:700;font-size:.95rem;color:var(--ink-2)}
+.nav ul a:hover{color:var(--airway)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.9rem;padding:.7rem 1.3rem;border-radius:999px;border:2px solid var(--ink);font:700 1rem/1 var(--body);text-decoration:none;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.btn-ink{background:var(--ink);color:var(--paper)}
+.btn-ink:hover{background:var(--airway);border-color:var(--airway)}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn-ghost:hover{background:var(--paper)}
+.menu-btn{display:none;margin-left:auto;background:none;border:0;width:44px;height:44px;cursor:pointer}
+.menu-btn span{display:block;width:24px;height:2px;background:var(--ink);margin:6px auto;transition:transform .2s,opacity .2s}
+
+/* hero */
+.hero{position:relative;min-height:calc(100svh - 4.25rem);display:grid;align-items:center;overflow:hidden}
+#globe{position:absolute;top:0;left:36%;width:72%;height:100%;cursor:grab;touch-action:pan-y}
+#globe.dragging{cursor:grabbing}
+.hero .wrap{position:relative;pointer-events:none;padding-block:4rem 6rem}
+.hero-copy{max-width:35rem;pointer-events:auto}
+h1{font:900 clamp(3.3rem,8vw,7rem)/.86 var(--display);text-wrap:balance}
+.lede{margin-top:1.6rem;font-size:clamp(1.08rem,1.6vw,1.25rem);max-width:31rem;color:var(--ink-2)}
+.cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2rem}
+.hero .fine{margin-top:1rem;font-size:.92rem;color:var(--haze)}
+.drag-hint{position:absolute;right:max(1.25rem,calc((100% - 1180px)/2));bottom:2rem;font-size:.85rem;color:var(--haze);display:flex;align-items:center;gap:.5rem;pointer-events:none}
+.drag-hint svg{width:18px;height:18px}
+.city-tag{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);font-size:.82rem;font-weight:700;padding:.35rem .6rem;border-radius:6px;transform:translate(-50%,-140%);white-space:nowrap;opacity:0;transition:opacity .25s;z-index:2}
+.city-tag.on{opacity:1}
+.city-tag::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--ink)}
+
+/* departures board */
+.board-sec{padding:5.5rem 0 4rem}
+.sec-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:1rem 3rem;margin-bottom:2rem}
+h2{font:800 clamp(2.4rem,5vw,4rem)/.95 var(--display);max-width:16ch;text-wrap:balance}
+.sec-head p{max-width:30rem;color:var(--ink-2)}
+.base-pick{display:flex;align-items:center;gap:.7rem;font-weight:700}
+.base-pick select{font:800 1.2rem var(--display);letter-spacing:.05em;padding:.45rem 2.2rem .45rem .9rem;border-radius:999px;border:2px solid var(--ink);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%2313233F' stroke-width='2'/%3E%3C/svg%3E") right .8rem center/12px no-repeat;color:var(--ink);-webkit-appearance:none;appearance:none;cursor:pointer}
+.board{background:var(--ink);color:var(--paper);border-radius:16px;padding:.6rem;box-shadow:0 30px 60px -30px rgba(19,35,63,.55)}
+.board table{width:100%;border-collapse:separate;border-spacing:0 .35rem}
+.board th{font:400 .82rem/1 var(--body);color:#9FB2C6;text-align:left;padding:.7rem 1rem .3rem}
+.board td{padding:.85rem 1rem;background:#1C2F50;vertical-align:middle}
+.board td:first-child{border-radius:8px 0 0 8px}
+.board td:last-child{border-radius:0 8px 8px 0}
+.board tr.row{cursor:pointer}
+.board tr.row:hover td,.board tr.row.active td{background:#25406A}
+.board tr.row.active td:first-child{box-shadow:inset 4px 0 0 var(--airway)}
+.code{font:800 1.9rem/1 var(--display);letter-spacing:.04em;color:var(--beacon)}
+.city{font-weight:700}
+.city small{display:block;font-weight:400;color:#9FB2C6;font-size:.85rem}
+.clock{font:700 1.6rem/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.diff{font:700 1.3rem/1 var(--display);color:#D5E0EA;letter-spacing:.03em}
+.st{display:inline-flex;align-items:center;gap:.45rem;font-weight:700;font-size:.92rem;padding:.35rem .75rem;border-radius:999px;white-space:nowrap}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.st.ok{background:rgba(127,224,169,.14);color:#7FE0A9}
+.st.low{background:rgba(240,180,41,.14);color:var(--beacon)}
+.st.sleep{background:rgba(159,180,255,.14);color:#AFC2FF}
+.go{font-size:.85rem;color:#9FB2C6;white-space:nowrap}
+.board tr.row:hover .go{color:var(--paper)}
+.stamp{margin-top:1rem;font-size:.9rem;color:var(--haze)}
+
+/* features */
+.feature{padding:5rem 0;border-top:1px solid var(--line)}
+.feature .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:4rem;align-items:center}
+.feature.flip .text{order:2}
+.feature h3{font:800 clamp(2.1rem,4vw,3.3rem)/.95 var(--display);margin-bottom:1.1rem;text-wrap:balance}
+.feature p{color:var(--ink-2);max-width:34rem}
+.ticks{list-style:none;margin-top:1.5rem;display:grid;gap:.7rem}
+.ticks li{display:flex;gap:.75rem;align-items:flex-start}
+.ticks li svg{flex:none;width:22px;height:22px;margin-top:.15rem;color:var(--airway)}
+.pro-badge{display:inline-block;background:var(--beacon);color:var(--ink);font:800 .85rem/1 var(--display);letter-spacing:.06em;padding:.25rem .45rem;border-radius:5px;vertical-align:.15em;margin-left:.3rem}
+.small-print{margin-top:1.2rem;font-size:.9rem;color:var(--haze)}
+
+/* phone mocks */
+.phone{width:min(330px,100%);margin-inline:auto;aspect-ratio:9/18.5;background:var(--ink);border-radius:42px;padding:12px;box-shadow:0 40px 70px -35px rgba(19,35,63,.6),inset 0 0 0 2px #2A3E60;transform:perspective(1200px) rotateY(-9deg) rotateX(4deg);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.flip .phone{transform:perspective(1200px) rotateY(9deg) rotateX(4deg)}
+.phone:hover{transform:perspective(1200px) rotateY(0) rotateX(0)}
+.screen{height:100%;background:var(--sky);border-radius:31px;overflow:hidden;display:flex;flex-direction:column;gap:.6rem;font-size:.8rem;padding-bottom:.8rem}
+.screen-top{padding:1.1rem 1rem .1rem;display:flex;justify-content:space-between;align-items:center}
+.screen-top b{font:800 1.45rem/1 var(--display)}
+.chip{font-size:.7rem;padding:.25rem .55rem;border-radius:99px;background:var(--ink);color:var(--beacon);font-weight:700}
+.m-card{margin:0 .7rem;background:var(--paper);border-radius:16px;padding:.75rem;border:1px solid #D3DEE5}
+.m-label{color:var(--haze);font-size:.7rem}
+.m-big{font:800 2rem/1 var(--display);color:var(--airway)}
+.m-pass{margin:0 .7rem;background:var(--ink);color:var(--paper);border-radius:18px;padding:.8rem;display:grid;gap:.5rem}
+.m-route{display:flex;justify-content:space-between;align-items:end}
+.m-route b{font:800 1.9rem/1 var(--display);letter-spacing:.03em}
+.m-route b:last-child{color:var(--beacon)}
+.m-route i{flex:1;border-top:2px dashed #E2589F;margin:0 .6rem .7rem}
+.m-times{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+.m-times span{background:rgba(255,255,255,.07);border-radius:9px;padding:.35rem .45rem;font-size:.62rem;color:#9FB2C6}
+.m-times b{display:block;font:700 1.15rem/1.1 var(--display);color:var(--paper)}
+.m-tl{display:flex;height:22px;border-radius:99px;overflow:hidden;gap:2px;margin:.45rem 0 .3rem;font-size:.6rem;font-weight:700;color:#fff}
+.m-tl span{display:grid;place-items:center}
+.m-post{margin:0 .7rem;height:118px;border-radius:16px;position:relative;overflow:hidden;border:4px solid var(--paper)}
+.m-post b{position:absolute;left:.6rem;bottom:.5rem;color:#fff;font:800 1.25rem/1 var(--display);text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.m-post small{position:absolute;left:.6rem;bottom:1.7rem;color:var(--beacon);font-weight:700;font-size:.62rem}
+.m-row{display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-top:1px solid #E1E9EE}
+.m-row:first-of-type{border-top:0}
+.m-row b{font:700 1.05rem/1 var(--display)}
+.lvl{font-size:.62rem;font-weight:700;padding:.2rem .5rem;border-radius:99px}
+.lvl.l{background:#DDF3E6;color:#13774A}.lvl.m{background:#F8EBC8;color:#8A6400}.lvl.h{background:#FADADB;color:#C3271F}
+.m-bars{display:flex;align-items:flex-end;gap:5px;height:84px;margin-top:.4rem}
+.m-bars i{flex:1;border-radius:4px 4px 0 0;background:#2E4E86}
+.m-bars i.h{background:var(--airway)}
+.m-alert{margin:0 .7rem;background:var(--paper);border-left:4px solid var(--airway);border-radius:10px;padding:.6rem .7rem;line-height:1.35}
+.m-alert b{display:block;color:var(--airway)}
+.m-wallet{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.m-wallet div{background:var(--sky);border-radius:10px;padding:.5rem}
+.m-wallet b{display:block;font:800 1.3rem/1.1 var(--display)}
+.m-cat{display:grid;grid-template-columns:62px 1fr auto;gap:.5rem;align-items:center;margin-top:.45rem;font-size:.7rem}
+.m-cat i{height:7px;border-radius:9px;background:var(--sky);overflow:hidden}
+.m-cat i::before{content:"";display:block;height:100%;width:var(--w);background:var(--airway)}
+
+/* crew feed */
+.crew{background:var(--ink);color:var(--paper);padding:6rem 0;position:relative;overflow:hidden}
+.crew::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 85% 10%,rgba(226,88,159,.18),transparent 70%),radial-gradient(50% 40% at 0% 100%,rgba(78,124,214,.25),transparent 70%);pointer-events:none}
+.crew .wrap{position:relative}
+.crew h2{color:var(--paper);max-width:15ch}
+.crew .sec-head p{color:#B9C8D6}
+.crew-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:4rem;align-items:start}
+.steps{list-style:none;display:grid;gap:2rem;counter-reset:s;border-left:2px dashed #3A5279;margin-left:1rem;padding-top:.2rem}
+.steps li{padding-left:2rem;position:relative}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:-1.05rem;top:0;width:2rem;height:2rem;border-radius:50%;background:var(--beacon);color:var(--ink);display:grid;place-items:center;font:800 1.2rem/1 var(--display)}
+.steps h3{font:800 1.6rem/1 var(--display);margin-bottom:.4rem}
+.steps p{color:#B9C8D6;max-width:36ch}
+.invite{background:#1C2F50;border:1px solid #2C4670;border-radius:22px;padding:1.6rem;display:grid;gap:1rem}
+.invite small{color:#9FB2C6}
+.invite .code-box{font:800 2.6rem/1 var(--display);letter-spacing:.18em;color:var(--beacon);background:#13233F;border:2px dashed #3A5279;border-radius:14px;padding:1rem;text-align:center}
+.guard{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:3rem}
+.guard span{border:1px solid #3A5279;border-radius:99px;padding:.45rem .9rem;font-size:.92rem;color:#D5E0EA}
+
+/* pricing */
+.pricing{padding:6rem 0}
+.plans{display:grid;grid-template-columns:1fr 1.15fr;gap:1.5rem;align-items:stretch}
+.plan{background:var(--paper);border-radius:24px;padding:2.2rem;border:1px solid var(--line);display:flex;flex-direction:column}
+.plan.pro{background:var(--ink);color:var(--paper);border:0;position:relative;overflow:hidden}
+.plan.pro::before{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;border:2px dashed rgba(240,180,41,.35)}
+.plan h3{font:800 2.3rem/1 var(--display)}
+.price{margin:1rem 0 .3rem;font:900 3.6rem/1 var(--display)}
+.price small{font:400 1rem var(--body);color:var(--haze)}
+.plan.pro .price small{color:#9FB2C6}
+.plan .note{color:var(--haze);font-size:.95rem}
+.plan.pro .note{color:#B9C8D6}
+.plan ul{list-style:none;margin:1.6rem 0 2rem;display:grid;gap:.65rem}
+.plan li{display:flex;gap:.7rem}
+.plan li svg{flex:none;width:20px;height:20px;margin-top:.2rem;color:var(--airway)}
+.plan.pro li svg{color:var(--beacon)}
+.plan .btn{margin-top:auto;align-self:flex-start}
+.plan.pro .btn{background:var(--beacon);border-color:var(--beacon);color:var(--ink)}
+.plan.pro .btn:hover{background:var(--paper);border-color:var(--paper)}
+.toggle{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:99px;padding:4px}
+.toggle button{border:0;background:none;font:700 .92rem var(--body);padding:.55rem 1rem;border-radius:99px;cursor:pointer;color:var(--ink-2)}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.price-foot{margin-top:1.5rem;color:var(--ink-2);font-size:.95rem}
+
+/* install */
+.install{padding:1rem 0 6rem}
+.install ol{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;counter-reset:i}
+.install li{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:1.8rem 1.6rem;position:relative}
+.install li::before{counter-increment:i;content:counter(i);display:grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:50%;background:var(--ink);color:var(--beacon);font:800 1.4rem/1 var(--display);margin-bottom:1rem}
+.install h3{font:800 1.7rem/1 var(--display);margin-bottom:.5rem}
+.install p{color:var(--ink-2)}
+.last{padding:0 0 6rem}
+.last-card{background:var(--ink);color:var(--paper);border-radius:28px;padding:clamp(2rem,5vw,4rem);display:flex;flex-wrap:wrap;gap:2rem;align-items:center;justify-content:space-between}
+.last-card h2{color:var(--paper);max-width:14ch}
+.last-card .btn{background:var(--beacon);border-color:var(--beacon);color:var(--ink);font-size:1.1rem;min-height:3.4rem;padding:.9rem 1.8rem}
+.last-card .btn:hover{background:var(--paper);border-color:var(--paper)}
+
+footer{background:#0C1729;color:#B9C8D6;padding:3rem 0;font-size:.92rem}
+footer .wrap{display:grid;gap:1.2rem}
+footer nav{display:flex;flex-wrap:wrap;gap:.6rem 1.4rem}
+footer a{color:#E8EEF4}
+footer p{max-width:70ch}
+
+/* responsive */
+@media (max-width:960px){
+  .nav ul{position:fixed;inset:4.25rem 0 auto 0;flex-direction:column;gap:0;background:var(--paper);padding:.5rem 1.25rem 1.25rem;border-bottom:1px solid var(--line);transform:translateY(-130%);transition:transform .25s;z-index:-1}
+  .nav ul.open{transform:none}
+  .nav ul a{display:block;padding:.9rem 0;font-size:1.1rem;border-bottom:1px solid var(--line)}
+  .menu-btn{display:block}
+  .nav .btn-ink{display:none}
+  .menu-btn[aria-expanded="true"] span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+  .menu-btn[aria-expanded="true"] span:nth-child(2){opacity:0}
+  .menu-btn[aria-expanded="true"] span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+  .hero{min-height:auto;display:block}
+  #globe{position:relative;inset:auto;left:auto;width:100%;height:min(92vw,520px)}
+  .hero .wrap{padding-block:0 3.5rem;margin-top:-2rem}
+  .drag-hint{top:1rem;bottom:auto;right:1.25rem}
+  .feature .wrap,.plans,.crew-grid{grid-template-columns:1fr;gap:2.5rem}
+  .feature.flip .text{order:0}
+  .install ol{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .board th:nth-child(2),.board td:nth-child(2),.board th:nth-child(6),.board td:nth-child(6){display:none}
+  .board td{padding:.8rem .6rem}
+  .code{font-size:1.45rem}.clock{font-size:1.3rem}.diff{font-size:1.1rem}
+  .st{font-size:.8rem;padding:.3rem .55rem}
+  .feature{padding:4rem 0}
+  .phone,.flip .phone{transform:none}
+  .invite .code-box{font-size:2rem}
+}
+@media (max-width:420px){.board td{padding:.75rem .45rem}.code{font-size:1.3rem}.clock{font-size:1.2rem}.diff{font-size:1rem}.st{font-size:.75rem}}
+#globe[style*="none"] ~ .wrap{margin-top:2rem}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
-<header class="top">
+<header class="nav" id="nav">
   <div class="wrap">
-    <a class="brand" href="#">Layover <span>Logbook</span></a>
-    <nav aria-label="Sections"><a href="#features">Features</a><a href="#crew">Crew feed</a><a href="#pricing">Pricing</a><a href="#install">Install</a></nav>
-    <a class="cta small" href="app.html">Open the app</a>
+    <a class="brand" href="#top" aria-label="Layover Logbook home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="3" width="22" height="26" rx="4" fill="#13233F"/><rect x="9" y="3" width="2" height="26" fill="#2E4363"/><path d="M14 19 l9-6 M20 15 l-3 6" stroke="#F0B429" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="23" cy="13" r="2" fill="#B0136E"/></svg>
+      Layover Logbook
+    </a>
+    <button class="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
+    <ul id="menu">
+      <li><a href="#board">Right now</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#crew">Crew feed</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#install">Install</a></li>
+    </ul>
+    <a class="btn btn-ink" href="app.html">Open the app</a>
   </div>
 </header>
 
-<main>
-<section class="hero" aria-labelledby="hero-title" style="padding:0">
+<main id="main">
+<section class="hero" id="top">
+  <canvas id="globe" aria-label="Interactive globe with routes from your home base. Drag to turn it." role="img"></canvas>
+  <div class="city-tag" id="cityTag"></div>
   <div class="wrap">
-    <div>
-      <h1 id="hero-title">Every layover, planned around your body clock.</h1>
+    <div class="hero-copy">
+      <h1>Every layover, planned around your body clock.</h1>
       <p class="lede">Your free time, your rest, your allowance, and the places crew actually go. Built by cabin crew, for crew of any airline.</p>
-      <div class="actions">
-        <a class="cta" href="app.html">Start free</a>
-        <a class="cta line" href="#features">See how it works</a>
+      <div class="cta">
+        <a class="btn btn-ink" href="app.html">Start free</a>
+        <a class="btn btn-ghost" href="#features">See how it works</a>
       </div>
-      <p class="note">Works on iPhone and Android. Nothing to download from a store.</p>
+      <p class="fine">Works on iPhone and Android. Nothing to download from a store.</p>
     </div>
+  </div>
+  <div class="drag-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 12h8M8 12l3-3M8 12l3 3M16 12l-3-3M16 12l-3 3"/></svg>Drag the globe</div>
+</section>
 
-    <div class="board" aria-labelledby="board-title">
-      <div class="boardhead">
-        <h2 id="board-title">Right now, from your base</h2>
-        <label class="base">Based in
-          <select id="base" aria-label="Your home base">
-            <option value="DOH">DOH</option><option value="DXB">DXB</option><option value="LHR">LHR</option><option value="FRA">FRA</option>
-            <option value="IST">IST</option><option value="SIN">SIN</option><option value="JFK">JFK</option><option value="SYD">SYD</option>
-          </select>
-        </label>
-      </div>
-      <table class="flaps">
-        <thead><tr><th class="c-local">Local</th><th>Layover</th><th>Vs base</th><th>Body clock</th></tr></thead>
+<section class="board-sec" id="board">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Right now, from your base</h2>
+      <label class="base-pick">Based in
+        <select id="base" aria-label="Your home base">
+          <option>DOH</option><option>DXB</option><option>LHR</option><option>FRA</option>
+          <option>IST</option><option>SIN</option><option>JFK</option><option>SYD</option>
+        </select>
+      </label>
+    </div>
+    <div class="board">
+      <table>
+        <thead><tr><th scope="col">Code</th><th scope="col">City</th><th scope="col">Local</th><th scope="col">Vs base</th><th scope="col">Body clock</th><th scope="col"><span class="sr">Show on globe</span></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
-      <div class="boardfoot">
-        <span class="legend"><b class="ok">Go explore</b><b class="low">Take it easy</b><b class="sl">Sleep</b></span>
-        <span id="stamp"></span>
+    </div>
+    <p class="stamp" id="stamp"></p>
+  </div>
+</section>
+
+<section class="feature" id="features">
+  <div class="wrap">
+    <div class="text">
+      <h3>Land, open the app, know what to do</h3>
+      <p>Enter arrival and pickup. The app takes away transfer and rest, and shows the hours that are really yours. Then it shows you a postcard of where you are, and ideas that fit how awake you feel.</p>
+      <ul class="ticks">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Local time, home time and body clock side by side</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Ideas for the city that fit how awake you are</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Nearby food, transport and weather from where you stay</li>
+      </ul>
+    </div>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <div class="screen-top"><b>Today</b><span class="chip">LHR</span></div>
+        <div class="m-pass">
+          <div class="m-route"><b style="color:#9FB2C6">DOH</b><i></i><b>LHR</b></div>
+          <div class="m-times"><span>Local<b>06:10</b></span><span>Body<b>09:10</b></span><span>Vs DOH<b>−3h</b></span></div>
+        </div>
+        <div class="m-card">
+          <div class="m-label">Free window</div>
+          <div class="m-big">17h 30m</div>
+          <div class="m-tl"><span style="width:8%;background:#8EA3B3"></span><span style="width:35%;background:#2E4E86">rest</span><span style="flex:1;background:#B0136E">free</span><span style="width:8%;background:#8EA3B3"></span></div>
+        </div>
+        <div class="m-post" style="background:linear-gradient(180deg,#8FB3D9 0%,#C9D9E8 55%,#5E7590 56%,#3B4F68 100%)">
+          <svg viewBox="0 0 300 118" preserveAspectRatio="xMidYMax slice" width="100%" height="100%" style="position:absolute;inset:0"><g fill="#2B3B52"><rect x="70" y="30" width="26" height="70"/><rect x="204" y="30" width="26" height="70"/><path d="M66 32 L83 8 L100 32Z M200 32 L217 8 L234 32Z"/><rect x="96" y="44" width="108" height="7"/><path d="M0 78 Q83 58 150 70 T300 78 L300 82 L0 82Z"/></g><rect x="0" y="82" width="300" height="40" fill="#1E2C40" opacity=".85"/></svg>
+          <small>Postcard from London</small><b>Tower Bridge</b>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="features" aria-labelledby="features-title">
+<section class="feature flip" id="fatigue">
   <div class="wrap">
-    <div class="intro">
-      <h2 id="features-title">Land, open the app, know what to do.</h2>
-      <p>Everything crew work out in their heads after a long sector, done for you in one place.</p>
+    <div class="text">
+      <h3>See fatigue before it sees you</h3>
+      <p>Every trip adds up. Time zones crossed, nights landed in, short turnarounds: the app scores them and shows your week at a glance.</p>
+      <ul class="ticks">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>A 7-day fatigue load with a clear warning when it's heavy</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Routes checked against public flight time rules</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Roster check <span class="pro-badge">PRO</span> flight time limits and fatigue from a roster picture</li>
+      </ul>
+      <p class="small-print">A guide only: your company's scheme and your own judgement come first.</p>
     </div>
-
-    <div class="feature">
-      <figure class="phone" style="margin:0"><img src="site/today.webp" alt="The Today screen: London local time, home time, body clock and the free-time planner" loading="lazy" width="390" height="844"></figure>
-      <div>
-        <h3>Your free time, worked out</h3>
-        <p>Enter arrival and pickup. The app takes away transfer and rest, and shows the hours that are really yours.</p>
-        <ul>
-          <li>Local time, home time and body clock side by side</li>
-          <li>Ideas for the city that fit how awake you are</li>
-          <li>Nearby food, transport and weather from where you stay</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="feature">
-      <figure class="phone" style="margin:0"><img src="site/rest.webp" alt="The Rest screen: a fatigue score for the last seven days and the route check" loading="lazy" width="390" height="844"></figure>
-      <div>
-        <h3>See fatigue before it sees you</h3>
-        <p>Every trip adds up. Time zones crossed, nights landed in, short turnarounds: the app scores them and shows your week at a glance.</p>
-        <ul>
-          <li>A 7-day fatigue load with a clear warning when it's heavy</li>
-          <li>Routes checked against public flight time rules</li>
-          <li>A guide only: your company's scheme and your own judgement come first</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="feature">
-      <figure class="phone" style="margin:0"><img src="site/money.webp" alt="The Money screen: spending this month by category and allowance kept" loading="lazy" width="390" height="844"></figure>
-      <div>
-        <h3>Know what you kept from every allowance</h3>
-        <p>Log spending in any currency. It's converted to your home currency at live rates, so you see what each layover really cost.</p>
-        <ul>
-          <li>Spending by category and by city</li>
-          <li>Allowance in, money out, and what you kept</li>
-          <li>Export everything to Excel</li>
-        </ul>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <div class="screen-top"><b>Rest</b><span class="chip">7 days</span></div>
+        <div class="m-card">
+          <div class="m-label">Your week</div>
+          <div class="m-bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:20%"></i><i class="h" style="height:92%"></i><i style="height:60%"></i><i style="height:35%"></i><i style="height:15%"></i></div>
+        </div>
+        <div class="m-alert"><b>Heavy week ahead</b>Two night departures in a row with an 8h time-zone shift.</div>
+        <div class="m-card">
+          <div class="m-row"><b>NRT</b><span class="lvl h">High</span></div>
+          <div class="m-row"><b>LHR</b><span class="lvl l">Light</span></div>
+          <div class="m-row"><b>BKK</b><span class="lvl m">Moderate</span></div>
+          <div class="m-row"><b>JNB</b><span class="lvl l">Light</span></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="crewband" id="crew" aria-labelledby="crew-title">
+<section class="feature" id="money">
   <div class="wrap">
-    <div>
-      <h2 id="crew-title">Where crew really go. Shared only with crew.</h2>
-      <p>The crew feed is a private photo and video feed for layover cities: the café by the hotel that's open at 5am, the viewpoint worth the walk, the taxi trick that saves you money. Like it, comment on it, and post your own.</p>
-      <p>It's invite-only. You need to be invited by a crew member who already uses the app, and each invite code can be used only once. Every member can be traced back to who invited them. No passengers, no public profiles, no hotel names.</p>
-      <a class="cta" href="app.html" style="margin-top:8px;background:#fff;color:#0d1838">Join with your code</a>
+    <div class="text">
+      <h3>Know what you kept from every allowance</h3>
+      <p>Log spending in any currency. It's converted to your home currency at live rates, so you see what each layover really cost.</p>
+      <ul class="ticks">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Spending by category and by city</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Allowance in, money out, and what you kept</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Export everything to Excel</li>
+      </ul>
     </div>
-    <div class="pass" aria-label="Example of an invite pass">
-      <div class="lbl">Your invite code</div>
-      <div class="code">K7QM2XPD</div>
-      <hr>
-      <ol>
-        <li>A crew member who already uses the app shares a code with you</li>
-        <li>You create a free account and enter it in the Crew tab</li>
-        <li>You're in, with 3 codes of your own for colleagues you trust</li>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <div class="screen-top"><b>Money</b><span class="chip">This month</span></div>
+        <div class="m-card">
+          <div class="m-wallet"><div><span class="m-label">Allowance</span><b>1,840</b></div><div><span class="m-label">Spent</span><b>612</b></div></div>
+          <div class="m-label" style="margin-top:.6rem">Kept</div>
+          <div class="m-big">1,228</div>
+        </div>
+        <div class="m-card">
+          <div class="m-label">By category</div>
+          <div class="m-cat"><span>Food</span><i style="--w:72%"></i><b>264</b></div>
+          <div class="m-cat"><span>Transport</span><i style="--w:40%"></i><b>148</b></div>
+          <div class="m-cat"><span>Shopping</span><i style="--w:52%"></i><b>196</b></div>
+          <div class="m-cat"><span>Coffee</span><i style="--w:12%"></i><b>4</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="crew" id="crew">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Where crew really go. Shared only with crew.</h2>
+      <p>A private photo and video feed for layover cities: the café by the hotel that's open at 5am, the viewpoint worth the walk, the taxi trick that saves you money.</p>
+    </div>
+    <div class="crew-grid">
+      <ol class="steps">
+        <li><h3>Get a code</h3><p>A crew member who already uses the app shares an invite code with you. Each code works only once.</p></li>
+        <li><h3>Join</h3><p>Create a free account and enter the code in the Crew tab.</p></li>
+        <li><h3>You're in</h3><p>Post, like and comment, with 3 codes of your own for colleagues you trust.</p></li>
       </ol>
-    </div>
-  </div>
-</section>
-
-<section aria-labelledby="crewshot-title" style="padding-bottom:0">
-  <div class="wrap">
-    <div class="feature" style="margin-top:0">
-      <figure class="phone" style="margin:0"><img src="site/crew.webp" alt="The crew feed: a sunset photo from Primrose Hill rated five stars, and a food tip from Edgware Road" loading="lazy" width="390" height="844"><figcaption class="caption">Sample posts</figcaption></figure>
-      <div>
-        <h3 id="crewshot-title">Photos, videos, ratings and tips, city by city</h3>
-        <p>See what crew shared in the city you're in, or browse everywhere.</p>
-        <ul>
-          <li>Post a photo or a short video with a place and a star rating</li>
-          <li>Location data is removed on your phone before anything uploads</li>
-          <li>Posts that break the rules can be reported and are hidden</li>
-        </ul>
+      <div class="invite" aria-hidden="true">
+        <small>Your invite code</small>
+        <div class="code-box">K7QM2XPD</div>
+        <small>Every member can be traced back to who invited them.</small>
       </div>
     </div>
+    <div class="guard">
+      <span>No passengers</span><span>No public profiles</span><span>No hotel names</span><span>Location data removed before upload</span><span>Report and hide posts</span>
+    </div>
   </div>
 </section>
 
-<section id="pricing" aria-labelledby="pricing-title">
+<section class="pricing" id="pricing">
   <div class="wrap">
-    <div class="intro">
-      <h2 id="pricing-title">Free to use. Pro when you want the full picture.</h2>
-      <p>No card needed to start.</p>
-      <div class="billing" role="group" aria-label="Billing period">
+    <div class="sec-head">
+      <h2>Free to use. Pro when you want the full picture.</h2>
+      <div class="toggle" role="group" aria-label="Billing period">
         <button type="button" aria-pressed="true" data-bill="year">Yearly</button>
         <button type="button" aria-pressed="false" data-bill="month">Monthly</button>
       </div>
     </div>
     <div class="plans">
-      <article class="plan">
+      <div class="plan">
         <h3>Free</h3>
         <div class="price">$0</div>
-        <p>Everything you need on a layover.</p>
+        <p class="note">Everything you need on a layover. No card needed.</p>
         <ul>
-          <li>Free-time planner, body clock and fatigue check</li>
-          <li>Nearby places, weather and city essentials</li>
-          <li>Spending in any currency</li>
-          <li>Notes, wishlist and journal, synced to your account</li>
-          <li>Crew feed: the 10 newest posts (invite only)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Free-time planner, body clock and fatigue check</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Nearby places, weather and city essentials</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Spending in any currency</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Notes, wishlist and journal, synced to your account</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Crew feed: the 10 newest posts (invite only)</li>
         </ul>
-        <a class="cta line" href="app.html">Start free</a>
-      </article>
-      <article class="plan pro">
+        <a class="btn btn-ghost" href="app.html">Start free</a>
+      </div>
+      <div class="plan pro">
         <h3>Pro</h3>
-        <div class="price"><span id="proPrice">$39.99</span> <small id="proPer">/ year</small></div>
-        <p id="proNote">About $3.33 a month, billed once a year.</p>
+        <div class="price"><span id="proPrice">$39.99</span> <small id="proPer">per year</small></div>
+        <p class="note" id="proNote">About $3.33 a month, billed once a year.</p>
         <ul>
-          <li>Everything in Free</li>
-          <li>The full crew feed in every city</li>
-          <li>Roster check: flight time limits and fatigue from a roster picture</li>
-          <li>Fatigue dashboard with trip-by-trip charts</li>
-          <li>Money insights and Excel export</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Everything in Free</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>The full crew feed in every city</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Roster check: flight time limits and fatigue from a roster picture</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Fatigue dashboard with trip-by-trip charts</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Money insights and Excel export</li>
         </ul>
-        <a class="cta" href="app.html?upgrade">Get Pro</a>
-      </article>
+        <a class="btn" href="app.html?upgrade">Get Pro</a>
+      </div>
     </div>
-    <p style="margin-top:20px;color:var(--muted)">Cancel any time. Full refund within 14 days. <a href="pricing.html">Full pricing and questions</a></p>
+    <p class="price-foot">Cancel any time. Full refund within 14 days. <a href="pricing.html">Full pricing and questions</a></p>
   </div>
 </section>
 
-<section class="install" id="install" aria-labelledby="install-title">
+<section class="install" id="install">
   <div class="wrap">
-    <h2 class="sec-title" id="install-title">On your home screen in a minute</h2>
-    <ol class="steps">
-      <li><h3>Open the app</h3><p>Go to the Layover Logbook app in Safari on iPhone or Chrome on Android.</p></li>
+    <div class="sec-head"><h2>On your home screen in a minute</h2></div>
+    <ol>
+      <li><h3>Open the app</h3><p>Go to <a href="app.html">Layover Logbook</a> in Safari on iPhone or Chrome on Android.</p></li>
       <li><h3>Add to home screen</h3><p>iPhone: tap Share, then Add to Home Screen. Android: tap the menu, then Install app.</p></li>
       <li><h3>Set your base</h3><p>Choose your home city and currency. Your times, fatigue and money all follow it.</p></li>
     </ol>
   </div>
 </section>
 
-<section class="closing" aria-labelledby="closing-title">
+<section class="last">
   <div class="wrap">
-    <h2 id="closing-title">Your next layover starts here.</h2>
-    <a class="cta" href="app.html">Open Layover Logbook</a>
+    <div class="last-card">
+      <h2>Your next layover starts here.</h2>
+      <a class="btn" href="app.html">Open Layover Logbook</a>
+    </div>
   </div>
 </section>
 </main>
@@ -399,58 +524,170 @@
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 <script>
-(()=>{
-  /* Departure board: real local times for each layover city, compared with the chosen home base */
-  const BASES={DOH:"Asia/Qatar",DXB:"Asia/Dubai",LHR:"Europe/London",FRA:"Europe/Berlin",IST:"Europe/Istanbul",SIN:"Asia/Singapore",JFK:"America/New_York",SYD:"Australia/Sydney"};
-  const CITIES=[["LHR","LONDON","Europe/London"],["JFK","NEW YORK","America/New_York"],["BKK","BANGKOK","Asia/Bangkok"],["NBO","NAIROBI","Africa/Nairobi"],["NRT","TOKYO","Asia/Tokyo"],["GRU","SAO PAULO","America/Sao_Paulo"]];
-  const off=(tz,d)=>{ const p=new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(d).reduce((a,x)=>(a[x.type]=x.value,a),{});
-    return (Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute)-Math.floor(d.getTime()/6e4)*6e4)/36e5; };
-  const hm=(tz,d)=>new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
-  const hour=(tz,d)=>+new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",hourCycle:"h23"}).format(d)%24;
-  /* Your body runs on home time (awake 07-23). The city is "day" 08-22.
-     Both awake: go explore. Both night: sleep. Out of step: take it easy. */
-  const body=(homeH,localH)=>{ const awake=homeH>=7&&homeH<23, day=localH>=8&&localH<22;
-    return awake&&day?["GO","ok"]:!awake&&!day?["SLEEP","sleep"]:["EASY","low"]; };
-  const rows=document.getElementById("rows"), sel=document.getElementById("base");
-  let guess="DOH"; try{ const z=Intl.DateTimeFormat().resolvedOptions().timeZone; for(const k in BASES) if(BASES[k]===z) guess=k; }catch(e){}
-  try{ const saved=localStorage.getItem("ll.site.base"); if(saved&&BASES[saved]) guess=saved; }catch(e){}
-  sel.value=guess;
-  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function flaps(td,text,cls){
-    const old=td.querySelector(".f"), chars=[...text];
-    if(!old||old.dataset.cls!==cls||old.children.length!==chars.length){
-      td.innerHTML=`<span class="f ${cls}" data-cls="${cls}" aria-hidden="true">${chars.map(c=>`<i>${c===" "?"&nbsp;":c}</i>`).join("")}</span><span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">${text}</span>`;
-      if(!reduce) td.querySelectorAll("i").forEach((i,n)=>{ i.style.animationDelay=(n*28)+"ms"; i.classList.add("flip"); });
-      return;
-    }
-    [...old.children].forEach((i,n)=>{ const c=chars[n]===" "?" ":chars[n]; if(i.textContent!==c){ i.textContent=c; if(!reduce){ i.classList.remove("flip"); void i.offsetWidth; i.style.animationDelay=(n*28)+"ms"; i.classList.add("flip"); } } });
-    td.querySelector(".sr").textContent=text;
-  }
-  function render(){
-    const now=new Date(), home=BASES[sel.value];
-    if(!rows.children.length) CITIES.forEach(()=>{ const tr=document.createElement("tr"); tr.innerHTML='<td class="c-local"></td><td></td><td></td><td></td>'; rows.appendChild(tr); });
-    CITIES.forEach(([code,name,tz],i)=>{
-      const td=rows.children[i].children, d=off(tz,now)-off(home,now);
-      const diff=d===0?"SAME":(d>0?"+":"−")+Math.abs(d).toString().replace(".5","½")+"H";
-      const b=body(hour(home,now),hour(tz,now));
-      flaps(td[0],hm(tz,now),"");
-      flaps(td[1],code+" "+name.padEnd(9," ").slice(0,9),"city");
-      flaps(td[2],diff.padStart(4," "),"");
-      flaps(td[3],b[0].padEnd(5," "),"st-"+b[1]);
-    });
-    document.getElementById("stamp").textContent=`${sel.value} time ${hm(home,now)}. Body clock follows your base.`;
-  }
-  sel.addEventListener("change",()=>{ try{ localStorage.setItem("ll.site.base",sel.value); }catch(e){} render(); });
-  render(); setInterval(render,30000);
+document.addEventListener("DOMContentLoaded",function(){
+"use strict";
+var reduce=false; try{ reduce=matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 
-  /* Pricing toggle */
-  const P={year:["$39.99","/ year","About $3.33 a month, billed once a year."],month:["$4.99","/ month","Billed every month. Cancel any time."]};
-  document.querySelectorAll("[data-bill]").forEach(b=>b.addEventListener("click",()=>{
-    document.querySelectorAll("[data-bill]").forEach(x=>x.setAttribute("aria-pressed",x===b));
-    const [p,per,note]=P[b.dataset.bill]; document.getElementById("proPrice").textContent=p; document.getElementById("proPer").textContent=per; document.getElementById("proNote").textContent=note;
-  }));
-})();
+/* nav */
+var nav=document.getElementById("nav"), menu=document.getElementById("menu"), mb=document.querySelector(".menu-btn");
+addEventListener("scroll",function(){ nav.classList.toggle("scrolled",scrollY>8); },{passive:true});
+mb.addEventListener("click",function(){ var o=menu.classList.toggle("open"); mb.setAttribute("aria-expanded",o); });
+menu.addEventListener("click",function(e){ if(e.target.tagName==="A"){ menu.classList.remove("open"); mb.setAttribute("aria-expanded",false); } });
+
+/* departure board: real local times, compared with the chosen home base */
+var BASES={DOH:"Asia/Qatar",DXB:"Asia/Dubai",LHR:"Europe/London",FRA:"Europe/Berlin",IST:"Europe/Istanbul",SIN:"Asia/Singapore",JFK:"America/New_York",SYD:"Australia/Sydney"};
+var CITIES=[["LHR","London","United Kingdom","Europe/London"],["JFK","New York","United States","America/New_York"],["BKK","Bangkok","Thailand","Asia/Bangkok"],
+  ["NBO","Nairobi","Kenya","Africa/Nairobi"],["NRT","Tokyo","Japan","Asia/Tokyo"],["GRU","São Paulo","Brazil","America/Sao_Paulo"],["CPT","Cape Town","South Africa","Africa/Johannesburg"]];
+function off(tz,d){ var p=new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(d).reduce(function(a,x){a[x.type]=x.value;return a},{});
+  return (Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute)-Math.floor(d.getTime()/6e4)*6e4)/36e5; }
+function hm(tz,d){ return new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d); }
+function hour(tz,d){ return +new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",hourCycle:"h23"}).format(d)%24; }
+/* Your body runs on home time (awake 07-23). The city is "day" 08-22. Both awake: go explore. Both night: sleep. Out of step: take it easy. */
+function body(h,l){ var awake=h>=7&&h<23, day=l>=8&&l<22; return awake&&day?["Go explore","ok"]:!awake&&!day?["Sleep","sleep"]:["Take it easy","low"]; }
+var rows=document.getElementById("rows"), sel=document.getElementById("base");
+var guess="DOH"; try{ var z=Intl.DateTimeFormat().resolvedOptions().timeZone; for(var k in BASES) if(BASES[k]===z) guess=k; }catch(e){}
+try{ var saved=localStorage.getItem("ll.site.base"); if(saved&&BASES[saved]) guess=saved; }catch(e){}
+sel.value=guess;
+var picked=null;
+CITIES.forEach(function(c){
+  var tr=document.createElement("tr"); tr.className="row"; tr.tabIndex=0; tr.dataset.code=c[0];
+  tr.setAttribute("aria-label","Show "+c[1]+" on the globe");
+  tr.innerHTML='<td class="code">'+c[0]+'</td><td class="city">'+c[1]+'<small>'+c[2]+'</small></td><td class="clock"></td><td class="diff"></td><td><span class="st"></span></td><td class="go">Show on globe</td>';
+  tr.addEventListener("click",function(){ pick(c[0],true); });
+  tr.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(c[0],true); } });
+  rows.appendChild(tr);
+});
+function render(){
+  var now=new Date(), home=BASES[sel.value];
+  CITIES.forEach(function(c,i){
+    var td=rows.children[i].children, d=off(c[3],now)-off(home,now), b=body(hour(home,now),hour(c[3],now));
+    td[2].textContent=hm(c[3],now);
+    td[3].textContent=d===0?"Same":(d>0?"+":"−")+String(Math.abs(d)).replace(".5","½")+"h";
+    var st=td[4].firstChild; st.className="st "+b[1]; st.textContent=b[0];
+  });
+  document.getElementById("stamp").textContent=sel.value+" time "+hm(home,now)+". Your body clock follows your base.";
+}
+sel.addEventListener("change",function(){ try{ localStorage.setItem("ll.site.base",sel.value); }catch(e){} render(); routes(); });
+render(); setInterval(render,30000);
+
+/* pricing: prices come from config.js so they always match the app */
+var cfg=(window.LAYOVER_CONFIG&&window.LAYOVER_CONFIG.pro)||{}, Y=cfg.yearlyPrice||"$39.99", M=cfg.monthlyPrice||"$4.99";
+var per=(function(){ var n=parseFloat(String(Y).replace(/[^0-9.]/g,"")); return isFinite(n)&&n>0?String(Y).replace(/[0-9.,]+/,(n/12).toFixed(2)):""; })();
+var P={year:[Y,"per year",per?"About "+per+" a month, billed once a year.":"Billed once a year."],month:[M,"per month","Billed every month. Cancel any time."]};
+function bill(k){ document.getElementById("proPrice").textContent=P[k][0]; document.getElementById("proPer").textContent=P[k][1]; document.getElementById("proNote").textContent=P[k][2]; }
+bill("year");
+document.querySelectorAll("[data-bill]").forEach(function(b){ b.addEventListener("click",function(){
+  document.querySelectorAll("[data-bill]").forEach(function(x){ x.setAttribute("aria-pressed",x===b); }); bill(b.dataset.bill); }); });
+
+/* ---------- 3D globe ---------- */
+var canvas=document.getElementById("globe"), tag=document.getElementById("cityTag");
+var pick=function(){}, routes=function(){};
+var A={DOH:[25.27,51.61],DXB:[25.25,55.36],AUH:[24.43,54.65],SIN:[1.36,103.99],LHR:[51.47,-0.45],CDG:[49.01,2.55],FRA:[50.03,8.57],AMS:[52.31,4.76],
+IST:[41.26,28.74],JFK:[40.64,-73.78],LAX:[33.94,-118.41],ORD:[41.97,-87.9],MIA:[25.79,-80.29],YYZ:[43.68,-79.63],GRU:[-23.43,-46.47],EZE:[-34.82,-58.54],
+BOG:[4.7,-74.15],MEX:[19.44,-99.07],SCL:[-33.39,-70.79],LIM:[-12.02,-77.11],JNB:[-26.14,28.25],CPT:[-33.97,18.6],NBO:[-1.32,36.93],ADD:[8.98,38.8],
+LOS:[6.58,3.32],CAI:[30.12,31.41],CMN:[33.37,-7.59],TUN:[36.85,10.23],NRT:[35.77,140.39],ICN:[37.46,126.44],PEK:[40.08,116.58],
+PVG:[31.14,121.81],HKG:[22.31,113.91],BKK:[13.69,100.75],KUL:[2.75,101.71],CGK:[-6.13,106.66],MNL:[14.51,121.02],DEL:[28.56,77.1],BOM:[19.09,72.87],
+BLR:[13.2,77.71],CMB:[7.18,79.88],MLE:[4.19,73.53],KTM:[27.7,85.36],SYD:[-33.95,151.18],MEL:[-37.67,144.84],PER:[-31.94,115.97],AKL:[-37.01,174.79],
+GVA:[46.24,6.11],MAD:[40.47,-3.56],BCN:[41.3,2.08],LIS:[38.77,-9.13],FCO:[41.8,12.25],ATH:[37.94,23.94],VIE:[48.11,16.57],
+MUC:[48.35,11.79],CPH:[55.62,12.66],OSL:[60.19,11.1],HEL:[60.32,24.96],WAW:[52.17,20.97],DUB:[53.42,-6.27],EDI:[55.95,-3.37],SEA:[47.45,-122.31],
+SFO:[37.62,-122.38],DFW:[32.9,-97.04],IAD:[38.95,-77.46],BOS:[42.36,-71.01],YVR:[49.19,-123.18],HNL:[21.32,-157.92],RUH:[24.96,46.7],
+JED:[21.68,39.16],MCT:[23.59,58.28],KWI:[29.24,47.97],BAH:[26.27,50.63],AMM:[31.72,35.99],DAR:[-6.88,39.2],MRU:[-20.43,57.68],
+SEZ:[-4.67,55.52],ACC:[5.61,-0.17],DKR:[14.74,-17.49],ALG:[36.69,3.22],TAS:[41.26,69.28],SGN:[10.82,106.65],HAN:[21.22,105.81],
+TPE:[25.08,121.23],KIX:[34.43,135.24],DPS:[-8.75,115.17],BNE:[-27.38,153.12],PTY:[9.07,-79.38],ATL:[33.64,-84.43],KEF:[63.98,-22.61],ARN:[59.65,17.92],
+PRG:[50.1,14.26],BUD:[47.44,19.26],TBS:[41.67,44.95],GYD:[40.47,50.05],ISB:[33.62,73.1],KHI:[24.91,67.16],DAC:[23.84,90.4],RAK:[31.61,-8.04],ZNZ:[-6.22,39.22]};
+function start(){
+if(!window.THREE){ canvas.style.display="none"; return; }
+var T=THREE, renderer;
+try{ renderer=new T.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:"high-performance"}); }catch(e){ canvas.style.display="none"; return; }
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+var scene=new T.Scene(), camera=new T.PerspectiveCamera(32,1,.1,100); camera.position.set(0,0,4.6);
+var world=new T.Group(); scene.add(world); var R=1;
+function ll(lat,lon,r){ var p=(90-lat)*Math.PI/180, t=(lon+180)*Math.PI/180; return new T.Vector3(-r*Math.sin(p)*Math.cos(t), r*Math.cos(p), r*Math.sin(p)*Math.sin(t)); }
+world.add(new T.Mesh(new T.SphereGeometry(R,64,48),new T.ShaderMaterial({
+  uniforms:{a:{value:new T.Color("#F6FAFC")},b:{value:new T.Color("#C4D3DD")},rim:{value:new T.Color("#B0136E")}},
+  vertexShader:"varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+  fragmentShader:"uniform vec3 a; uniform vec3 b; uniform vec3 rim; varying vec3 vN; void main(){ float f=clamp(dot(vN,normalize(vec3(-.35,.45,1.))),0.,1.); vec3 c=mix(b,a,pow(f,.8)); float r=pow(1.-max(vN.z,0.),3.); c=mix(c,rim,r*.2); gl_FragColor=vec4(c,1.); }"})));
+world.add(new T.Mesh(new T.SphereGeometry(R*1.14,48,32),new T.ShaderMaterial({side:T.BackSide,transparent:true,depthWrite:false,
+  vertexShader:"varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+  fragmentShader:"varying vec3 vN; void main(){ float i=pow(clamp(-vN.z*1.6,0.,1.),2.); gl_FragColor=vec4(.69,.07,.43,i*.28); }"})));
+var gp=[];
+for(var la=-75;la<=75;la+=15) for(var lo=-180;lo<180;lo+=3) gp.push(ll(la,lo,R*1.001),ll(la,lo+3,R*1.001));
+for(var lo2=-180;lo2<180;lo2+=15) for(var la2=-87;la2<87;la2+=3) gp.push(ll(la2,lo2,R*1.001),ll(la2+3,lo2,R*1.001));
+world.add(new T.LineSegments(new T.BufferGeometry().setFromPoints(gp),new T.LineBasicMaterial({color:0x13233F,transparent:true,opacity:.09})));
+function dot(fill,ring){ var c=document.createElement("canvas"); c.width=c.height=64; var g=c.getContext("2d"); g.beginPath(); g.arc(32,32,ring?25:28,0,Math.PI*2); g.fillStyle=fill; g.fill(); if(ring){ g.lineWidth=8; g.strokeStyle="#F6FAFC"; g.stroke(); } return new T.CanvasTexture(c); }
+var pos=[]; Object.keys(A).forEach(function(k){ var v=ll(A[k][0],A[k][1],R*1.004); pos.push(v.x,v.y,v.z); });
+var pg=new T.BufferGeometry(); pg.setAttribute("position",new T.Float32BufferAttribute(pos,3));
+world.add(new T.Points(pg,new T.PointsMaterial({size:.034,map:dot("#13233F"),transparent:true,alphaTest:.4,depthWrite:false})));
+var routeG=new T.Group(); world.add(routeG);
+var arcMat=new T.LineBasicMaterial({color:0xB0136E,transparent:true,opacity:.8}), planeTex=dot("#F0B429",true), hubTex=dot("#B0136E",true), arcs=[], clock=new T.Clock(), t0=0;
+routes=function(){
+  while(routeG.children.length){ var o=routeG.children.pop(); if(o.geometry) o.geometry.dispose(); }
+  arcs=[]; t0=clock.elapsedTime;
+  var b=A[sel.value]; if(!b) return;
+  var hb=ll(b[0],b[1],R*1.006), hg=new T.BufferGeometry(); hg.setAttribute("position",new T.Float32BufferAttribute([hb.x,hb.y,hb.z],3));
+  routeG.add(new T.Points(hg,new T.PointsMaterial({size:.09,map:hubTex,transparent:true,alphaTest:.4,depthWrite:false})));
+  var dests=CITIES.map(function(c){return c[0];}).concat(["SYD","DXB","CDG","SIN","CAI","IST","LAX","DEL","MLE","TUN"]).filter(function(c,i,a){ return c!==sel.value&&a.indexOf(c)===i; });
+  dests.forEach(function(code,i){
+    var a=ll(b[0],b[1],R), c=A[code]; if(!c) return; var e=ll(c[0],c[1],R), d=a.angleTo(e); if(d<.01) return;
+    var h=R+.1+d*.2, mid=a.clone().add(e).normalize().multiplyScalar(h);
+    var cA=a.clone().lerp(mid,.55).normalize().multiplyScalar(h), cB=e.clone().lerp(mid,.55).normalize().multiplyScalar(h);
+    var curve=new T.CubicBezierCurve3(a,cA,cB,e), N=80, geo=new T.BufferGeometry().setFromPoints(curve.getPoints(N)); geo.setDrawRange(0,0);
+    routeG.add(new T.Line(geo,arcMat));
+    var pl=new T.BufferGeometry(); pl.setAttribute("position",new T.Float32BufferAttribute([0,0,0],3));
+    var plane=new T.Points(pl,new T.PointsMaterial({size:.055,map:planeTex,transparent:true,alphaTest:.4,depthWrite:false})); plane.visible=false; routeG.add(plane);
+    arcs.push({geo:geo,N:N,curve:curve,plane:plane,delay:i*.06,speed:.06/Math.max(.7,d),t:Math.random()});
+  });
+  focus=aim(b[0],b[1]); idle=0;
+};
+var rotY=0, rotX=.35, tY=0, tX=.35, vel=0, dragging=false, lx=0, idle=0, focus=null, tagFor=null;
+function aim(lat,lon){ var target=-Math.PI/2-lon*Math.PI/180, d=target-tY; d=Math.atan2(Math.sin(d),Math.cos(d)); return {y:tY+d,x:Math.max(-1,Math.min(1,lat*Math.PI/180))}; }
+var hb0=A[sel.value]||A.DOH; tY=rotY=-Math.PI/2-hb0[1]*Math.PI/180; tX=rotX=hb0[0]*Math.PI/180;
+function down(x){ dragging=true; lx=x; vel=0; focus=null; tagFor=null; tag.classList.remove("on"); rows.querySelectorAll("tr").forEach(function(t){t.classList.remove("active");}); canvas.classList.add("dragging"); }
+function move(x,dy){ if(!dragging) return; var dx=x-lx; lx=x; tY+=dx*.006; vel=dx*.006; if(dy) tX=Math.max(-1,Math.min(1,tX+dy*.004)); idle=0; }
+function up(){ dragging=false; canvas.classList.remove("dragging"); }
+var ly=0;
+canvas.addEventListener("pointerdown",function(e){ if(e.pointerType==="touch") return; down(e.clientX); ly=e.clientY; try{canvas.setPointerCapture(e.pointerId);}catch(er){} });
+canvas.addEventListener("pointermove",function(e){ if(e.pointerType!=="touch"&&dragging){ move(e.clientX,e.clientY-ly); ly=e.clientY; } });
+canvas.addEventListener("pointerup",up); canvas.addEventListener("pointercancel",up);
+var sx=0,sy=0,lock=null;
+canvas.addEventListener("touchstart",function(e){ var t=e.touches[0]; sx=t.clientX; sy=t.clientY; lock=null; down(t.clientX); },{passive:true});
+canvas.addEventListener("touchmove",function(e){ var t=e.touches[0]; if(lock===null) lock=Math.abs(t.clientX-sx)>Math.abs(t.clientY-sy)?"x":"y"; if(lock==="x"){ e.preventDefault(); move(t.clientX,0); } else up(); },{passive:false});
+canvas.addEventListener("touchend",up);
+pick=function(code,scrollUp){
+  var p=A[code]; if(!p) return; focus=aim(p[0],p[1]); vel=0; idle=0; tagFor=code;
+  var c=CITIES.filter(function(x){return x[0]===code;})[0]; tag.textContent=c?c[1]+", "+code:code;
+  rows.querySelectorAll("tr").forEach(function(t){ t.classList.toggle("active",t.dataset.code===code); });
+  if(scrollUp) document.getElementById("top").scrollIntoView({behavior:reduce?"auto":"smooth"});
+};
+function size(){ var w=canvas.clientWidth,h=canvas.clientHeight; if(!w||!h) return; renderer.setSize(w,h,false); camera.aspect=w/h; camera.position.z=w/h<.9?3.9:4.6; camera.updateProjectionMatrix(); }
+addEventListener("resize",size); size();
+var visible=true, running=false, v3=new T.Vector3();
+if("IntersectionObserver" in window) new IntersectionObserver(function(en){ visible=en[0].isIntersecting; if(visible) loop(); }).observe(canvas);
+document.addEventListener("visibilitychange",function(){ if(!document.hidden) loop(); });
+function frame(){
+  var dt=Math.min(clock.getDelta(),.05), now=clock.elapsedTime;
+  if(focus){ tY+=(focus.y-tY)*.08; tX+=(focus.x-tX)*.08; if(Math.abs(focus.y-tY)<.001&&Math.abs(focus.x-tX)<.001) focus=null; }
+  else if(!dragging){ vel*=.94; tY+=vel; idle+=dt; if(!reduce&&idle>3&&!tagFor) tY+=dt*.05; }
+  rotY+=(tY-rotY)*.18; rotX+=(tX-rotX)*.12; world.rotation.set(rotX,rotY,0);
+  arcs.forEach(function(a){
+    var g=reduce?1:Math.max(0,Math.min(1,(now-t0-.2-a.delay)/1.1)); a.geo.setDrawRange(0,Math.floor(g*(a.N+1)));
+    if(g>=1){ a.plane.visible=true; if(!reduce) a.t=(a.t+dt*a.speed)%1; var p=a.curve.getPoint(a.t),at=a.plane.geometry.attributes.position; at.setXYZ(0,p.x,p.y,p.z); at.needsUpdate=true; }
+  });
+  if(tagFor){
+    var c=A[tagFor]; v3.copy(ll(c[0],c[1],R*1.01)).applyMatrix4(world.matrixWorld);
+    var facing=v3.clone().normalize().dot(camera.position.clone().normalize())>.2; v3.project(camera);
+    var r=canvas.getBoundingClientRect(), host=canvas.offsetParent.getBoundingClientRect();
+    tag.style.left=(r.left-host.left+(v3.x+1)/2*r.width)+"px"; tag.style.top=(r.top-host.top+(1-v3.y)/2*r.height)+"px"; tag.classList.toggle("on",facing);
+  }
+  renderer.render(scene,camera);
+}
+function loop(){ if(running) return; running=true; clock.getDelta(); (function go(){ if(!visible||document.hidden){ running=false; return; } frame(); requestAnimationFrame(go); })(); }
+routes(); loop();
+}
+if(window.THREE) start(); else window.addEventListener("load",start);
+});
 </script>
 </body>
 </html>
