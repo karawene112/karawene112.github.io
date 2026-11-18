@@ -33,7 +33,10 @@
     HKG: "Victoria Harbour", PVG: "The Bund", PEK: "Forbidden City", CAN: "Canton Tower", TPE: "Taipei 101",
     ICN: "Gyeongbokgung", NRT: "Sensō-ji", KIX: "Osaka Castle", SYD: "Sydney Opera House",
     MEL: "Flinders Street railway station", BNE: "Story Bridge", PER: "Kings Park", ADL: "Adelaide Oval",
-    AKL: "Sky Tower (Auckland)"
+    AKL: "Sky Tower (Auckland)", SVO: "Saint Basil's Cathedral", LED: "Winter Palace", KZN: "Kazan Kremlin",
+    AER: "Sochi Olympic Park", SVX: "Church on the Blood", OVB: "Novosibirsk Opera and Ballet Theatre", VVO: "Russky Bridge",
+    MEX: "Palacio de Bellas Artes", CUN: "Isla Mujeres", SCL: "Cerro San Cristóbal", LIM: "Plaza Mayor, Lima",
+    LCA: "Church of Saint Lazarus, Larnaca", ZAG: "St. Mark's Church, Zagreb", KEF: "Hallgrímskirkja", BEG: "Belgrade Fortress"
   };
   var API = "https://en.wikipedia.org/api/rest_v1/page/summary/";
   var mem = {}, KEY = "lay.pc.", MONTH = 30 * 864e5;
