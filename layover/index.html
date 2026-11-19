@@ -45,6 +45,7 @@
 <script src="/consent.js" defer></script>
 <script src="/analytics.js" defer></script>
 <script src="config.js"></script>
+<script src="postcards.js" defer></script>
 <style>
 :root{
   --sky:#DCE6EB; --paper:#F3F7F9; --ink:#13233F; --ink-2:#2E4363;
@@ -274,6 +275,75 @@ footer p{max-width:70ch}
 @media (max-width:420px){.board td{padding:.75rem .45rem}.code{font-size:1.3rem}.clock{font-size:1.2rem}.diff{font-size:1rem}.st{font-size:.75rem}}
 #globe[style*="none"] ~ .wrap{margin-top:2rem}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* ---------- 3D layer ---------- */
+/* floating boarding pass over the globe */
+.pass3d{position:absolute;right:max(1.5rem,calc((100% - 1180px)/2));bottom:20%;z-index:1;perspective:1000px;pointer-events:none}
+.p3-card{width:330px;color:#F3F7F9;border-radius:20px;background:linear-gradient(160deg,#21375C 0%,#13233F 55%,#0E1B33 100%);
+  transform-style:preserve-3d;transform:rotateX(calc(16deg + var(--px,0deg))) rotateY(calc(-26deg + var(--py,0deg))) rotateZ(3deg);
+  box-shadow:1px 1px 0 #0B1628,2px 2px 0 #0B1628,3px 3px 0 #0A1426,4px 4px 0 #0A1426,5px 5px 0 #091222,6px 6px 0 #091222,30px 40px 50px -18px rgba(19,35,63,.55);
+  transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.pass3d .float{animation:bob 6s ease-in-out infinite;transform-style:preserve-3d}
+@keyframes bob{50%{transform:translate3d(0,-12px,0)}}
+.p3-body{padding:1.1rem 1.2rem 1rem;display:grid;gap:.9rem}
+.p3-top{display:flex;justify-content:space-between;font-size:.75rem;color:#9FB2C6}
+.p3-top b{font:800 1rem/1 var(--display);letter-spacing:.04em;color:#F3F7F9}
+.p3-route{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.6rem}
+.p3-route b{display:block;font:800 2.9rem/.9 var(--display);letter-spacing:.03em}
+.p3-route div:last-child{text-align:right}
+.p3-route div:last-child b{color:var(--beacon)}
+.p3-route small{color:#9FB2C6;font-size:.78rem}
+.p3-route svg{width:100%;height:24px;color:#E2589F}
+.p3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.p3-grid span{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.45rem .55rem;font-size:.68rem;color:#9FB2C6;line-height:1.2}
+.p3-grid b{display:block;font:700 1.15rem/1.1 var(--display);color:#F3F7F9;margin-top:.15rem;white-space:nowrap}
+.p3-stub{position:relative;border-top:2px dashed rgba(255,255,255,.18);padding:.75rem 1.2rem;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:#9FB2C6}
+.p3-stub::before,.p3-stub::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--sky)}
+.p3-stub::before{left:-10px}.p3-stub::after{right:-10px}
+.barcode{display:block;width:120px;height:26px;background:repeating-linear-gradient(90deg,#F3F7F9 0 2px,transparent 2px 4px,#F3F7F9 4px 5px,transparent 5px 8px,#F3F7F9 8px 11px,transparent 11px 13px);opacity:.75}
+.p3-glare{position:absolute;inset:0;border-radius:20px;pointer-events:none;background:radial-gradient(60% 50% at var(--gx,30%) var(--gy,20%),rgba(255,255,255,.16),transparent 70%)}
+
+/* split-flap board digits */
+.flap{display:inline-block;transform-origin:50% 50%;backface-visibility:hidden}
+.flap.go{animation:flap .55s cubic-bezier(.3,.7,.3,1)}
+@keyframes flap{0%{transform:perspective(300px) rotateX(-90deg);opacity:.2}60%{transform:perspective(300px) rotateX(12deg);opacity:1}100%{transform:perspective(300px) rotateX(0)}}
+.board{transform:perspective(1600px) rotateX(var(--bx,0deg));transform-origin:50% 0;transition:transform .2s linear}
+
+/* phones turn in 3D as you scroll */
+.phone,.flip .phone{transform:perspective(1100px) rotateY(var(--ry,-12deg)) rotateX(var(--rx,4deg));transition:none;will-change:transform;box-shadow:var(--edge,0 0 0 transparent),0 50px 70px -40px rgba(19,35,63,.65),inset 0 0 0 2px #2A3E60}
+.phone:hover{transform:perspective(1100px) rotateY(var(--ry,-12deg)) rotateX(var(--rx,4deg))}
+
+/* postcard carousel */
+.ring-sec{padding:5.5rem 0 3rem;border-top:1px solid var(--line);overflow:hidden}
+.ring-stage{height:430px;perspective:1500px;display:grid;place-items:center;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;margin-top:1rem}
+.ring-stage:active{cursor:grabbing}
+.ring{position:relative;width:230px;height:300px;transform-style:preserve-3d}
+.pc3{position:absolute;inset:0;border-radius:18px;overflow:hidden;background:var(--g,#2E4E86) center/cover no-repeat;border:6px solid #F7FAFB;
+  box-shadow:0 30px 40px -24px rgba(19,35,63,.6);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.pc3::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,18,34,0) 40%,rgba(8,18,34,.85))}
+.pc3 b{position:absolute;left:14px;right:14px;bottom:14px;z-index:1;color:#fff;font:800 1.55rem/.95 var(--display);text-wrap:balance}
+.pc3 small{position:absolute;left:14px;bottom:calc(14px + 1.6rem);z-index:1;color:var(--beacon);font-weight:700;font-size:.78rem}
+.pc3 i{position:absolute;top:10px;right:10px;z-index:1;font:800 1rem/1 var(--display);letter-spacing:.06em;background:#F7FAFB;color:var(--ink);padding:.35rem .45rem;border-radius:4px;font-style:normal;transform:rotate(4deg)}
+.ring-hint{text-align:center;color:var(--haze);font-size:.9rem}
+
+/* cards that tilt under the pointer */
+.tilt{transform:perspective(900px) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)) translateZ(0);transition:transform .35s cubic-bezier(.2,.8,.2,1);position:relative}
+.tilt.live{transition:transform .08s linear}
+.tilt .glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(50% 60% at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.22),transparent 70%);opacity:0;transition:opacity .3s}
+.tilt.live .glare{opacity:1}
+.plan{position:relative}
+
+@media (max-width:960px){
+  .pass3d{position:relative;right:auto;bottom:auto;width:min(330px,88%);margin:-120px auto 0}
+  .p3-card{width:100%}
+  .hero .wrap{margin-top:1.5rem}
+  .ring-stage{height:360px}
+  .ring{width:180px;height:240px}
+  .pc3 b{font-size:1.3rem}
+}
+#globe[style*="none"] ~ .pass3d{margin-top:1.5rem}
+@media (max-width:420px){.p3-route b{font-size:2.4rem}.p3-grid b{font-size:1rem}}
+@media (prefers-reduced-motion:reduce){.pass3d .float{animation:none}.flap.go{animation:none}}
 </style>
 </head>
 <body>
@@ -301,6 +371,19 @@ footer p{max-width:70ch}
 <section class="hero" id="top">
   <canvas id="globe" aria-label="Interactive globe with routes from your home base. Drag to turn it." role="img"></canvas>
   <div class="city-tag" id="cityTag"></div>
+  <div class="pass3d" id="pass3d" aria-hidden="true"><div class="float"><div class="p3-card" id="p3card">
+    <div class="p3-body">
+      <div class="p3-top"><b>Layover Logbook</b><span>Crew pass</span></div>
+      <div class="p3-route">
+        <div><b id="p3From">DOH</b><small id="p3FromN">Doha</small></div>
+        <svg viewBox="0 0 120 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h100" stroke-dasharray="3 6" stroke-linecap="round"/><path d="M104 12l-8-6v12z" fill="currentColor" stroke="none"/></svg>
+        <div><b id="p3To">LHR</b><small id="p3ToN">London</small></div>
+      </div>
+      <div class="p3-grid"><span>Local<b id="p3Local">--:--</b></span><span>Vs base<b id="p3Diff">--</b></span><span>Body clock<b id="p3Body">--</b></span></div>
+    </div>
+    <div class="p3-stub"><span class="barcode"></span><span>Tap a city below</span></div>
+    <div class="p3-glare"></div>
+  </div></div></div>
   <div class="wrap">
     <div class="hero-copy">
       <h1>Every layover, planned around your body clock.</h1>
@@ -376,7 +459,7 @@ footer p{max-width:70ch}
       <ul class="ticks">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>A 7-day fatigue load with a clear warning when it's heavy</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Routes checked against public flight time rules</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>Roster check <span class="pro-badge">PRO</span> flight time limits and fatigue from a roster picture</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg><span>Roster check <span class="pro-badge">PRO</span> flight time limits and fatigue from a roster picture</span></li>
       </ul>
       <p class="small-print">A guide only: your company's scheme and your own judgement come first.</p>
     </div>
@@ -430,6 +513,17 @@ footer p{max-width:70ch}
   </div>
 </section>
 
+<section class="ring-sec" id="postcards">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>A postcard from every layover</h2>
+      <p>Every destination in the app comes with a photo of something you'd only see there. Drag to spin the stack.</p>
+    </div>
+  </div>
+  <div class="ring-stage" id="ringStage" aria-label="Postcards from layover cities. Drag to spin." role="img"><div class="ring" id="ring"></div></div>
+  <p class="ring-hint">London, Tokyo, Cape Town, Istanbul and 140 more cities in the app.</p>
+</section>
+
 <section class="crew" id="crew">
   <div class="wrap">
     <div class="sec-head">
@@ -442,7 +536,7 @@ footer p{max-width:70ch}
         <li><h3>Join</h3><p>Create a free account and enter the code in the Crew tab.</p></li>
         <li><h3>You're in</h3><p>Post, like and comment, with 3 codes of your own for colleagues you trust.</p></li>
       </ol>
-      <div class="invite" aria-hidden="true">
+      <div class="invite tilt" aria-hidden="true">
         <small>Your invite code</small>
         <div class="code-box">K7QM2XPD</div>
         <small>Every member can be traced back to who invited them.</small>
@@ -464,7 +558,7 @@ footer p{max-width:70ch}
       </div>
     </div>
     <div class="plans">
-      <div class="plan">
+      <div class="plan tilt">
         <h3>Free</h3>
         <div class="price">$0</div>
         <p class="note">Everything you need on a layover. No card needed.</p>
@@ -477,7 +571,7 @@ footer p{max-width:70ch}
         </ul>
         <a class="btn btn-ghost" href="app.html">Start free</a>
       </div>
-      <div class="plan pro">
+      <div class="plan pro tilt">
         <h3>Pro</h3>
         <div class="price"><span id="proPrice">$39.99</span> <small id="proPer">per year</small></div>
         <p class="note" id="proNote">About $3.33 a month, billed once a year.</p>
@@ -499,16 +593,16 @@ footer p{max-width:70ch}
   <div class="wrap">
     <div class="sec-head"><h2>On your home screen in a minute</h2></div>
     <ol>
-      <li><h3>Open the app</h3><p>Go to <a href="app.html">Layover Logbook</a> in Safari on iPhone or Chrome on Android.</p></li>
-      <li><h3>Add to home screen</h3><p>iPhone: tap Share, then Add to Home Screen. Android: tap the menu, then Install app.</p></li>
-      <li><h3>Set your base</h3><p>Choose your home city and currency. Your times, fatigue and money all follow it.</p></li>
+      <li class="tilt"><h3>Open the app</h3><p>Go to <a href="app.html">Layover Logbook</a> in Safari on iPhone or Chrome on Android.</p></li>
+      <li class="tilt"><h3>Add to home screen</h3><p>iPhone: tap Share, then Add to Home Screen. Android: tap the menu, then Install app.</p></li>
+      <li class="tilt"><h3>Set your base</h3><p>Choose your home city and currency. Your times, fatigue and money all follow it.</p></li>
     </ol>
   </div>
 </section>
 
 <section class="last">
   <div class="wrap">
-    <div class="last-card">
+    <div class="last-card tilt">
       <h2>Your next layover starts here.</h2>
       <a class="btn" href="app.html">Open Layover Logbook</a>
     </div>
@@ -554,23 +648,130 @@ var picked=null;
 CITIES.forEach(function(c){
   var tr=document.createElement("tr"); tr.className="row"; tr.tabIndex=0; tr.dataset.code=c[0];
   tr.setAttribute("aria-label","Show "+c[1]+" on the globe");
-  tr.innerHTML='<td class="code">'+c[0]+'</td><td class="city">'+c[1]+'<small>'+c[2]+'</small></td><td class="clock"></td><td class="diff"></td><td><span class="st"></span></td><td class="go">Show on globe</td>';
-  tr.addEventListener("click",function(){ pick(c[0],true); });
-  tr.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(c[0],true); } });
+  tr.innerHTML='<td class="code">'+c[0]+'</td><td class="city">'+c[1]+'<small>'+c[2]+'</small></td><td class="clock"><span class="flap"></span></td><td class="diff"><span class="flap"></span></td><td><span class="st"></span></td><td class="go">Show on globe</td>';
+  tr.addEventListener("click",function(){ passTo(c[0]); pick(c[0],true); });
+  tr.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); passTo(c[0]); pick(c[0],true); } });
   rows.appendChild(tr);
 });
 function render(){
   var now=new Date(), home=BASES[sel.value];
   CITIES.forEach(function(c,i){
     var td=rows.children[i].children, d=off(c[3],now)-off(home,now), b=body(hour(home,now),hour(c[3],now));
-    td[2].textContent=hm(c[3],now);
-    td[3].textContent=d===0?"Same":(d>0?"+":"−")+String(Math.abs(d)).replace(".5","½")+"h";
+    flip(td[2].firstChild,hm(c[3],now),i);
+    flip(td[3].firstChild,d===0?"Same":(d>0?"+":"−")+String(Math.abs(d)).replace(".5","½")+"h",i);
+    c.now=[hm(c[3],now),td[3].firstChild.textContent,b[0]];
     var st=td[4].firstChild; st.className="st "+b[1]; st.textContent=b[0];
   });
   document.getElementById("stamp").textContent=sel.value+" time "+hm(home,now)+". Your body clock follows your base.";
+  passTo(passCode);
+}
+function flip(el,txt,i){
+  if(el.textContent===txt) return;
+  el.textContent=txt; if(reduce) return;
+  el.classList.remove("go"); void el.offsetWidth; el.style.animationDelay=(i*60)+"ms"; el.classList.add("go");
+}
+var BASEN={DOH:"Doha",DXB:"Dubai",LHR:"London",FRA:"Frankfurt",IST:"Istanbul",SIN:"Singapore",JFK:"New York",SYD:"Sydney"};
+var passCode=sel.value==="LHR"?"JFK":"LHR";
+function passTo(code){
+  var c=CITIES.filter(function(x){return x[0]===code;})[0]; if(!c||!c.now) return; passCode=code;
+  document.getElementById("p3From").textContent=sel.value; document.getElementById("p3FromN").textContent=BASEN[sel.value]||"";
+  document.getElementById("p3To").textContent=c[0]; document.getElementById("p3ToN").textContent=c[1];
+  document.getElementById("p3Local").textContent=c.now[0]; document.getElementById("p3Diff").textContent=c.now[1]; document.getElementById("p3Body").textContent=c.now[2];
 }
 sel.addEventListener("change",function(){ try{ localStorage.setItem("ll.site.base",sel.value); }catch(e){} render(); routes(); });
 render(); setInterval(render,30000);
+
+
+/* ---------- 3D: pointer tilt on cards (mouse and pen) ---------- */
+document.querySelectorAll(".tilt").forEach(function(el){
+  var g=document.createElement("span"); g.className="glare"; el.appendChild(g);
+  el.addEventListener("pointermove",function(e){
+    if(e.pointerType==="touch"||reduce) return;
+    var r=el.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+    el.classList.add("live");
+    el.style.setProperty("--ty",((x-.5)*10).toFixed(2)+"deg"); el.style.setProperty("--tx",((.5-y)*10).toFixed(2)+"deg");
+    el.style.setProperty("--gx",(x*100).toFixed(1)+"%"); el.style.setProperty("--gy",(y*100).toFixed(1)+"%");
+  });
+  el.addEventListener("pointerleave",function(){ el.classList.remove("live"); el.style.setProperty("--tx","0deg"); el.style.setProperty("--ty","0deg"); });
+});
+
+/* hero pass follows the pointer a little */
+var card=document.getElementById("p3card"), hero=document.getElementById("top");
+hero.addEventListener("pointermove",function(e){
+  if(e.pointerType==="touch"||reduce) return;
+  var r=hero.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+  card.style.setProperty("--py",(x*16).toFixed(2)+"deg"); card.style.setProperty("--px",(-y*12).toFixed(2)+"deg");
+  card.style.setProperty("--gx",(50+x*80).toFixed(1)+"%"); card.style.setProperty("--gy",(50+y*80).toFixed(1)+"%");
+});
+
+/* phones and board turn with scroll; edges drawn as thickness */
+var phones=[].slice.call(document.querySelectorAll(".phone")), boardEl=document.querySelector(".board"), ticking=false;
+function edge(ry){
+  var n=7, dir=ry<0?1:-1, out=[];
+  for(var k=1;k<=n;k++) out.push((dir*k)+"px "+(k*.4).toFixed(1)+"px 0 "+(k<4?"#0B1628":"#08111F"));
+  return out.join(",");
+}
+function onScroll(){
+  ticking=false; var vh=innerHeight;
+  phones.forEach(function(ph){
+    var r=ph.getBoundingClientRect(); if(r.bottom<-200||r.top>vh+200) return;
+    var p=Math.max(-1,Math.min(1,((r.top+r.height/2)-vh/2)/vh)), flipped=ph.closest(".flip");
+    var ry=(flipped?1:-1)*(10+p*16), rx=4+p*-10;
+    if(reduce){ ry=(flipped?8:-8); rx=3; }
+    ph.style.setProperty("--ry",ry.toFixed(2)+"deg"); ph.style.setProperty("--rx",rx.toFixed(2)+"deg"); ph.style.setProperty("--edge",edge(ry));
+  });
+  if(boardEl&&!reduce){ var b=boardEl.getBoundingClientRect(), q=Math.max(0,Math.min(1,(b.top-vh*.15)/(vh*.7))); boardEl.style.setProperty("--bx",(q*14).toFixed(2)+"deg"); }
+}
+addEventListener("scroll",function(){ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } },{passive:true});
+addEventListener("resize",onScroll); onScroll();
+
+/* postcard carousel: a real 3D ring, drag to spin */
+var RING=[["LHR","London","#3E5C8A,#B4C6DC"],["NRT","Tokyo","#B0136E,#F4B6C9"],["CPT","Cape Town","#1F6F78,#A8D5BA"],["IST","Istanbul","#6B3FA0,#E8B4A0"],
+  ["JFK","New York","#2E4363,#F0B429"],["SYD","Sydney","#0E6BA8,#9AD0EC"],["BKK","Bangkok","#C98A00,#F7D488"],["CDG","Paris","#7A4E8C,#D8C2E8"],
+  ["DXB","Dubai","#C26A2E,#F6D2A8"],["SVO","Moscow","#8E1B2B,#E9A9A0"]];
+var ring=document.getElementById("ring"), stage=document.getElementById("ringStage"), cards=[];
+RING.forEach(function(c,i){
+  var el=document.createElement("div"); el.className="pc3";
+  el.style.setProperty("--g","linear-gradient(160deg,"+c[2]+")");
+  el.innerHTML="<i>"+c[0]+"</i><small>Postcard from "+c[1]+"</small><b>"+c[1]+"</b>";
+  ring.appendChild(el); cards.push(el);
+  function load(){
+    if(!window.LayoverPostcard) return;
+    LayoverPostcard.get(c[0],c[1]).then(function(p){
+      var im=new Image(); im.onload=function(){ el.style.background="url(\""+p.img.replace(/"/g,"%22")+"\") center/cover no-repeat"; el.querySelector("b").textContent=p.title; }; im.src=p.img;
+    }).catch(function(){});
+  }
+  if(window.LayoverPostcard) load(); else addEventListener("load",load);
+});
+var N=cards.length, ang=0, vel=0, drag=false, lastX=0, rIdle=0, ringOn=false, ringRun=false, radius=0;
+function layout(){
+  var w=ring.offsetWidth; radius=Math.round((w/2)/Math.tan(Math.PI/N))+28;
+  cards.forEach(function(el,i){ el.dataset.a=i*360/N; });
+}
+function drawRing(){
+  ring.style.transform="translateZ(-"+radius+"px) rotateX(-6deg) rotateY("+ang.toFixed(2)+"deg)";
+  cards.forEach(function(el){
+    var a=+el.dataset.a, rel=((a+ang)%360+360)%360, f=Math.cos(rel*Math.PI/180);
+    el.style.transform="rotateY("+a+"deg) translateZ("+radius+"px)";
+    el.style.filter="brightness("+(0.55+0.45*Math.max(0,f)).toFixed(2)+")";
+  });
+}
+function ringLoop(){
+  if(ringRun) return; ringRun=true; var t=performance.now();
+  (function step(now){
+    if(!ringOn||document.hidden){ ringRun=false; return; }
+    var dt=Math.min(.05,(now-t)/1000); t=now;
+    if(!drag){ vel*=.95; ang+=vel; rIdle+=dt; if(!reduce&&rIdle>1.5) ang-=dt*9; }
+    drawRing(); requestAnimationFrame(step);
+  })(t);
+}
+stage.addEventListener("pointerdown",function(e){ drag=true; lastX=e.clientX; vel=0; rIdle=0; try{stage.setPointerCapture(e.pointerId);}catch(er){} });
+stage.addEventListener("pointermove",function(e){ if(!drag) return; var dx=e.clientX-lastX; lastX=e.clientX; ang+=dx*.35; vel=dx*.35; rIdle=0; if(!ringRun) drawRing(); });
+function rUp(){ drag=false; } stage.addEventListener("pointerup",rUp); stage.addEventListener("pointercancel",rUp);
+addEventListener("resize",function(){ layout(); drawRing(); });
+layout(); drawRing();
+if("IntersectionObserver" in window) new IntersectionObserver(function(en){ ringOn=en[0].isIntersecting; if(ringOn) ringLoop(); }).observe(stage); else { ringOn=true; ringLoop(); }
+document.addEventListener("visibilitychange",function(){ if(!document.hidden&&ringOn) ringLoop(); });
 
 /* pricing: prices come from config.js so they always match the app */
 var cfg=(window.LAYOVER_CONFIG&&window.LAYOVER_CONFIG.pro)||{}, Y=cfg.yearlyPrice||"$39.99", M=cfg.monthlyPrice||"$4.99";
