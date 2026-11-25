@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PaperPerp Practice Desk</title>
-<meta name="description" content="Practice crypto and stock trading with $10,000 in play money. Live crypto prices, leverage, take profit and stop loss, RSI, MACD and trend score. Backtest and auto-trade with a bot. Free, in 8 languages.">
+<meta name="description" content="Practice crypto and stock trading with $10,000 in play money. Live crypto prices, leverage, take profit and stop loss, RSI, MACD and trend score. Backtest and auto-trade with a bot, and track your stats on a dashboard. Free, in 8 languages.">
 <meta property="og:title" content="PaperPerp: practice trading with play money">
 <meta property="og:description" content="Long or short crypto and stocks with $10,000 in fake money. Live prices, charts and indicators. English, العربية, Français and more.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://karawene112.github.io/paperperp/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#070b10">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -132,6 +133,73 @@ select.in{appearance:auto}
 table.bt{font-size:13px}
 @media(max-width:860px){.bgrid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:420px){.bstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ===== Glossy terminal theme: one dark palette in every theme ===== */
+:root,:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark;--bg:#070b10;--panel:rgba(255,255,255,.045);--soft:rgba(255,255,255,.06);--line:rgba(255,255,255,.09);--ink:#eef2f7;--mute:#8e99a9;--up:#2fe0a0;--dn:#ff5d7d;--acc:#5b8cff;--e20:#4fd1ff;--e50:#ffb547;--solid:#0f151d}
+body{background:radial-gradient(1100px 620px at 8% -12%,rgba(91,140,255,.20),transparent 62%),radial-gradient(900px 560px at 104% -4%,rgba(47,224,160,.12),transparent 60%),radial-gradient(800px 600px at 50% 120%,rgba(91,140,255,.08),transparent 60%),#070b10;background-attachment:fixed}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.022) 42%,rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.09);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 24px 48px -24px rgba(0,0,0,.7);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.dlg{background:linear-gradient(180deg,#18202b,#0f151d)}
+.logo{background:linear-gradient(145deg,#7aa2ff,#2f5fe8);box-shadow:0 6px 18px -6px rgba(91,140,255,.8),inset 0 1px 0 rgba(255,255,255,.35)}
+.in,.lang{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.10)}
+.in:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(91,140,255,.18)}
+button{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.10)}
+button:hover{background:rgba(255,255,255,.09)}
+.go{position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.go::after{content:"";position:absolute;inset:0 0 50% 0;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0));pointer-events:none}
+.go.l{background:linear-gradient(180deg,#46f0b4,#14b97c);color:#03160e;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 10px 24px -10px rgba(47,224,160,.8)}
+.go.s{background:linear-gradient(180deg,#ff7d97,#e2385d);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 24px -10px rgba(255,93,125,.8)}
+.go.a{background:linear-gradient(180deg,#7ea4ff,#3c6af0);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 24px -10px rgba(91,140,255,.9)}
+.go[disabled]{background:rgba(255,255,255,.05);color:var(--mute);box-shadow:none}.go[disabled]::after{display:none}
+.mk{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border-color:rgba(255,255,255,.08)}
+.mk[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc),0 0 22px -6px rgba(91,140,255,.75)}
+.cats button[aria-pressed=true]{background:linear-gradient(180deg,#ffffff,#cfd8e6);color:#070b10;border-color:transparent}
+.big{background:linear-gradient(180deg,#ffffff,#b9c6d8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.feed.on{color:var(--up)}
+.tag{box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.mt{box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.mt i{background:#fff;border-color:#070b10;box-shadow:0 0 12px rgba(255,255,255,.6)}
+.risk{background:rgba(255,93,125,.10);border:1px solid rgba(255,93,125,.18)}
+.plan.hl{background:linear-gradient(180deg,rgba(91,140,255,.16),rgba(91,140,255,.03))}
+.toast{background:#eef2f7;color:#070b10;box-shadow:0 12px 30px -10px rgba(0,0,0,.7)}
+.empty{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.02)}
+
+/* ===== Tabs and My stats ===== */
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.tabs a{min-height:38px;padding:0 14px;border-radius:9px;display:inline-flex;align-items:center;color:var(--mute);text-decoration:none;font-weight:600}
+.tabs a[aria-current=page]{background:linear-gradient(180deg,rgba(91,140,255,.35),rgba(91,140,255,.15));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+[hidden]{display:none!important}
+.sh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin:8px 0 16px}
+.sh h1{font-size:clamp(28px,4vw,40px);line-height:1.05}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi b{display:block;font:700 clamp(22px,2.6vw,30px)/1.1 "Space Grotesk",sans-serif;white-space:nowrap;margin-top:4px}
+.kpi small{color:var(--mute);font-size:13px}
+.kpi.hero{grid-column:span 2;background:linear-gradient(140deg,rgba(91,140,255,.30),rgba(47,224,160,.10) 70%),rgba(255,255,255,.03)}
+.kpi.hero b{font-size:clamp(32px,4.4vw,48px)}
+.sgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.sgrid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.tl div>span{min-width:0}
+.kpi b.wr{white-space:normal;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px}
+.sgrid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.card h3{font-size:16px;margin-bottom:10px}
+.fig.pnl{min-height:280px;flex:1}
+.sgrid>.card{display:flex;flex-direction:column}
+.bar .tr i.ac{background:linear-gradient(90deg,rgba(91,140,255,.45),#5b8cff);box-shadow:0 0 12px -2px rgba(91,140,255,.7)}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:5.5em minmax(0,1fr) auto;align-items:center;gap:10px;font-size:14px}
+.bar .tr{position:relative;height:12px;border-radius:99px;background:rgba(255,255,255,.05);direction:ltr}
+.bar .tr i{position:absolute;top:0;bottom:0;border-radius:99px}
+.bar .tr i.up{background:linear-gradient(90deg,rgba(47,224,160,.5),#2fe0a0);box-shadow:0 0 12px -2px rgba(47,224,160,.7)}
+.bar .tr i.dn{background:linear-gradient(270deg,rgba(255,93,125,.5),#ff5d7d);box-shadow:0 0 12px -2px rgba(255,93,125,.7)}
+.bar .tr .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(255,255,255,.25)}
+.bar b{white-space:nowrap}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.split>div{border-radius:12px;padding:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.split b{display:block;font:700 22px "Space Grotesk",sans-serif;white-space:nowrap}
+.split small{display:block;color:var(--mute);font-size:13px}
+.tl{display:grid;gap:8px;font-size:14px}
+.tl div{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.035)}
+.demo-note{color:var(--e50);font-size:13px}
+@media(max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sgrid,.sgrid2,.sgrid3{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.kpi b{font-size:22px}.kpi.hero b{font-size:34px}}
 .foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;color:var(--mute);font-size:13px;padding:28px 0 40px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:9}
 .ov[hidden]{display:none}
@@ -153,11 +221,21 @@ table.bt{font-size:13px}
   <header class="top">
     <div class="brand"><span class="logo"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2"><path d="M2 13l4-4 3 3 7-8"/><path d="M11 4h5v5"/></svg></span>PaperPerp</div>
     <span class="feed" id="feed"><i></i><span id="feedT">Connecting…</span></span>
+    <nav class="tabs" aria-label="Views"><a href="#trade" id="tabT" data-t="navTrade">Trade</a><a href="#stats" id="tabS" data-t="navStats">My stats</a></nav>
     <select class="lang" id="lang" aria-label="Language"></select>
     <div class="eqbox"><small data-t="equity">Practice equity</small><b id="eq" class="ltr">$10,000.00</b> <span id="ret" class="ltr" style="font-size:13px"></span> <span id="retd" style="font-size:13px;color:var(--mute)"></span></div>
     <button class="go l" id="fundB" data-t="addFunds">Add funds</button>
   </header>
 
+  <section id="vStats" hidden>
+    <div class="sh">
+      <div><h1 data-t="stH">My trading stats</h1><p class="lbl" data-t="stSub" style="margin-top:6px"></p><p class="demo-note" id="demoNote" hidden data-t="demoOn"></p></div>
+      <button id="demoB"></button>
+    </div>
+    <div id="stBody"></div>
+  </section>
+
+  <div id="vTrade">
   <div class="cats" id="cats"><button data-c="all" data-t="all">All</button><button data-c="crypto" data-t="crypto">Crypto</button><button data-c="stock" data-t="stocks">Stocks</button></div>
   <nav class="strip" id="strip" aria-label="Markets"></nav>
 
@@ -276,6 +354,8 @@ table.bt{font-size:13px}
     </div>
   </section>
 
+  </div>
+
   <footer class="foot">
     <span data-t="foot"></span>
     <button id="reset" data-t="reset">Reset account</button>
@@ -369,7 +449,7 @@ function closePos(q,px,why){
   const liqd=why==='rLiq',gross=liqd?-q.margin:pnlOf(q,px),cf=liqd?0:q.qty*px*FEE;
   S.bal+=Math.max(0,q.margin+gross-cf);
   const net=Math.max(-q.margin,gross-cf)-q.of;
-  S.hist.unshift({id:q.id,sym:q.sym,side:q.side,lev:q.lev,entry:q.entry,exit:px,net,roe:net/q.margin*100,why,t:Date.now()});
+  S.hist.unshift({id:q.id,sym:q.sym,side:q.side,lev:q.lev,entry:q.entry,exit:px,net,roe:net/q.margin*100,why,t:Date.now(),t0:q.t,bot:!!q.bot});
   if(S.hist.length>200)S.hist.length=200;
   if(q.bot)botLog('bClose',{b:D[q.sym].m.b,p:fp(px),x:fu(net,1)});
   save();toast(t('tClose',{w:t(why),b:D[q.sym].m.b,s:t(q.side),x:fu(net,1)}));
@@ -547,6 +627,93 @@ function renderBotLog(){
 }
 let bDir='both';
 
+/* ===== My stats dashboard ===== */
+let view='trade',demo=null,sbuilt='';
+function mkDemo(){
+  let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647,now=Date.now(),H=[];
+  for(let i=0;i<44;i++){const m=MK[Math.floor(r()*MK.length)],dir=r()<.6?1:-1,lev=m.ml>=50?[2,5,10,20,25][Math.floor(r()*5)]:[2,3,5,10][Math.floor(r()*4)],
+    mg=[200,500,1000,1500][Math.floor(r()*4)],entry=m.p*(1+(r()-.5)*.08),move=((r()+r()+r())/3-.405)*.05;let roe=move*lev,why;
+    if(roe<=-.95){roe=-1;why='rLiq'}else why=roe>0?['rTp','rMan','rSig'][Math.floor(r()*3)]:['rSl','rMan','rSig'][Math.floor(r()*3)];
+    const t=now-(44-i)*6.5*3600e3+r()*3600e3,fee=mg*lev*FEE*2,net=roe===-1?-mg-fee/2:mg*roe-fee;
+    H.push({id:-i-1,sym:m.s,side:dir>0?'long':'short',lev,entry,exit:roe===-1?entry*(1-dir*(1/lev-MMR)):entry*(1+dir*move),net,roe:net/mg*100,why,t,t0:t-(5+r()*400)*60e3,bot:r()<.4})}
+  return H.reverse();
+}
+const sum=a=>a.reduce((x,y)=>x+y.net,0);
+function holdF(ms){const m=Math.round(ms/60e3);return m<60?m+'m':m<1440?Math.floor(m/60)+'h '+(m%60)+'m':Math.floor(m/1440)+'d '+Math.floor(m%1440/60)+'h'}
+function statsOf(H){
+  const tr=H.slice().sort((a,b)=>a.t-b.t),w=tr.filter(x=>x.net>0),l=tr.filter(x=>x.net<=0),gw=sum(w),gl=-sum(l);
+  let cum=0,peak=0,dd=0,run=0,best=0;const pts=[{t:tr.length?Math.min(tr[0].t0||tr[0].t,tr[0].t)-60e3:Date.now(),v:0}];
+  tr.forEach(x=>{cum+=x.net;pts.push({t:x.t,v:cum});peak=Math.max(peak,cum);dd=Math.max(dd,peak-cum);run=x.net>0?run+1:0;best=Math.max(best,run)});
+  const grp=f=>{const o={};tr.forEach(x=>{const k=f(x);(o[k]=o[k]||[]).push(x)});return o};
+  const held=tr.filter(x=>x.t0),hold=held.length?held.reduce((a,x)=>a+(x.t-x.t0),0)/held.length:null;
+  return {n:tr.length,cum,w:w.length,win:tr.length?w.length/tr.length*100:0,pf:gl>0?gw/gl:null,aw:w.length?gw/w.length:0,al:l.length?-gl/l.length:0,dd,streak:best,hold,pts,
+    byM:grp(x=>x.sym),byS:grp(x=>x.side),byB:grp(x=>x.bot?'bot':'you'),byW:grp(x=>x.why),tr};
+}
+function splitBox(lbl,arr){const n=arr?arr.length:0,p=n?sum(arr):0,wr=n?Math.round(arr.filter(x=>x.net>0).length/n*100):0;
+  return `<div><small>${esc(lbl)}</small><b class="ltr ${cls(p)}">${fu(p,1)}</b><small>${esc(t('nWin',{n,p:wr}))}</small></div>`}
+function renderStats(){
+  if(view!=='stats')return;
+  const H=demo||S.hist,eqv=demo?START+sum(demo):equity(),ret=demo?sum(demo)/START*100:(S.dep>0?(equity()/S.dep-1)*100:0);
+  $('demoB').textContent=t(demo?'demoOff':'demo');$('demoB').className=demo?'':'go a';$('demoNote').hidden=!demo;
+  const key=(demo?'d':'r')+H.length+':'+(H[0]?.id||0)+lang;
+  if(key!==sbuilt){sbuilt=key;
+    if(!H.length){$('stBody').innerHTML=`<div class="card empty" style="padding:40px 18px">${esc(t('stEmpty'))}</div>`;}
+    else{const s=statsOf(H),mk=Object.entries(s.byM).map(([k,a])=>[D[k]?.m.b||k,sum(a),a.length]).sort((a,b)=>b[1]-a[1]),mx=Math.max(...mk.map(x=>Math.abs(x[1])))||1;
+      const why=Object.entries(s.byW).map(([k,a])=>[k,a.length,sum(a)]).sort((a,b)=>b[1]-a[1]),wmx=Math.max(...why.map(x=>x[1]));
+      const tl=a=>a.map(x=>`<div><span>${esc(D[x.sym]?.m.b||x.sym)} · <span class="${x.side==='long'?'up':'dn'}">${esc(t(x.side))} ${x.lev}×</span>${x.bot?' · '+esc(t('botTag')):''}</span><b class="ltr ${cls(x.net)}">${fu(x.net,1)}</b></div>`).join('');
+      const byNet=s.tr.slice().sort((a,b)=>b.net-a.net);
+      const k=(lb,v,c,sub,wr)=>`<div class="card kpi"><small>${esc(t(lb))}</small><b class="ltr ${c||''}${wr?' wrap':''}">${esc(v)}</b>${sub?`<small>${esc(sub)}</small>`:''}</div>`;
+      $('stBody').innerHTML=`<div class="kpis">
+        <div class="card kpi hero"><small>${esc(t('kEq'))}</small><b class="ltr" id="stEq"></b><small id="stRet"></small></div>
+        ${k('kReal',fu(s.cum,1),cls(s.cum),t('kWinSub',{w:s.w,n:s.n}))}
+        ${k('kWin',Math.round(s.win)+'%',s.win>=50?'up':'dn',t('kStreak',{s:s.streak}))}
+        ${k('kPf',s.pf==null?'—':s.pf.toFixed(2),s.pf==null?'':s.pf>=1?'up':'dn',t('kPfSub'))}
+        <div class="card kpi"><small>${esc(t('kAvg'))}</small><b class="wr"><span class="ltr up" style="white-space:nowrap">${fu(s.aw,1)}</span> <span class="lbl" style="display:inline">/</span> <span class="ltr dn" style="white-space:nowrap">${fu(s.al)}</span></b></div>
+        ${k('kDd',s.dd?'−'+fu(s.dd).slice(0):'$0.00',s.dd?'dn':'',t('kDdSub'))}
+        ${k('kHold',s.hold==null?'—':holdF(s.hold),'')}
+      </div>
+      <div class="sgrid">
+        <div class="card"><h3>${esc(t('cumPnl'))}</h3><div class="fig pnl" id="figP"><canvas id="cvP" role="img" aria-label="${esc(t('cumPnl'))}"></canvas></div></div>
+        <div class="card"><h3>${esc(t('byMkt'))}</h3><div class="bars">${mk.map(([b,p,n])=>{const w=Math.abs(p)/mx*50;
+          return `<div class="bar"><span>${esc(b)} <small class="lbl" style="display:inline">${n}</small></span><span class="tr"><span class="mid"></span><i class="${p>=0?'up':'dn'}" style="${p>=0?'left:50%':'left:'+(50-w)+'%'};width:${w}%"></i></span><b class="ltr ${cls(p)}">${fu(p,1)}</b></div>`}).join('')}</div></div>
+      </div>
+      <div class="sgrid3">
+        <div class="card"><h3>${esc(t('bySide'))}</h3><div class="split">${splitBox(t('long'),s.byS.long)}${splitBox(t('short'),s.byS.short)}</div></div>
+        <div class="card"><h3>${esc(t('byWho'))}</h3><div class="split">${splitBox(t('botTag'),s.byB.bot)}${splitBox(t('you'),s.byB.you)}</div></div>
+        <div class="card"><h3>${esc(t('byWhy'))}</h3><div class="bars">${why.map(([w,n,p])=>`<div class="bar" style="grid-template-columns:minmax(0,7.5em) minmax(0,1fr) auto"><span>${esc(t(w))}</span><span class="tr"><i class="ac" style="left:0;width:${n/wmx*100}%"></i></span><b>${n}</b></div>`).join('')}</div></div>
+      </div>
+      <div class="sgrid sgrid2">
+        <div class="card"><h3>${esc(t('best'))}</h3><div class="tl">${tl(byNet.slice(0,4).filter(x=>x.net>0))||`<p class="lbl">—</p>`}</div></div>
+        <div class="card"><h3>${esc(t('worst'))}</h3><div class="tl">${tl(byNet.slice(-4).reverse().filter(x=>x.net<=0))||`<p class="lbl">—</p>`}</div></div>
+      </div>`;
+      pnlPts=s.pts;roP.disconnect();roP.observe($('figP'));drawPnl();
+    }
+  }
+  if($('stEq')){$('stEq').textContent=fu(eqv);$('stRet').className='ltr '+cls(ret);$('stRet').textContent=t('kRetSub',{r:pc(ret)})}
+}
+let pnlPts=[];
+function drawPnl(){
+  const f=$('figP');if(!f||pnlPts.length<2)return;const P=prep($('cvP'),f);if(!P)return;const {g,W,H}=P;
+  const C={up:col('cUp'),dn:col('cDn'),mute:col('cMu'),line:col('cLn')},ax=72,bt=22;
+  const vs=pnlPts.map(p=>p.v),lo=Math.min(0,...vs),hi=Math.max(0,...vs),pad=(hi-lo)*.1||10,y=v=>10+(hi+pad-v)/(hi-lo+2*pad)*(H-10-bt);
+  const t0=pnlPts[0].t,t1=pnlPts[pnlPts.length-1].t,x=tt=>(t1>t0?(tt-t0)/(t1-t0):1)*(W-ax-8)+4,y0=y(0);
+  [hi,0,lo].forEach(v=>{if(v===0||Math.abs(y(v)-y0)>16){g.fillStyle=C.mute;g.fillText((v<0?'−':'')+'$'+Math.abs(Math.round(v)).toLocaleString('en-US'),W-ax+6,y(v))}});
+  g.strokeStyle=C.line;g.setLineDash([3,4]);g.beginPath();g.moveTo(0,y0);g.lineTo(W-ax,y0);g.stroke();g.setLineDash([]);
+  const path=()=>{g.beginPath();pnlPts.forEach((p,i)=>{const X=x(p.t),Y=y(p.v);if(!i)g.moveTo(X,Y);else{g.lineTo(X,y(pnlPts[i-1].v));g.lineTo(X,Y)}})};
+  [['up',0,y0],['dn',y0,H]].forEach(([k,a,b])=>{g.save();g.beginPath();g.rect(0,a,W-ax,b-a);g.clip();
+    path();g.lineTo(x(t1),y0);g.lineTo(x(t0),y0);g.closePath();const gr=g.createLinearGradient(0,k==='up'?10:H,0,y0);
+    gr.addColorStop(0,k==='up'?'rgba(47,224,160,.38)':'rgba(255,93,125,.38)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fill();
+    path();g.strokeStyle=C[k];g.lineWidth=2;g.shadowColor=C[k];g.shadowBlur=12;g.stroke();g.restore()});
+  g.fillStyle=C.mute;g.textAlign='center';const fd=tt=>new Date(tt).toLocaleDateString(loc(),{month:'short',day:'numeric'});
+  g.fillText(fd(t0),Math.max(30,x(t0)),H-8);if(W>420)g.fillText(fd((t0+t1)/2),x((t0+t1)/2),H-8);g.fillText(fd(t1),Math.min(W-ax-30,x(t1)),H-8);g.textAlign='left';
+}
+const roP=new ResizeObserver(()=>drawPnl());
+function setView(){
+  view=location.hash==='#stats'?'stats':'trade';$('vStats').hidden=view!=='stats';$('vTrade').hidden=view==='stats';
+  $('tabT').setAttribute('aria-current',view==='trade'?'page':'false');$('tabS').setAttribute('aria-current',view==='stats'?'page':'false');
+  sbuilt='';render();
+}
+
 /* rendering */
 let built='',hbuilt='';
 function buildStrip(){
@@ -569,6 +736,7 @@ function render(){
   $('sAv').textContent=fu(S.bal);$('sMg').textContent=fu(mu);
   $('sUp').textContent=fu(up,1);$('sUp').className='ltr '+cls(up);$('sRe').textContent=fu(re,1);$('sRe').className='ltr '+cls(re);
   $('sWr').textContent=S.hist.length?t('winOf',{p:Math.round(w/S.hist.length*100),n:S.hist.length}):t('noTrades');
+  if(view==='stats'){renderStats();return}
   renderPos();renderHist();renderRead();renderBot();drawChart();drawInd();
 }
 function renderPos(){
@@ -630,12 +798,12 @@ function drawChart(){
     g.beginPath();g.moveTo(Math.round(x)+.5,y(k.h));g.lineTo(Math.round(x)+.5,y(k.l));g.stroke();
     const y1=y(Math.max(k.o,k.c)),y2=y(Math.min(k.o,k.c));g.fillRect(x-cw*.35,y1,cw*.7,Math.max(1,y2-y1))});
   g.textAlign='left';g.lineWidth=1.6;
-  E.forEach(([a,c])=>{g.strokeStyle=c;g.beginPath();a.forEach((v,i)=>{const x=i*cw+cw/2;i?g.lineTo(x,y(v)):g.moveTo(x,y(v))});g.stroke()});
-  g.lineWidth=1;
+  E.forEach(([a,c])=>{g.strokeStyle=c;g.shadowColor=c;g.shadowBlur=10;g.beginPath();a.forEach((v,i)=>{const x=i*cw+cw/2;i?g.lineTo(x,y(v)):g.moveTo(x,y(v))});g.stroke()});
+  g.shadowBlur=0;g.lineWidth=1;
   mine.forEach(q=>{const yy=y(q.entry),c=q.side==='long'?C.up:C.dn;g.setLineDash([5,4]);g.strokeStyle=c;g.beginPath();g.moveTo(0,yy);g.lineTo(W-ax,yy);g.stroke();g.setLineDash([]);
     const s=`${t(q.side)} ${q.lev}× · ${fp(q.entry)}`,tw=g.measureText(s).width+12;g.fillStyle=c;g.fillRect(4,yy-10,tw,20);g.fillStyle='#fff';g.fillText(s,10,yy)});
   const ly=y(d.price);g.setLineDash([2,3]);g.strokeStyle=C.acc;g.beginPath();g.moveTo(0,ly);g.lineTo(W-ax,ly);g.stroke();g.setLineDash([]);
-  g.fillStyle=C.acc;g.fillRect(W-ax,ly-10,ax,20);g.fillStyle='#fff';g.fillText(fp(d.price),W-ax+6,ly);
+  g.shadowColor=C.acc;g.shadowBlur=14;g.fillStyle=C.acc;g.fillRect(W-ax,ly-10,ax,20);g.shadowBlur=0;g.fillStyle='#fff';g.fillText(fp(d.price),W-ax+6,ly);
 }
 function drawInd(){
   const C={up:col('cUp'),dn:col('cDn'),acc:col('cAc'),line:col('cLn'),mute:col('cMu'),e50:col('cE5')},I=ind(D[cur]),ax=28;
@@ -643,7 +811,8 @@ function drawInd(){
   if(a){const {g,W,H}=a,n=Math.min(I.rsi.length,Math.floor((W-ax)/3)),r=I.rsi.slice(-n),y=v=>4+(100-v)/100*(H-8),sx=(W-ax)/Math.max(1,n-1);
     g.fillStyle=C.line;g.fillRect(0,y(70),W-ax,y(30)-y(70));
     [70,30].forEach(v=>{g.fillStyle=C.mute;g.fillText(v,W-ax+6,y(v))});
-    g.strokeStyle=C.acc;g.lineWidth=1.6;g.beginPath();let s=false;r.forEach((v,i)=>{if(v==null)return;const x=i*sx;s?g.lineTo(x,y(v)):(g.moveTo(x,y(v)),s=true)});g.stroke()}
+    g.strokeStyle=C.acc;g.shadowColor=C.acc;g.shadowBlur=8;g.lineWidth=1.6;g.beginPath();let s=false;r.forEach((v,i)=>{if(v==null)return;const x=i*sx;s?g.lineTo(x,y(v)):(g.moveTo(x,y(v)),s=true)});g.stroke()}
+  if(a)a.g.shadowBlur=0;
   const b=prep($('cvM'),$('figM'));
   if(b){const {g,W,H}=b,n=Math.min(I.hist.length,Math.floor((W-ax)/4)),h=I.hist.slice(-n),m=I.mac.slice(-n),sg=I.sig.slice(-n);
     const mx=Math.max(...h.map(Math.abs),...m.map(Math.abs),...sg.map(Math.abs))||1,y=v=>H/2-v/mx*(H/2-6),bw=(W-ax)/n;
@@ -686,7 +855,7 @@ function applyLang(){
   document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
   $('lang').setAttribute('aria-label',t('lang'));
   $('proSlot').innerHTML=CHECKOUT_URL?`<a class="btn go a" href="${esc(CHECKOUT_URL)}" target="_blank" rel="noopener">${esc(t('proBtn'))}</a>`:`<button class="go" disabled>${esc(t('proSoon'))}</button>`;
-  setFeed(feedK);setDm(dm,true);built='x';hbuilt='';render();renderBt();
+  setFeed(feedK);setDm(dm,true);built='x';hbuilt='';sbuilt='';render();renderBt();
 }
 $('lang').innerHTML=LANGS.map(([c,n])=>`<option value="${c}">${esc(n)}</option>`).join('');
 $('lang').value=lang;
@@ -705,6 +874,10 @@ $('plist').addEventListener('click',e=>{const b=e.target.closest('[data-close]')
 let armed=null;$('reset').addEventListener('click',()=>{const b=$('reset');
   if(!armed){b.textContent=t('resetC');armed=setTimeout(()=>{armed=null;b.textContent=t('reset')},3000);return}
   clearTimeout(armed);armed=null;b.textContent=t('reset');S={bal:START,pos:[],hist:[],id:1,dep:START,fund:[],bot:{on:false},botLog:[]};save();built='x';hbuilt='';toast(t('tReset'));render()});
+
+/* views */
+addEventListener('hashchange',setView);
+$('demoB').addEventListener('click',()=>{demo=demo?null:mkDemo();sbuilt='';render()});
 
 /* auto-trader controls */
 $('bStrat').addEventListener('change',renderBot);
@@ -735,7 +908,7 @@ $('dGo').addEventListener('click',()=>{const a=Math.round(+$('dAmt').value*100)/
 MK.forEach(m=>seed(D[m.s]));
 if(S.bot.st){$('bStrat').value=S.bot.st;bDir=S.bot.mode||'both';$('bMg').value=S.bot.m;$('bLv').value=S.bot.lev;$('bTp').value=S.bot.tp||'';$('bSl').value=S.bot.sl||''}
 if(S.bot.on&&D[S.bot.sym])cur=S.bot.sym;
-buildStrip();applyLang();sim();goLive();loadFng();
+buildStrip();applyLang();setView();sim();goLive();loadFng();
 }
 </script>
 <script src="/analytics.js" defer></script>
