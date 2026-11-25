@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PaperPerp Practice Desk</title>
-<meta name="description" content="Practice crypto and stock trading with $10,000 in play money. Live crypto prices, leverage, take profit and stop loss, RSI, MACD and trend score. Free, in 8 languages.">
+<meta name="description" content="Practice crypto and stock trading with $10,000 in play money. Live crypto prices, leverage, take profit and stop loss, RSI, MACD and trend score. Backtest and auto-trade with a bot. Free, in 8 languages.">
 <meta property="og:title" content="PaperPerp: practice trading with play money">
 <meta property="og:description" content="Long or short crypto and stocks with $10,000 in fake money. Live prices, charts and indicators. English, العربية, Français and more.">
 <meta property="og:type" content="website">
@@ -113,6 +113,20 @@ td.n,th.n{text-align:end;white-space:nowrap}
 .plan ul{list-style:none;padding:0;margin:0;font-size:14px;display:grid;gap:6px;flex:1}
 .plan li{padding-inline-start:22px;position:relative}
 .plan li::before{content:"";position:absolute;inset-inline-start:2px;top:.45em;width:10px;height:6px;border-inline-start:2px solid var(--up);border-bottom:2px solid var(--up);transform:rotate(-45deg)}
+.bot{margin-top:14px}
+.bh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+.bh h2{font-size:22px}
+.bgrid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:24px}
+select.in{appearance:auto}
+.flab{display:block;font-size:13px;color:var(--mute);margin-bottom:6px}
+.bstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 14px}
+.bstats b{font:700 20px "Space Grotesk",sans-serif;white-space:nowrap}
+.fig.eqf{min-height:170px}
+.bsub{font-size:16px;margin:18px 0 6px}
+.tag.bot{background:var(--acc)}
+table.bt{font-size:13px}
+@media(max-width:860px){.bgrid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.bstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;color:var(--mute);font-size:13px;padding:28px 0 40px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:9}
 .ov[hidden]{display:none}
@@ -197,6 +211,41 @@ td.n,th.n{text-align:end;white-space:nowrap}
       <div class="ih"><h2 id="moT"></h2><b id="moV"></b></div>
       <div class="meter"><div class="mt"><i id="moDot"></i></div><div class="ml"><span data-t="extFear">Extreme fear</span><span data-t="neutral">Neutral</span><span data-t="extGreed">Extreme greed</span></div></div>
       <p class="lbl" id="moSrc"></p>
+    </div>
+  </section>
+
+  <section class="card bot" id="bot">
+    <div class="bh">
+      <div><h2 data-t="botH">Auto-trader</h2><p class="lbl" data-t="botSub"></p></div>
+      <span class="feed" id="botBadge"><i></i><span id="botBadgeT"></span></span>
+    </div>
+    <div class="bgrid">
+      <div>
+        <p class="lbl"><span data-t="market">Market</span>: <b id="bMk" style="color:var(--ink)"></b> · <span data-t="pickHint"></span></p>
+        <div class="fld"><label for="bStrat" data-t="strat">Strategy</label>
+          <select class="in" id="bStrat"><option value="ema" data-t="sEma"></option><option value="rsi" data-t="sRsi"></option><option value="macd" data-t="sMacd"></option><option value="trend" data-t="sTrend"></option></select>
+          <p class="lbl" id="bDesc" style="margin:6px 0 0"></p></div>
+        <div class="fld"><span class="flab" data-t="dir">Direction</span>
+          <div class="cats" id="bDir" style="margin:0"><button data-d="both" data-t="both"></button><button data-d="long" data-t="longOnly"></button><button data-d="short" data-t="shortOnly"></button></div></div>
+        <div class="fld two">
+          <div><label for="bMg" data-t="perTrade"></label><input class="in" id="bMg" type="number" inputmode="decimal" min="1" value="1000"></div>
+          <div><label for="bLv"><span data-t="leverage"></span> <span id="bLvMax" class="lbl" style="display:inline"></span></label><input class="in" id="bLv" type="number" inputmode="numeric" min="1" value="5"></div>
+        </div>
+        <div class="fld two">
+          <div><label for="bTp" data-t="tpPct"></label><input class="in" id="bTp" type="number" inputmode="decimal" min="0" step="0.1" data-tp="optional"></div>
+          <div><label for="bSl" data-t="slPct"></label><input class="in" id="bSl" type="number" inputmode="decimal" min="0" step="0.1" data-tp="optional"></div>
+        </div>
+        <div class="fld"><label for="bTf" data-t="tf"></label>
+          <select class="in" id="bTf"><option value="chart" data-t="tfChart"></option><option value="5m" data-t="tf5"></option><option value="15m" data-t="tf15"></option><option value="1h" data-t="tf1h"></option></select></div>
+        <div class="two"><button class="go a" id="bRun" data-t="runBt"></button><button class="go l" id="bGo"></button></div>
+        <div class="err" id="bErr" role="alert"></div>
+        <p class="lbl" data-t="botPage"></p>
+      </div>
+      <div>
+        <div id="btOut"></div>
+        <h3 class="bsub" data-t="botLog">Bot activity</h3>
+        <div id="bLog"></div>
+      </div>
     </div>
   </section>
 
@@ -294,9 +343,11 @@ function seed(d){
 }
 function tick(sym,p){
   const d=D[sym];d.price=p;const tt=Math.floor(Date.now()/TF)*TF,c=d.candles;let k=c[c.length-1];
-  if(!k||k.t<tt){const o=k?k.c:p;k={t:tt,o,h:Math.max(o,p),l:Math.min(o,p),c:p};c.push(k);if(c.length>400)c.shift()}
+  let fresh=false;
+  if(!k||k.t<tt){const o=k?k.c:p;k={t:tt,o,h:Math.max(o,p),l:Math.min(o,p),c:p};c.push(k);if(c.length>400)c.shift();fresh=true}
   else{k.c=p;k.h=Math.max(k.h,p);k.l=Math.min(k.l,p)}
   checkPos(sym,p);
+  if(fresh&&S.bot&&S.bot.on&&S.bot.sym===sym)botStep(sym);
 }
 const pnlOf=(q,p)=>q.qty*(p-q.entry)*(q.side==='long'?1:-1);
 function checkPos(sym,p){
@@ -315,21 +366,29 @@ function closePos(q,px,why){
   const net=Math.max(-q.margin,gross-cf)-q.of;
   S.hist.unshift({id:q.id,sym:q.sym,side:q.side,lev:q.lev,entry:q.entry,exit:px,net,roe:net/q.margin*100,why,t:Date.now()});
   if(S.hist.length>200)S.hist.length=200;
+  if(q.bot)botLog('bClose',{b:D[q.sym].m.b,p:fp(px),x:fu(net,1)});
   save();toast(t('tClose',{w:t(why),b:D[q.sym].m.b,s:t(q.side),x:fu(net,1)}));
 }
 function err(k){$('err').textContent=k?t(k):'';return false}
-function openPos(side){
-  const d=D[cur],p=d.price,m=+$('mg').value,lev=+$('lv').value,tp=+$('tp').value||0,sl=+$('sl').value||0,L=side==='long';
-  if(!(m>=1))return err('eMin');
+/* one place where every order is checked and opened, for people and for the bot */
+function placeOrder(o){
+  const d=D[o.sym],p=d.price,m=o.m,lev=o.lev,L=o.side==='long';let tp=o.tp||0,sl=o.sl||0;
+  if(!(m>=1))return 'eMin';
+  if(!(lev>=1&&lev<=d.m.ml))return 'eLev';
   const qty=m*lev/p,of=qty*p*FEE;
-  if(m+of>S.bal+1e-9)return err('eBal');
-  if(tp&&(L?tp<=p:tp>=p))return err(L?'eTpL':'eTpS');
-  if(sl&&(L?sl>=p:sl<=p))return err(L?'eSlL':'eSlS');
+  if(m+of>S.bal+1e-9)return 'eBal';
+  if(tp&&(L?tp<=p:tp>=p))return L?'eTpL':'eTpS';
+  if(sl&&(L?sl>=p:sl<=p))return L?'eSlL':'eSlS';
   const liq=L?p*(1-1/lev+MMR):p*(1+1/lev-MMR);
-  if(sl&&(L?sl<=liq:sl>=liq))return err('eSlLiq');
-  S.bal-=m+of;S.pos.push({id:S.id++,sym:cur,side,margin:m,lev,entry:p,qty,liq,tp,sl,of,t:Date.now()});
-  save();err('');$('tp').value='';$('sl').value='';
-  toast(t('tOpen',{b:d.m.b,s:t(side),l:lev,p:fp(p)}));render();
+  if(sl&&(L?sl<=liq:sl>=liq)){if(o.bot)sl=0;else return 'eSlLiq'}
+  S.bal-=m+of;const q={id:S.id++,sym:o.sym,side:o.side,margin:m,lev,entry:p,qty,liq,tp,sl,of,t:Date.now(),bot:!!o.bot};
+  S.pos.push(q);save();return q;
+}
+function openPos(side){
+  const d=D[cur],r=placeOrder({sym:cur,side,m:+$('mg').value,lev:+$('lv').value,tp:+$('tp').value||0,sl:+$('sl').value||0});
+  if(typeof r==='string')return err(r);
+  err('');$('tp').value='';$('sl').value='';
+  toast(t('tOpen',{b:d.m.b,s:t(side),l:r.lev,p:fp(r.entry)}));render();
 }
 
 /* indicators */
@@ -337,8 +396,21 @@ function ema(a,n){const k=2/(n+1),o=[];let e=a[0];a.forEach((v,i)=>{e=i?v*k+e*(1
 function rsiA(a,n=14){const o=new Array(a.length).fill(null);if(a.length<=n)return o;let g=0,l=0;
   for(let i=1;i<=n;i++){const d=a[i]-a[i-1];if(d>0)g+=d;else l-=d}g/=n;l/=n;o[n]=l?100-100/(1+g/l):100;
   for(let i=n+1;i<a.length;i++){const d=a[i]-a[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;o[i]=l?100-100/(1+g/l):100}return o}
-function ind(d){const c=d.candles.map(k=>k.c),e12=ema(c,12),e26=ema(c,26),mac=e12.map((v,i)=>v-e26[i]),sig=ema(mac,9);
+function indC(c){const e12=ema(c,12),e26=ema(c,26),mac=e12.map((v,i)=>v-e26[i]),sig=ema(mac,9);
   return {e20:ema(c,20),e50:ema(c,50),rsi:rsiA(c),mac,sig,hist:mac.map((v,i)=>v-sig[i])}}
+const ind=d=>indC(d.candles.map(k=>k.c));
+function scoreAt(I,i,p){const r=I.rsi[i],h=I.hist[i];
+  return 25*((p>I.e50[i]?1:-1)+(I.e20[i]>I.e50[i]?1:-1)+(r==null?0:r>55?1:r<45?-1:0)+(h>0?1:h<0?-1:0))}
+/* strategy rules: return the position the rule wants (1 long, -1 short, 0 flat), given the current one */
+function target(st,I,i,pos,price){
+  if(st==='ema')return I.e20[i]>I.e50[i]?1:-1;
+  if(st==='macd')return I.hist[i]>0?1:I.hist[i]<0?-1:pos;
+  if(st==='rsi'){const r=I.rsi[i];if(r==null)return pos;if(r<30)return 1;if(r>70)return -1;
+    if((pos===1&&r>=50)||(pos===-1&&r<=50))return 0;return pos}
+  const s=scoreAt(I,i,price);if(s>=50)return 1;if(s<=-50)return -1;
+  if((pos===1&&s<=0)||(pos===-1&&s>=0))return 0;return pos;
+}
+const filt=(x,mode)=>mode==='long'&&x<0||mode==='short'&&x>0?0:x;
 function score(d){const I=ind(d),n=d.candles.length-1,p=d.price,r=I.rsi[n],h=I.hist[n];
   const f=[['f1',p>I.e50[n]?1:-1,p>I.e50[n]?t('above'):t('below')],
     ['f2',I.e20[n]>I.e50[n]?1:-1,I.e20[n]>I.e50[n]?t('e2a'):t('e2b')],
@@ -364,6 +436,112 @@ function renderRead(){
   $('moV').textContent=`${v} · ${t(moodK(v))}`;$('moDot').style.left=v+'%';
 }
 
+/* backtester: replays the rule over past candles with $10,000, fees, liquidation, TP and SL */
+function backtest(cs,cfg){
+  const c=cs.map(k=>k.c),I=indC(c),START_BT=10000;let cash=START_BT,state=0,tr=null,peak=START_BT,dd=0;const eq=[],trades=[];
+  const open=(dir,px,i)=>{const m=Math.min(cfg.m,Math.floor(cash/(1+cfg.lev*FEE)*100)/100);if(m<1)return;
+    const qty=m*cfg.lev/px,of=qty*px*FEE,liq=dir>0?px*(1-1/cfg.lev+MMR):px*(1+1/cfg.lev-MMR);
+    let sl=cfg.sl?px*(1-dir*cfg.sl/100):0;if(sl&&(dir>0?sl<=liq:sl>=liq))sl=0;
+    cash-=m+of;tr={dir,entry:px,qty,m,of,liq,tp:cfg.tp?px*(1+dir*cfg.tp/100):0,sl,i}};
+  const close=(px,why,i)=>{const lq=why==='rLiq',g=lq?-tr.m:tr.qty*(px-tr.entry)*tr.dir,cf=lq?0:tr.qty*px*FEE;
+    cash+=Math.max(0,tr.m+g-cf);trades.push({dir:tr.dir,entry:tr.entry,exit:px,net:Math.max(-tr.m,g-cf)-tr.of,why,t:cs[i].t});tr=null};
+  const W=50;
+  for(let i=1;i<cs.length;i++){const k=cs[i];
+    if(tr){const L=tr.dir>0;
+      if(L?k.l<=tr.liq:k.h>=tr.liq)close(tr.liq,'rLiq',i);
+      else if(tr.sl&&(L?k.l<=tr.sl:k.h>=tr.sl))close(tr.sl,'rSl',i);
+      else if(tr.tp&&(L?k.h>=tr.tp:k.l<=tr.tp))close(tr.tp,'rTp',i)}
+    if(i>=W){const tg=filt(target(cfg.st,I,i,state,c[i]),cfg.mode);
+      if(tg!==state){if(tr)close(c[i],'rSig',i);if(tg)open(tg,c[i],i);state=tg}}
+    if(i>=W){const e=cash+(tr?tr.m+tr.qty*(c[i]-tr.entry)*tr.dir:0);eq.push(e);peak=Math.max(peak,e);dd=Math.max(dd,(peak-e)/peak)}}
+  if(tr)close(c[c.length-1],'rEnd',cs.length-1);
+  if(eq.length)eq[eq.length-1]=cash;
+  const wins=trades.filter(x=>x.net>0),gw=wins.reduce((a,x)=>a+x.net,0),gl=-trades.filter(x=>x.net<=0).reduce((a,x)=>a+x.net,0);
+  return {ret:(cash/START_BT-1)*100,n:trades.length,win:trades.length?wins.length/trades.length*100:0,dd:dd*100,
+    pf:gl>0?gw/gl:null,mkt:(c[c.length-1]/c[Math.min(W,c.length-1)]-1)*100,eq,trades,bars:cs.length};
+}
+let lastBt=null,btBusy=false;
+async function runBacktest(){
+  if(btBusy)return;const b=readBot();if(typeof b==='string')return $('bErr').textContent=t(b);
+  $('bErr').textContent='';btBusy=true;$('btOut').innerHTML=`<div class="empty">${esc(t('btLoad'))}</div>`;
+  const d=D[cur],tf=$('bTf').value;let cs=null,sim=false;
+  if(tf!=='chart'){if(live&&isC(d.m)){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${d.m.s}&interval=${tf}&limit=1000`);const a=await r.json();
+      if(Array.isArray(a)&&a.length>60)cs=a.map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]})).filter(k=>k.o>0)}catch(e){}}
+    if(!cs)sim=true}
+  if(!cs)cs=d.candles.slice(0,-1);
+  btBusy=false;
+  if(cs.length<60){$('btOut').innerHTML=`<div class="empty">${esc(t('btNoTrades'))}</div>`;return}
+  lastBt={r:backtest(cs,b),b:d.m.b,sim};renderBt();
+}
+function renderBt(){
+  if(!lastBt){$('btOut').innerHTML=`<div class="empty">${esc(t('btNone'))}</div>`;return}
+  const {r,b,sim}=lastBt,st=[['btRet',pc(r.ret),cls(r.ret)],['btTrades',String(r.n),''],['btWin',r.n?Math.round(r.win)+'%':'—',''],
+    ['btDd',r.dd?'−'+r.dd.toFixed(1)+'%':'0%',r.dd?'dn':''],['btPf',r.pf==null?'—':r.pf.toFixed(2),r.pf==null?'':r.pf>=1?'up':'dn'],['btMkt',pc(r.mkt),cls(r.mkt)]];
+  $('btOut').innerHTML=`<div class="bstats">${st.map(x=>`<div><span class="lbl">${esc(t(x[0]))}</span><b class="ltr ${x[2]}">${esc(x[1])}</b></div>`).join('')}</div>
+    <div class="ih" style="margin-top:12px"><span>${esc(t('eqCurve'))}</span></div><div class="fig eqf" id="figE"><canvas id="cvE" role="img" aria-label="${esc(t('eqCurve'))}"></canvas></div>
+    <p class="lbl">${esc(t('btNote',{n:r.bars,b}))}${sim?' '+esc(t('btSim')):''}</p>
+    ${r.n?`<div class="ih" style="margin-top:10px"><span>${esc(t('tradesH'))}</span></div><table class="stack bt"><thead><tr><th>${esc(t('side'))}</th><th class="n">${esc(t('entry'))}</th><th class="n">${esc(t('exit'))}</th><th class="n">${esc(t('result'))}</th><th>${esc(t('reason'))}</th></tr></thead><tbody>${
+      r.trades.slice(-6).reverse().map(x=>`<tr><td class="${x.dir>0?'up':'dn'}">${esc(t(x.dir>0?'long':'short'))}</td><td class="n ltr">${fp(x.entry)}</td><td class="n ltr">${fp(x.exit)}</td><td class="n ltr ${cls(x.net)}">${fu(x.net,1)}</td><td>${esc(t(x.why))}</td></tr>`).join('')}</tbody></table>`
+      :`<p class="lbl">${esc(t('btNoTrades'))}</p>`}`;
+  roE.disconnect();roE.observe($('figE'));drawEq();
+}
+function drawEq(){
+  const f=$('figE');if(!f||!lastBt)return;const P=prep($('cvE'),f);if(!P)return;const {g,W,H}=P,e=lastBt.r.eq;if(e.length<2)return;
+  const C={up:col('cUp'),dn:col('cDn'),line:col('cLn'),mute:col('cMu')},ax=60,lo=Math.min(10000,...e),hi=Math.max(10000,...e),pad=(hi-lo)*.1||50,
+    y=v=>8+(hi+pad-v)/(hi-lo+2*pad)*(H-16),sx=(W-ax)/(e.length-1),y0=y(10000);
+  g.strokeStyle=C.mute;g.setLineDash([3,4]);g.beginPath();g.moveTo(0,y0);g.lineTo(W-ax,y0);g.stroke();g.setLineDash([]);
+  g.fillStyle=C.mute;g.fillText('$10,000',W-ax+6,y0);
+  const end=e[e.length-1],c=end>=10000?C.up:C.dn;g.strokeStyle=c;g.lineWidth=1.8;g.beginPath();
+  e.forEach((v,i)=>{i?g.lineTo(i*sx,y(v)):g.moveTo(0,y(v))});g.stroke();
+  g.lineTo(W-ax,y0);g.lineTo(0,y0);g.closePath();g.globalAlpha=.12;g.fillStyle=c;g.fill();g.globalAlpha=1;
+  if(Math.abs(y(end)-y0)>14){g.fillStyle=c;g.fillText('$'+Math.round(end).toLocaleString('en-US'),W-ax+6,y(end))}
+}
+const roE=new ResizeObserver(()=>drawEq());
+
+/* live bot: checks once per finished candle on one market, trades play money */
+if(!S.bot)S.bot={on:false};if(!Array.isArray(S.botLog))S.botLog=[];
+function readBot(){
+  const m=D[cur].m,lev=Math.round(+$('bLv').value),mg=+$('bMg').value,tp=+$('bTp').value||0,sl=+$('bSl').value||0;
+  if(!(mg>=1))return 'eMin';if(!(lev>=1&&lev<=m.ml))return 'eLev';if(tp<0||sl<0||tp>500||sl>99)return 'ePct';
+  return {st:$('bStrat').value,mode:bDir,m:mg,lev,tp,sl};
+}
+function botLog(k,v){S.botLog.unshift({k,v,t:Date.now()});if(S.botLog.length>40)S.botLog.length=40;save();renderBotLog()}
+function botStep(sym){
+  const B=S.bot;if(!B.on||B.sym!==sym)return;const d=D[sym],cs=d.candles.slice(0,-1);if(cs.length<60)return;
+  const c=cs.map(k=>k.c),I=indC(c),n=c.length-1,tg=filt(target(B.st,I,n,B.state||0,c[n]),B.mode);
+  if(tg===(B.state||0))return;
+  for(const q of S.pos.filter(x=>x.bot&&x.sym===sym))closePos(q,d.price,'rSig');
+  B.state=tg;save();
+  if(!tg)return;
+  const side=tg>0?'long':'short',p=d.price,tp=B.tp?p*(1+tg*B.tp/100):0,sl=B.sl?p*(1-tg*B.sl/100):0;
+  const r=placeOrder({sym,side,m:B.m,lev:B.lev,tp,sl,bot:true});
+  if(typeof r==='string')botLog('bSkip',{s:side,e:r});else botLog('bOpen',{s:side,b:d.m.b,l:r.lev,p:fp(r.entry)});
+  later();
+}
+function toggleBot(){
+  const B=S.bot;
+  if(B.on){B.on=false;save();botLog('bStopped',{});renderBot();return}
+  const b=readBot();if(typeof b==='string')return $('bErr').textContent=t(b);
+  $('bErr').textContent='';Object.assign(B,b,{on:true,sym:cur,state:0});save();botLog('bStarted',{b:D[cur].m.b,s:b.st});
+  botStep(cur);renderBot();render();
+}
+function renderBot(){
+  const B=S.bot,on=!!B.on;$('botBadge').classList.toggle('on',on);
+  $('botBadgeT').textContent=on?t('botOn',{b:D[B.sym]?.m.b||'',s:t({ema:'sEma',rsi:'sRsi',macd:'sMacd',trend:'sTrend'}[B.st]||'sEma')}):t('botOff');
+  $('bGo').textContent=t(on?'stopBot':'startBot');$('bGo').className='go '+(on?'s':'l');
+  $('bDesc').textContent=t({ema:'sEmaD',rsi:'sRsiD',macd:'sMacdD',trend:'sTrendD'}[$('bStrat').value]);
+  $('bDir').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.d===bDir));
+  $('bMk').textContent=D[cur].m.b;$('bLvMax').textContent=t('maxLev',{m:D[cur].m.ml});
+  renderBotLog();
+}
+function renderBotLog(){
+  const L=S.botLog;$('bLog').innerHTML=L.length?'<dl class="rows">'+L.slice(0,8).map(x=>{const v={...x.v};if(v.s==='long'||v.s==='short')v.s=t(v.s);if(v.e)v.e=t(v.e);
+    if(x.k==='bStarted')v.s=t({ema:'sEma',rsi:'sRsi',macd:'sMacd',trend:'sTrend'}[x.v.s]||'sEma');
+    return `<div><dt class="ltr">${esc(new Date(x.t).toLocaleTimeString(loc(),{hour:'2-digit',minute:'2-digit'}))}</dt><dd style="white-space:normal;text-align:end">${esc(t(x.k,v))}</dd></div>`}).join('')+'</dl>'
+    :`<p class="lbl">${esc(t('botNone'))}</p>`;
+}
+let bDir='both';
+
 /* rendering */
 let built='',hbuilt='';
 function buildStrip(){
@@ -386,7 +564,7 @@ function render(){
   $('sAv').textContent=fu(S.bal);$('sMg').textContent=fu(mu);
   $('sUp').textContent=fu(up,1);$('sUp').className='ltr '+cls(up);$('sRe').textContent=fu(re,1);$('sRe').className='ltr '+cls(re);
   $('sWr').textContent=S.hist.length?t('winOf',{p:Math.round(w/S.hist.length*100),n:S.hist.length}):t('noTrades');
-  renderPos();renderHist();renderRead();drawChart();drawInd();
+  renderPos();renderHist();renderRead();renderBot();drawChart();drawInd();
 }
 function renderPos(){
   const box=$('plist');
@@ -399,7 +577,7 @@ function renderPos(){
   S.pos.forEach(q=>{const p=D[q.sym].price,pl=pnlOf(q,p),ro=pl/q.margin*100;
     $('mk-'+q.id).textContent=fp(p);const a=$('pl-'+q.id);a.textContent=fu(pl,1);a.className=cls(pl);const b=$('ro-'+q.id);b.textContent=pc(ro);b.className=cls(ro)});
 }
-function posCard(q){const m=D[q.sym].m;return `<div class="card pc" data-id="${q.id}"><div class="ph"><span class="tag ${q.side}">${esc(t(q.side))} ${q.lev}×</span><b>${esc(m.b)}${isC(m)?'USDT':''}</b><button data-close="${q.id}">${esc(t('close'))}</button></div>
+function posCard(q){const m=D[q.sym].m;return `<div class="card pc" data-id="${q.id}"><div class="ph"><span class="tag ${q.side}">${esc(t(q.side))} ${q.lev}×</span>${q.bot?`<span class="tag bot">${esc(t('botTag'))}</span>`:''}<b>${esc(m.b)}${isC(m)?'USDT':''}</b><button data-close="${q.id}">${esc(t('close'))}</button></div>
       <dl><div><dt>${esc(t('sizeS'))}</dt><dd class="ltr">${fu(q.qty*q.entry)}</dd></div><div><dt>${esc(t('margin').replace(/\s*\(.*\)/,''))}</dt><dd class="ltr">${fu(q.margin)}</dd></div>
       <div><dt>${esc(t('entry'))}</dt><dd class="ltr">${fp(q.entry)}</dd></div><div><dt>${esc(t('mark'))}</dt><dd class="ltr" id="mk-${q.id}"></dd></div>
       <div><dt>${esc(t('liq'))}</dt><dd class="ltr dn">${fp(q.liq)}</dd></div><div><dt>${esc(t('tpsl'))}</dt><dd class="ltr">${q.tp?fp(q.tp):'—'} / ${q.sl?fp(q.sl):'—'}</dd></div></dl>
@@ -503,7 +681,7 @@ function applyLang(){
   document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
   $('lang').setAttribute('aria-label',t('lang'));
   $('proSlot').innerHTML=CHECKOUT_URL?`<a class="btn go a" href="${esc(CHECKOUT_URL)}" target="_blank" rel="noopener">${esc(t('proBtn'))}</a>`:`<button class="go" disabled>${esc(t('proSoon'))}</button>`;
-  setFeed(feedK);setDm(dm,true);built='x';hbuilt='';render();
+  setFeed(feedK);setDm(dm,true);built='x';hbuilt='';render();renderBt();
 }
 $('lang').innerHTML=LANGS.map(([c,n])=>`<option value="${c}">${esc(n)}</option>`).join('');
 $('lang').value=lang;
@@ -521,7 +699,13 @@ $('bL').addEventListener('click',()=>openPos('long'));$('bS').addEventListener('
 $('plist').addEventListener('click',e=>{const b=e.target.closest('[data-close]');if(!b)return;const q=S.pos.find(x=>x.id===+b.dataset.close);if(q){closePos(q,D[q.sym].price,'rMan');render()}});
 let armed=null;$('reset').addEventListener('click',()=>{const b=$('reset');
   if(!armed){b.textContent=t('resetC');armed=setTimeout(()=>{armed=null;b.textContent=t('reset')},3000);return}
-  clearTimeout(armed);armed=null;b.textContent=t('reset');S={bal:START,pos:[],hist:[],id:1,dep:START,fund:[]};save();built='x';hbuilt='';toast(t('tReset'));render()});
+  clearTimeout(armed);armed=null;b.textContent=t('reset');S={bal:START,pos:[],hist:[],id:1,dep:START,fund:[],bot:{on:false},botLog:[]};save();built='x';hbuilt='';toast(t('tReset'));render()});
+
+/* auto-trader controls */
+$('bStrat').addEventListener('change',renderBot);
+$('bDir').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(b){bDir=b.dataset.d;renderBot()}});
+$('bRun').addEventListener('click',runBacktest);
+$('bGo').addEventListener('click',toggleBot);
 
 /* play-money wallet */
 var dm='dep';
@@ -544,6 +728,8 @@ $('dGo').addEventListener('click',()=>{const a=Math.round(+$('dAmt').value*100)/
   save();$('dAmt').value='';setDm(dm);toast(t(w?'tWd':'tDep',{a:fu(a)}));render()});
 
 MK.forEach(m=>seed(D[m.s]));
+if(S.bot.st){$('bStrat').value=S.bot.st;bDir=S.bot.mode||'both';$('bMg').value=S.bot.m;$('bLv').value=S.bot.lev;$('bTp').value=S.bot.tp||'';$('bSl').value=S.bot.sl||''}
+if(S.bot.on&&D[S.bot.sym])cur=S.bot.sym;
 buildStrip();applyLang();sim();goLive();loadFng();
 }
 </script>
