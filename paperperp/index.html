@@ -49,6 +49,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,.btn:focus-visible
 .mk[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
 .mk span{display:block;font-size:13px;font-weight:500;color:var(--mute)}
 .mk em{font-style:normal;font-size:13px}
+/* mouse and trackpad screens can't swipe a sideways row, so show every market in a grid */
+@media (hover:hover) and (pointer:fine){
+  .strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));overflow:visible;padding-bottom:0}
+  .mk{min-width:0}
+}
 .desk{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;margin-top:10px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
 .phead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:8px}
