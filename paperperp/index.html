@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PaperPerp Practice Desk</title>
-<meta name="description" content="Practice crypto and stock trading with $10,000 in play money. Live crypto prices, leverage, take profit and stop loss, RSI, MACD and trend score. Backtest and auto-trade with a bot, and track your stats on a dashboard. Free, in 8 languages.">
-<meta property="og:title" content="PaperPerp: practice trading with play money">
-<meta property="og:description" content="Long or short crypto and stocks with $10,000 in fake money. Live prices, charts and indicators. English, العربية, Français and more.">
+<meta name="description" content="Free practice trading platform: crypto and stocks with $10,000 in play money, live prices, key levels and opening range, strategy lab and auto-trader, trading academy, journal and stats. In 8 languages.">
+<meta property="og:title" content="PaperPerp: practice trading platform">
+<meta property="og:description" content="Trade crypto and stocks with play money. Analyze levels, test strategies, learn in the academy and journal every trade. English, العربية, Français and more.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://karawene112.github.io/paperperp/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -26,7 +26,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,"IBM Ple
 :lang(ar) body{font-family:"IBM Plex Sans Arabic",Inter,system-ui,sans-serif}
 h1,h2,h3,.big{font-family:"Space Grotesk",Inter,"IBM Plex Sans Arabic",sans-serif;margin:0}
 :lang(ar) :is(h1,h2,h3){font-family:"IBM Plex Sans Arabic",sans-serif}
-button,input,select{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 button,.btn{cursor:pointer;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--soft);padding:0 14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 button:focus-visible,input:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .ltr{direction:ltr;unicode-bidi:isolate}
@@ -200,6 +200,76 @@ button:hover{background:rgba(255,255,255,.09)}
 .demo-note{color:var(--e50);font-size:13px}
 @media(max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sgrid,.sgrid2,.sgrid3{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:480px){.kpi b{font-size:22px}.kpi.hero b{font-size:34px}}
+/* ===== Six-section app ===== */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:4px;width:100%}
+.tabs a{flex:none}
+.sh h1 span{font:inherit}
+.msel{display:block;min-width:200px}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--mute)}
+.ch b{color:var(--ink);font-size:13px}
+.agrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.agrid3{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.bl{font:700 32px/1.05 "Space Grotesk","IBM Plex Sans Arabic",sans-serif}
+.segs{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:12px;direction:ltr}
+.segs i{height:7px;border-radius:4px;background:rgba(255,255,255,.08)}
+.segs i.up{background:var(--up);box-shadow:0 0 10px -2px var(--up)}.segs i.dn{background:var(--dn);box-shadow:0 0 10px -2px var(--dn)}
+.rl{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:13.5px}
+.rl li{display:flex;gap:8px;align-items:baseline}.rl li span{flex:none;font-size:11px}
+select.mini{height:34px;width:auto;font-size:13px;padding:0 8px}
+#orN button{flex:1;min-height:36px}#orN button[aria-pressed=true]{background:linear-gradient(180deg,#46f0b4,#14b97c);color:#03160e;border-color:transparent}
+.kv2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 12px}
+.kv2 small{display:block;font-size:12px;color:var(--mute)}.kv2 b{font:700 20px "Space Grotesk",sans-serif;white-space:nowrap}
+.ors{margin:12px 0 4px;font-weight:600;font-size:14px;display:grid;gap:3px}
+.ohlc{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}.ohlc div{color:var(--ink);font-variant-numeric:tabular-nums}
+.tfg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
+.tfg div{border-radius:8px;padding:6px 2px;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.tfg div.up{background:rgba(47,224,160,.10);border-color:rgba(47,224,160,.3)}.tfg div.dn{background:rgba(255,93,125,.10);border-color:rgba(255,93,125,.3)}
+.tfg small{display:block;font-size:11px;color:var(--mute)}.tfg b{display:block;font-size:14px}.tfg .up b,.tfg div.up b{color:var(--up)}.tfg div.dn b{color:var(--dn)}
+.tfg em{font-style:normal;font-size:12px;white-space:nowrap}
+.kl{display:grid;gap:2px;font-size:13.5px}
+.kl div{display:grid;grid-template-columns:minmax(0,1fr) auto 5.2em;gap:8px;align-items:center;padding:5px 6px;border-radius:7px}
+.kl div i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-inline-end:7px}
+.kl em{font-style:normal;font-size:12px;text-align:end;white-space:nowrap}.kl b{white-space:nowrap}
+.kl .now{background:rgba(91,140,255,.16);border:1px solid rgba(91,140,255,.35);color:#cfe0ff}
+.fd{display:grid;gap:6px;max-height:330px;overflow-y:auto}
+.fd div{display:grid;grid-template-columns:3.4em 1em minmax(0,1fr);gap:6px;align-items:start;font-size:13.5px;padding:7px 8px;border-radius:9px;background:rgba(255,255,255,.035)}
+.fd time{color:var(--mute);font-size:12px;padding-top:1px}.fd p{margin:0}.fd div.up span{color:var(--up)}.fd div.dn span{color:var(--dn)}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.ali{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.035);margin-top:6px;font-size:14px}
+.ali button{min-height:32px;min-width:32px;padding:0}.ali.done{opacity:.7}
+.rkc{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px}.rkc .go{min-width:180px}
+table.rk td,table.rk th{white-space:nowrap}table.rk td:nth-child(2){white-space:normal;min-width:200px}
+table.rk tr.best td{background:rgba(47,224,160,.07)}table.rk button{min-height:34px}
+.sgl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}.sgl p{margin:4px 0 0}
+.agr{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;align-items:start}
+.prog{height:6px;border-radius:9px;background:rgba(255,255,255,.08);margin:10px 0 6px;overflow:hidden}.prog i{display:block;height:100%;background:linear-gradient(90deg,#5b8cff,#2fe0a0);box-shadow:0 0 12px rgba(47,224,160,.6)}
+.acl{display:grid;gap:4px;margin-top:10px}
+.acl button{justify-content:flex-start;text-align:start;gap:10px;font-weight:500;background:transparent;border-color:transparent}
+.acl button span:first-child{color:var(--mute);width:1.4em;flex:none}.acl button b{margin-inline-start:auto}
+.acl button[aria-pressed=true]{background:rgba(91,140,255,.16);border-color:rgba(91,140,255,.35)}
+.acb{font-size:16px;line-height:1.65}.acb p,.acb ul{max-width:72ch}.act{font-size:clamp(24px,3vw,32px);margin:6px 0 12px;line-height:1.15}
+.goal{border-inline-start:3px solid var(--up);background:rgba(47,224,160,.07);padding:10px 14px;border-radius:8px;margin-bottom:12px}
+.keyp{border:1px solid rgba(91,140,255,.35);background:rgba(91,140,255,.09);border-radius:12px;padding:12px 14px;margin:14px 0}.keyp b{color:#9cb8ff}.keyp p{margin:4px 0 0}
+.qh{font-size:18px;margin:22px 0 8px}.qz{margin:12px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.035)}.qz>p{margin:0 0 8px}
+.qa{display:grid;gap:6px}.qa button{justify-content:flex-start;text-align:start;font-weight:500;min-height:42px;padding:8px 12px;line-height:1.35}
+.qa button.ok{border-color:var(--up);background:rgba(47,224,160,.14)}.qa button.no{border-color:var(--dn);background:rgba(255,93,125,.12)}.qa button[disabled]{cursor:default;opacity:1}
+.why{margin:8px 0 0;font-size:14px}.qres{margin-top:14px;font-weight:700}
+.acnav{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.jgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px;align-items:start}
+.jl{display:grid;gap:6px;max-height:620px;overflow-y:auto}
+.jc{display:flex;justify-content:space-between;gap:10px;text-align:start;align-items:flex-start;font-weight:500;padding:10px 12px;min-height:0;background:rgba(255,255,255,.04)}
+.jc[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.jc .jr{text-align:end;flex:none}.jc .jr small{display:block;color:var(--e50);font-size:12px}.jtg{color:#9cb8ff}
+.tagset{display:flex;flex-wrap:wrap;gap:6px}.tagset button{min-height:36px;font-weight:500;border-radius:99px;font-size:13.5px}
+.tagset button[aria-pressed=true]{background:rgba(91,140,255,.25);border-color:var(--acc);color:#fff}
+.stars{display:flex;gap:4px;direction:ltr;justify-content:flex-start}.stars button{min-width:44px;font-size:20px;padding:0;color:rgba(255,255,255,.25)}.stars button[aria-pressed=true]{color:#ffb547}
+textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
+.wrapc{flex-wrap:wrap}
+.lvb{min-height:28px;padding:0 10px;font-size:12px;font-weight:500;border-radius:99px;margin-inline-start:auto}
+.lvb i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-inline-end:6px;vertical-align:middle}.lvb[aria-pressed=false]{opacity:.5}
+@media(max-width:1100px){.agrid{grid-template-columns:repeat(2,minmax(0,1fr))}.agrid3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.agrid3>.card:first-child{grid-column:span 2}.sgl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.agrid,.agrid3,.agr,.jgrid,.sgl{grid-template-columns:minmax(0,1fr)}.agrid3>.card:first-child{grid-column:auto}.jl{max-height:none}.msel{min-width:0;width:100%}.rkc .go{width:100%}}
 .foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;color:var(--mute);font-size:13px;padding:28px 0 40px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:9}
 .ov[hidden]{display:none}
@@ -215,17 +285,101 @@ button:hover{background:rgba(255,255,255,.09)}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 <script src="i18n.js"></script>
+<script src="academy.js"></script>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
     <div class="brand"><span class="logo"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2"><path d="M2 13l4-4 3 3 7-8"/><path d="M11 4h5v5"/></svg></span>PaperPerp</div>
     <span class="feed" id="feed"><i></i><span id="feedT">Connecting…</span></span>
-    <nav class="tabs" aria-label="Views"><a href="#trade" id="tabT" data-t="navTrade">Trade</a><a href="#stats" id="tabS" data-t="navStats">My stats</a></nav>
     <select class="lang" id="lang" aria-label="Language"></select>
     <div class="eqbox"><small data-t="equity">Practice equity</small><b id="eq" class="ltr">$10,000.00</b> <span id="ret" class="ltr" style="font-size:13px"></span> <span id="retd" style="font-size:13px;color:var(--mute)"></span></div>
     <button class="go l" id="fundB" data-t="addFunds">Add funds</button>
   </header>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <a href="#trade" data-v="trade" data-t="navTrade">Trade</a><a href="#analyze" data-v="analyze" data-t="navAna">Analyze</a><a href="#strategies" data-v="strategies" data-t="navStr">Strategies</a>
+    <a href="#academy" data-v="academy" data-t="navAca">Academy</a><a href="#journal" data-v="journal" data-t="navJr">Journal</a><a href="#stats" data-v="stats" data-t="navStats">My stats</a>
+  </nav>
+
+
+  <section id="vAna" hidden>
+    <div class="sh">
+      <div><h1><span data-t="navAna">Analyze</span> · <span id="aSym"></span></h1><p class="lbl" data-t="anaSub" style="margin-top:6px"></p></div>
+      <label class="msel"><span class="flab" data-t="market">Market</span><select class="in" id="aMk"></select></label>
+    </div>
+    <div class="agrid">
+      <div class="card">
+        <div class="ch"><span data-t="bias">Daily bias</span><b id="biasS" class="ltr"></b></div>
+        <div class="bl" id="biasL"></div><p class="lbl" id="biasTip" style="margin:4px 0 10px"></p>
+        <div class="segs" id="biasG"></div><ul class="rl" id="biasR"></ul>
+      </div>
+      <div class="card">
+        <div class="ch"><span data-t="orH">Opening range</span>
+          <select class="in mini" id="sesA" aria-label="Session"><option value="ny" data-t="sesNy"></option><option value="utc" data-t="sesUtc"></option></select></div>
+        <div class="chips" id="orN" style="margin:0 0 12px"><button data-n="5">5</button><button data-n="15">15</button><button data-n="30">30</button><button data-n="60">60</button></div>
+        <div class="kv2"><div><small data-t="kOrH"></small><b id="orHv" class="ltr"></b></div><div><small data-t="kOrL"></small><b id="orLv" class="ltr"></b></div></div>
+        <div class="ors" id="orSt"></div><p class="lbl" id="orRg"></p><div class="ohlc" id="ohlc"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span data-t="tfH">Trend &amp; price</span></div>
+        <div class="kv2"><div><small data-t="trend15"></small><b id="tr15"></b></div><div><small data-t="lastP"></small><b id="lastP" class="ltr"></b></div>
+          <div><small data-t="vsVw"></small><b id="vsVw" class="ltr"></b></div><div><small data-t="dayRg"></small><b id="dayRg" class="ltr"></b></div></div>
+        <small class="flab" data-t="byTf" style="margin-top:12px"></small><div class="tfg" id="tfg"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span data-t="keyLv">Key levels</span><small class="lbl" data-t="fromPx"></small></div>
+        <div class="kl" id="kl"></div>
+      </div>
+    </div>
+    <div class="agrid3">
+      <div class="card"><div class="ch"><span data-t="feedH">Setups to watch</span><small class="lbl" data-t="feedSub"></small></div><div class="fd" id="fd"></div></div>
+      <div class="card"><div class="ch"><span data-t="alH">Price alerts</span></div>
+        <div class="row2"><input class="in" id="alP" type="number" inputmode="decimal" aria-label="Price"><button class="go a" id="alAdd" data-t="alAdd"></button></div>
+        <div class="err" id="alErr" role="alert"></div><div id="alList"></div><p class="lbl" data-t="alNote" style="margin-top:10px"></p></div>
+      <div class="card"><div class="ch"><span data-t="rcH">Position size calculator</span></div>
+        <div class="two">
+          <div class="fld"><label for="rcAcc" data-t="rcAcc"></label><input class="in" id="rcAcc" type="number" inputmode="decimal" min="1"></div>
+          <div class="fld"><label for="rcRisk" data-t="rcRisk"></label><input class="in" id="rcRisk" type="number" inputmode="decimal" min="0.1" step="0.1" value="1"></div>
+          <div class="fld"><label for="rcEn" data-t="entry"></label><input class="in" id="rcEn" type="number" inputmode="decimal"></div>
+          <div class="fld"><label for="rcSt" data-t="sl"></label><input class="in" id="rcSt" type="number" inputmode="decimal"></div>
+          <div class="fld"><label for="rcLv" data-t="leverage"></label><input class="in" id="rcLv" type="number" inputmode="numeric" min="1" value="5"></div>
+        </div>
+        <dl class="rows" id="rcOut"></dl><div class="risk" id="rcW" hidden></div>
+        <button class="go l" id="rcUse" data-t="rcUse" style="width:100%"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="vStr" hidden>
+    <div class="sh"><div><h1 data-t="strH">Strategy lab</h1><p class="lbl" data-t="strSub" style="margin-top:6px"></p></div></div>
+    <div class="card">
+      <div class="rkc">
+        <label class="msel"><span class="flab" data-t="market">Market</span><select class="in" id="rkMk"></select></label>
+        <label class="msel"><span class="flab" data-t="tf">Test on</span><select class="in" id="rkTf"><option value="chart" data-t="tfChart"></option><option value="5m" data-t="tf5"></option><option value="15m" data-t="tf15"></option><option value="1h" data-t="tf1h"></option></select></label>
+        <button class="go a" id="rkRun" data-t="rkRun"></button>
+      </div>
+      <div id="rkOut"></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3 data-t="stratGuide">The 6 strategies</h3><div class="sgl" id="sgl"></div></div>
+  </section>
+
+  <section id="vAca" hidden>
+    <div class="agr">
+      <aside class="card">
+        <h3 data-t="acH">Trading Academy</h3><div class="prog"><i id="acBar"></i></div><p class="lbl" id="acProg"></p>
+        <p class="demo-note" id="acLang" hidden data-t="acEnOnly"></p><div class="acl" id="acList"></div>
+      </aside>
+      <article class="card acb" id="acBody"></article>
+    </div>
+  </section>
+
+  <section id="vJr" hidden>
+    <div class="sh"><div><h1 data-t="jrH">Trading journal</h1><p class="lbl" data-t="jrSub" style="margin-top:6px"></p></div><button id="jrCsv" data-t="jrCsv"></button></div>
+    <div class="cats wrapc" id="jrF"></div>
+    <div class="jgrid"><div class="jl" id="jrList"></div><div class="card" id="jrEd"></div></div>
+    <textarea class="in" id="csvBox" hidden readonly rows="6" style="margin-top:12px;height:auto"></textarea>
+    <div class="card" style="margin-top:14px"><h3 data-t="jrTagH">Results by tag</h3><div id="jrTags"></div></div>
+  </section>
 
   <section id="vStats" hidden>
     <div class="sh">
@@ -247,7 +401,7 @@ button:hover{background:rgba(255,255,255,.09)}
         <span id="pchg" class="ltr"></span>
         <span class="lbl" id="prange"></span>
       </div>
-      <div class="leg"><span><i style="background:var(--e20)"></i>EMA 20</span><span><i style="background:var(--e50)"></i>EMA 50</span><span data-t="candles">1-minute candles</span></div>
+      <div class="leg"><span><i style="background:var(--e20)"></i>EMA 20</span><span><i style="background:var(--e50)"></i>EMA 50</span><span data-t="candles">1-minute candles</span><button class="lvb" id="lvB" aria-pressed="true"><i style="background:#c084fc"></i><span data-t="levels">Levels</span></button></div>
       <div class="fig" id="fig"><canvas id="cv" role="img" aria-label="Candlestick chart with EMA 20 and EMA 50"></canvas></div>
       <div class="ind">
         <div><div class="ih"><span>RSI (14)</span><b id="rsiV"></b></div><div class="fig sm" id="figR"><canvas id="cvR" role="img" aria-label="RSI"></canvas></div></div>
@@ -306,7 +460,7 @@ button:hover{background:rgba(255,255,255,.09)}
       <div>
         <p class="lbl"><span data-t="market">Market</span>: <b id="bMk" style="color:var(--ink)"></b> · <span data-t="pickHint"></span></p>
         <div class="fld"><label for="bStrat" data-t="strat">Strategy</label>
-          <select class="in" id="bStrat"><option value="ema" data-t="sEma"></option><option value="rsi" data-t="sRsi"></option><option value="macd" data-t="sMacd"></option><option value="trend" data-t="sTrend"></option></select>
+          <select class="in" id="bStrat"><option value="ema" data-t="sEma"></option><option value="rsi" data-t="sRsi"></option><option value="macd" data-t="sMacd"></option><option value="trend" data-t="sTrend"></option><option value="orb" data-t="sOrb"></option><option value="vwap" data-t="sVwap"></option></select>
           <p class="lbl" id="bDesc" style="margin:6px 0 0"></p></div>
         <div class="fld"><span class="flab" data-t="dir">Direction</span>
           <div class="cats" id="bDir" style="margin:0"><button data-d="both" data-t="both"></button><button data-d="long" data-t="longOnly"></button><button data-d="short" data-t="shortOnly"></button></div></div>
@@ -411,27 +565,47 @@ let lang=null;try{lang=localStorage.getItem('paperperp-lang')}catch(e){}
 if(!TR[lang]){const n=(navigator.language||'en').slice(0,2).toLowerCase();lang=TR[n]?n:'en'}
 const t=(k,v)=>{let s=(TR[lang]&&TR[lang][k])??(TR.en&&TR.en[k])??k;if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s};
 const loc=()=>lang+'-u-nu-latn';
+/* trading sessions: New York open 9:30 ET (DST-aware) or UTC midnight */
+const DAY=864e5,TFm={'1m':1,'5m':5,'15m':15,'1h':60,'4h':240,'1d':1440},TFS=['1m','5m','15m','1h','4h','1d'],nyC={};
+function nyOff(tm){const k=Math.floor(tm/DAY);if(nyC[k]!=null)return nyC[k];let o=-5;
+  try{const pr=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'numeric',hourCycle:'h23'}).formatToParts(new Date(k*DAY+12*3600e3));o=+pr.find(x=>x.type==='hour').value-12}catch(e){}
+  return nyC[k]=o}
+function sessStart(tm){if(S.ses.a==='utc')return Math.floor(tm/DAY)*DAY;const A=(9.5-nyOff(tm))*3600e3;return Math.floor((tm-A)/DAY)*DAY+A}
+const hm=tm=>new Date(tm).toLocaleTimeString(loc(),{hour:'2-digit',minute:'2-digit'});
 
 let S=null;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||typeof S.bal!=='number'||!Array.isArray(S.pos))S={bal:START,pos:[],hist:[],id:1};
-if(typeof S.dep!=='number')S.dep=START;if(!Array.isArray(S.fund))S.fund=[];
+function fixS(){if(typeof S.dep!=='number')S.dep=START;if(!Array.isArray(S.fund))S.fund=[];if(!S.bot)S.bot={on:false};if(!Array.isArray(S.botLog))S.botLog=[];
+  if(!S.ses||!S.ses.a)S.ses={a:'ny',n:15};if(!Array.isArray(S.alerts))S.alerts=[];if(!Array.isArray(S.alHit))S.alHit=[];if(!S.jr)S.jr={};if(!S.ac||!S.ac.done)S.ac={done:{},sc:{}};if(S.lvOn===undefined)S.lvOn=true}
+fixS();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
 const D={};MK.forEach(m=>D[m.s]={m,price:m.p,candles:[]});
 let cur='BTCUSDT',cat='all',live=false,simT=null,ws=null,feedK='feedConn';
 
 function seed(d){
-  const now=Math.floor(Date.now()/TF)*TF;let p=d.m.p;const c=[];
-  for(let i=180;i>0;i--){const o=p;let h=o,l=o;for(let k=0;k<12;k++){p*=Math.exp(d.m.v*2*gauss());h=Math.max(h,p);l=Math.min(l,p)}c.push({t:now-i*TF,o,h,l,c:p})}
-  d.candles=c;d.price=p;
+  const now=Math.floor(Date.now()/TF)*TF,L=Math.min(1500,Math.max(300,Math.ceil((now-sessStart(now))/TF)+90));let p=d.m.p;const c=[];
+  for(let i=L;i>0;i--){const o=p;let h=o,l=o;for(let k=0;k<12;k++){p*=Math.exp(d.m.v*2*gauss());h=Math.max(h,p);l=Math.min(l,p)}
+    c.push({t:now-i*TF,o,h,l,c:p,v:(.4+Math.random()*1.2)*(1+Math.abs(p/o-1)*400)})}
+  d.candles=c;d.price=p;d.tf={};for(const f of TFS.slice(1))d.tf[f]=genTF(d,f);
 }
+/* simulated higher-timeframe history that ends at the current price */
+function genTF(d,f){const M=TFm[f]*TF,sg=d.m.v*1.7*Math.sqrt(TFm[f]),t0=Math.floor(Date.now()/M)*M,out=[];let p=d.price;
+  for(let j=0;j<120;j++){const c=p,o=c/Math.exp(sg*gauss()),h=Math.max(o,c)*(1+Math.abs(gauss())*sg*.4),l=Math.min(o,c)*(1-Math.abs(gauss())*sg*.4);
+    out.unshift({t:t0-j*M,o,h,l,c,v:1});p=o}
+  return out}
+const getTF=(sym,f)=>f==='1m'?D[sym].candles:D[sym].tf[f];
 function tick(sym,p){
   const d=D[sym];d.price=p;const tt=Math.floor(Date.now()/TF)*TF,c=d.candles;let k=c[c.length-1];
   let fresh=false;
-  if(!k||k.t<tt){const o=k?k.c:p;k={t:tt,o,h:Math.max(o,p),l:Math.min(o,p),c:p};c.push(k);if(c.length>400)c.shift();fresh=true}
+  if(!k||k.t<tt){const o=k?k.c:p;k={t:tt,o,h:Math.max(o,p),l:Math.min(o,p),c:p,v:0};c.push(k);if(c.length>1600)c.shift();fresh=true}
   else{k.c=p;k.h=Math.max(k.h,p);k.l=Math.min(k.l,p)}
-  checkPos(sym,p);
+  if(!(live&&isC(d.m)))k.v=(k.v||0)+Math.random()*.25;
+  const now=Date.now();
+  for(const f in d.tf){const a=d.tf[f],M=TFm[f]*TF,x=a[a.length-1];
+    if(!x||now>=x.t+M){a.push({t:Math.floor(now/M)*M,o:x?x.c:p,h:p,l:p,c:p,v:0});if(a.length>150)a.shift()}else{x.c=p;x.h=Math.max(x.h,p);x.l=Math.min(x.l,p)}}
+  checkPos(sym,p);checkAlerts(sym,p);
   if(fresh&&S.bot&&S.bot.on&&S.bot.sym===sym)botStep(sym);
 }
 const pnlOf=(q,p)=>q.qty*(p-q.entry)*(q.side==='long'?1:-1);
@@ -484,10 +658,20 @@ function rsiA(a,n=14){const o=new Array(a.length).fill(null);if(a.length<=n)retu
 function indC(c){const e12=ema(c,12),e26=ema(c,26),mac=e12.map((v,i)=>v-e26[i]),sig=ema(mac,9);
   return {e20:ema(c,20),e50:ema(c,50),rsi:rsiA(c),mac,sig,hist:mac.map((v,i)=>v-sig[i])}}
 const ind=d=>indC(d.candles.map(k=>k.c));
+/* adds session VWAP and opening-range high/low (once the range has formed) to each candle */
+function indK(cs){const I=indC(cs.map(k=>k.c)),n=cs.length,vw=new Array(n),orH=new Array(n).fill(null),orL=new Array(n).fill(null),N=S.ses.n*TF;
+  let ss=null,pv=0,vv=0,h=-Infinity,l=Infinity;
+  for(let i=0;i<n;i++){const k=cs[i],s0=sessStart(k.t);if(s0!==ss){ss=s0;pv=0;vv=0;h=-Infinity;l=Infinity}
+    const v=k.v>0?k.v:1e-9,tp=(k.h+k.l+k.c)/3;pv+=tp*v;vv+=v;vw[i]=pv/vv;
+    if(k.t<ss+N){h=Math.max(h,k.h);l=Math.min(l,k.l)}
+    const dur=i>0?k.t-cs[i-1].t:TF;if(k.t+dur>=ss+N&&h>-Infinity){orH[i]=h;orL[i]=l}}
+  return Object.assign(I,{vw,orH,orL})}
 function scoreAt(I,i,p){const r=I.rsi[i],h=I.hist[i];
   return 25*((p>I.e50[i]?1:-1)+(I.e20[i]>I.e50[i]?1:-1)+(r==null?0:r>55?1:r<45?-1:0)+(h>0?1:h<0?-1:0))}
 /* strategy rules: return the position the rule wants (1 long, -1 short, 0 flat), given the current one */
 function target(st,I,i,pos,price){
+  if(st==='vwap')return price>I.vw[i]?1:price<I.vw[i]?-1:pos;
+  if(st==='orb'){if(I.orH[i]==null)return 0;if(price>I.orH[i])return 1;if(price<I.orL[i])return -1;return pos}
   if(st==='ema')return I.e20[i]>I.e50[i]?1:-1;
   if(st==='macd')return I.hist[i]>0?1:I.hist[i]<0?-1:pos;
   if(st==='rsi'){const r=I.rsi[i];if(r==null)return pos;if(r<30)return 1;if(r>70)return -1;
@@ -495,6 +679,7 @@ function target(st,I,i,pos,price){
   const s=scoreAt(I,i,price);if(s>=50)return 1;if(s<=-50)return -1;
   if((pos===1&&s<=0)||(pos===-1&&s>=0))return 0;return pos;
 }
+const SN={ema:'sEma',rsi:'sRsi',macd:'sMacd',trend:'sTrend',orb:'sOrb',vwap:'sVwap'},SND={ema:'sEmaD',rsi:'sRsiD',macd:'sMacdD',trend:'sTrendD',orb:'sOrbD',vwap:'sVwapD'};
 const filt=(x,mode)=>mode==='long'&&x<0||mode==='short'&&x>0?0:x;
 function score(d){const I=ind(d),n=d.candles.length-1,p=d.price,r=I.rsi[n],h=I.hist[n];
   const f=[['f1',p>I.e50[n]?1:-1,p>I.e50[n]?t('above'):t('below')],
@@ -523,7 +708,7 @@ function renderRead(){
 
 /* backtester: replays the rule over past candles with $10,000, fees, liquidation, TP and SL */
 function backtest(cs,cfg){
-  const c=cs.map(k=>k.c),I=indC(c),START_BT=10000;let cash=START_BT,state=0,tr=null,peak=START_BT,dd=0;const eq=[],trades=[];
+  const c=cs.map(k=>k.c),I=indK(cs),START_BT=10000;let cash=START_BT,state=0,tr=null,peak=START_BT,dd=0;const eq=[],trades=[];
   const open=(dir,px,i)=>{const m=Math.min(cfg.m,Math.floor(cash/(1+cfg.lev*FEE)*100)/100);if(m<1)return;
     const qty=m*cfg.lev/px,of=qty*px*FEE,liq=dir>0?px*(1-1/cfg.lev+MMR):px*(1+1/cfg.lev-MMR);
     let sl=cfg.sl?px*(1-dir*cfg.sl/100):0;if(sl&&(dir>0?sl<=liq:sl>=liq))sl=0;
@@ -551,7 +736,7 @@ async function runBacktest(){
   $('bErr').textContent='';btBusy=true;$('btOut').innerHTML=`<div class="empty">${esc(t('btLoad'))}</div>`;
   const d=D[cur],tf=$('bTf').value;let cs=null,sim=false;
   if(tf!=='chart'){if(live&&isC(d.m)){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${d.m.s}&interval=${tf}&limit=1000`);const a=await r.json();
-      if(Array.isArray(a)&&a.length>60)cs=a.map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]})).filter(k=>k.o>0)}catch(e){}}
+      if(Array.isArray(a)&&a.length>60)cs=a.map(kl).filter(k=>k.o>0)}catch(e){}}
     if(!cs)sim=true}
   if(!cs)cs=d.candles.slice(0,-1);
   btBusy=false;
@@ -593,7 +778,7 @@ function readBot(){
 function botLog(k,v){S.botLog.unshift({k,v,t:Date.now()});if(S.botLog.length>40)S.botLog.length=40;save();renderBotLog()}
 function botStep(sym){
   const B=S.bot;if(!B.on||B.sym!==sym)return;const d=D[sym],cs=d.candles.slice(0,-1);if(cs.length<60)return;
-  const c=cs.map(k=>k.c),I=indC(c),n=c.length-1,tg=filt(target(B.st,I,n,B.state||0,c[n]),B.mode);
+  const c=cs.map(k=>k.c),I=indK(cs),n=c.length-1,tg=filt(target(B.st,I,n,B.state||0,c[n]),B.mode);
   if(tg===(B.state||0))return;
   for(const q of S.pos.filter(x=>x.bot&&x.sym===sym))closePos(q,d.price,'rSig');
   B.state=tg;save();
@@ -612,20 +797,207 @@ function toggleBot(){
 }
 function renderBot(){
   const B=S.bot,on=!!B.on;$('botBadge').classList.toggle('on',on);
-  $('botBadgeT').textContent=on?t('botOn',{b:D[B.sym]?.m.b||'',s:t({ema:'sEma',rsi:'sRsi',macd:'sMacd',trend:'sTrend'}[B.st]||'sEma')}):t('botOff');
+  $('botBadgeT').textContent=on?t('botOn',{b:D[B.sym]?.m.b||'',s:t(SN[B.st]||'sEma')}):t('botOff');
   $('bGo').textContent=t(on?'stopBot':'startBot');$('bGo').className='go '+(on?'s':'l');
-  $('bDesc').textContent=t({ema:'sEmaD',rsi:'sRsiD',macd:'sMacdD',trend:'sTrendD'}[$('bStrat').value]);
+  $('bDesc').textContent=t(SND[$('bStrat').value]);
   $('bDir').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.d===bDir));
   $('bMk').textContent=D[cur].m.b;$('bLvMax').textContent=t('maxLev',{m:D[cur].m.ml});
   renderBotLog();
 }
 function renderBotLog(){
   const L=S.botLog;$('bLog').innerHTML=L.length?'<dl class="rows">'+L.slice(0,8).map(x=>{const v={...x.v};if(v.s==='long'||v.s==='short')v.s=t(v.s);if(v.e)v.e=t(v.e);
-    if(x.k==='bStarted')v.s=t({ema:'sEma',rsi:'sRsi',macd:'sMacd',trend:'sTrend'}[x.v.s]||'sEma');
+    if(x.k==='bStarted')v.s=t(SN[x.v.s]||'sEma');
     return `<div><dt class="ltr">${esc(new Date(x.t).toLocaleTimeString(loc(),{hour:'2-digit',minute:'2-digit'}))}</dt><dd style="white-space:normal;text-align:end">${esc(t(x.k,v))}</dd></div>`}).join('')+'</dl>'
     :`<p class="lbl">${esc(t('botNone'))}</p>`;
 }
 let bDir='both';
+
+/* ===== Analyze: levels, bias, opening range, trend grid, setups feed, alerts, calculator ===== */
+function levels(sym){
+  const d=D[sym],cs=d.candles,now=Date.now(),ss=sessStart(now),N=S.ses.n*TF,K=indK(cs),n=cs.length-1;
+  let dh=-Infinity,dl=Infinity,oh=-Infinity,ol=Infinity,open=null,up=null,dn=null;
+  for(let i=0;i<=n;i++){const k=cs[i];if(k.t<ss)continue;if(open==null)open=k.o;dh=Math.max(dh,k.h);dl=Math.min(dl,k.l);if(k.t<ss+N){oh=Math.max(oh,k.h);ol=Math.min(ol,k.l)}}
+  const orOk=now>=ss+N&&oh>-Infinity;
+  if(orOk)for(let i=0;i<n;i++){const k=cs[i];if(k.t<ss+N)continue;if(!up&&k.c>oh)up=k.t+TF;if(!dn&&k.c<ol)dn=k.t+TF}
+  const day=d.tf['1d']||[],pd=day[day.length-2],td=day[day.length-1];
+  return {vw:K.vw[n],K,orOk,orH:oh>-Infinity?oh:null,orL:ol<Infinity?ol:null,orEnd:ss+N,ss,up,dn,open,
+    dh:dh>-Infinity?dh:null,dl:dl<Infinity?dl:null,pdh:pd?pd.h:null,pdl:pd?pd.l:null,pdc:pd?pd.c:null}}
+function checkAlerts(sym,p){
+  if(!S.alerts||!S.alerts.length)return;let hit=false;
+  S.alerts=S.alerts.filter(a=>{if(a.sym!==sym)return true;if(a.dir==='up'?p>=a.p:p<=a.p){S.alHit.unshift({...a,ht:Date.now()});hit=true;
+    toast(t('alHit',{b:D[sym].m.b,p:fp(a.p)}));return false}return true});
+  if(hit){if(S.alHit.length>10)S.alHit.length=10;save();alKey=''}}
+const sg=(v,ref)=>{const x=v-ref,d=dp(ref);return (x>0?'+':x<0?'−':'')+Math.abs(x).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})};
+let feedC={k:'',ev:[]},alKey='',aKey='';
+function scanFeed(L){
+  const d=D[cur],cs=d.candles,n=cs.length-1,k=cur+(cs[n-1]?.t)+S.ses.a+S.ses.n;if(feedC.k===k)return feedC.ev;
+  const K=L.K,ev=[];let fu1=false,fd1=false,ph=false,pl=false,lv=-99,le=-99;
+  for(let i=1;i<n;i++){const c=cs[i],pv=cs[i-1];if(c.t<L.ss)continue;const tt=c.t+TF;
+    if(K.orH[i]!=null){if(!fu1&&c.c>K.orH[i]){fu1=true;ev.push({t:tt,d:1,k:'aOrbUp',p:K.orH[i]})}if(!fd1&&c.c<K.orL[i]){fd1=true;ev.push({t:tt,d:-1,k:'aOrbDn',p:K.orL[i]})}}
+    const a=pv.c-K.vw[i-1],b=c.c-K.vw[i];
+    if(i-lv>=10&&a<=0&&b>0){lv=i;ev.push({t:tt,d:1,k:'aVwUp',p:K.vw[i]})}else if(i-lv>=10&&a>=0&&b<0){lv=i;ev.push({t:tt,d:-1,k:'aVwDn',p:K.vw[i]})}
+    if(L.pdh!=null&&!ph&&c.c>L.pdh){ph=true;ev.push({t:tt,d:1,k:'aPdh',p:L.pdh})}
+    if(L.pdl!=null&&!pl&&c.c<L.pdl){pl=true;ev.push({t:tt,d:-1,k:'aPdl',p:L.pdl})}
+    const e0=K.e20[i-1]-K.e50[i-1],e1=K.e20[i]-K.e50[i];
+    if(i-le>=10&&e0<=0&&e1>0){le=i;ev.push({t:tt,d:1,k:'aEmaUp'})}else if(i-le>=10&&e0>=0&&e1<0){le=i;ev.push({t:tt,d:-1,k:'aEmaDn'})}
+    const r0=K.rsi[i-1],r1=K.rsi[i];if(r0!=null&&r1!=null){if(r0<70&&r1>=70)ev.push({t:tt,d:-1,k:'aRsiHi'});if(r0>30&&r1<=30)ev.push({t:tt,d:1,k:'aRsiLo'})}}
+  feedC={k,ev:ev.reverse().slice(0,25)};aKey='';return feedC.ev}
+function tfTrend(sym,f){const a=getTF(sym,f);if(!a||a.length<52)return null;const I=indC(a.map(k=>k.c)),n=a.length-1,x=a[n];
+  return {up:I.e20[n]>I.e50[n],ch:(x.c/x.o-1)*100}}
+function renderAna(){
+  const d=D[cur],L=levels(cur),p=d.price;
+  $('aSym').textContent=d.m.b+(isC(d.m)?'':' · '+t('simShort'));if($('aMk').value!==cur)$('aMk').value=cur;
+  /* bias */
+  const ups=['15m','1h','4h'].map(f=>tfTrend(cur,f)).filter(Boolean),nu=ups.filter(x=>x.up).length;
+  const brk=L.up&&L.dn?(L.up>L.dn?1:-1):L.up?1:L.dn?-1:0;
+  const ck=[[p>L.vw?1:-1,p>L.vw?'bAbvVw':'bBlwVw',{v:fp(L.vw)}],
+    [L.pdc==null?0:p>L.pdc?1:-1,L.pdc==null?'bNoPc':p>L.pdc?'bAbvPc':'bBlwPc',{v:L.pdc==null?'':fp(L.pdc)}],
+    [L.open==null?0:p>L.open?1:-1,p>L.open?'bAbvOp':'bBlwOp',{v:L.open==null?'':fp(L.open)}],
+    [brk,brk>0?'bOrbUp':brk<0?'bOrbDn':L.orOk?'bOrbIn':'bOrbForm',{t:brk>0?hm(L.up):brk<0?hm(L.dn):hm(L.orEnd)}],
+    [ups.length?(nu>=2?1:-1):0,nu>=2?'bTfUp':'bTfDn',{n:nu}]];
+  const sc=ck.reduce((a,x)=>a+x[0],0),bk=sc>=2?'bullish':sc<=-2?'bearish':'neutral';
+  $('biasL').textContent=t(bk);$('biasL').className='bl '+(sc>=2?'up':sc<=-2?'dn':'');$('biasS').textContent=(sc>0?'+':'')+sc+' / 5';
+  $('biasTip').textContent=t(sc>=2?'biasTipUp':sc<=-2?'biasTipDn':'biasTipNeu');
+  $('biasG').innerHTML=Array.from({length:10},(_,i)=>`<i class="${sc<0&&i>=5+sc&&i<5?'dn':sc>0&&i>=5&&i<5+sc?'up':''}"></i>`).join('');
+  $('biasR').innerHTML=ck.map(([v,k,o])=>`<li><span class="${cls(v)}">${v>0?'▲':v<0?'▼':'•'}</span>${esc(t(k,o))}</li>`).join('');
+  /* opening range */
+  $('sesA').value=S.ses.a;$('orN').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.n===S.ses.n));
+  $('orHv').textContent=L.orH==null?'—':fp(L.orH);$('orLv').textContent=L.orL==null?'—':fp(L.orL);
+  $('orSt').innerHTML=(L.up?`<div class="up">▲ ${esc(t('orBrkUp',{t:hm(L.up)}))}</div>`:'')+(L.dn?`<div class="dn">▼ ${esc(t('orBrkDn',{t:hm(L.dn)}))}</div>`:'')+
+    (!L.orOk?`<div class="lbl">${esc(t('orForm',{t:hm(L.orEnd)}))}</div>`:!L.up&&!L.dn?`<div class="lbl">${esc(t('orIn'))}</div>`:'');
+  $('orRg').textContent=L.orH==null?'':t('orRange',{r:fp(L.orH-L.orL),p:((L.orH/L.orL-1)*100).toFixed(2)})+' · '+t('sesFrom',{t:hm(L.ss)});
+  const k1=d.candles[d.candles.length-1];
+  $('ohlc').innerHTML=`<small>${esc(t('curCandle'))} ${esc(hm(k1.t))} · 1m</small><div class="ltr">O ${fp(k1.o)}  H ${fp(k1.h)}<br>L ${fp(k1.l)}  C <span class="${cls(k1.c-k1.o)}">${fp(k1.c)}</span></div>`;
+  /* trend & price */
+  const t15=tfTrend(cur,'15m');$('tr15').textContent=t15?(t15.up?'▲ ':'▼ ')+t(t15.up?'tUp':'tDn'):'—';$('tr15').className=t15?(t15.up?'up':'dn'):'';
+  $('lastP').textContent=fp(p);$('vsVw').textContent=sg(p,L.vw);$('vsVw').className='ltr '+cls(p-L.vw);
+  $('dayRg').textContent=L.dh==null?'—':fp(L.dh-L.dl);
+  $('tfg').innerHTML=TFS.map(f=>{const x=tfTrend(cur,f);return `<div class="${x?(x.up?'up':'dn'):''}"><small>${f.toUpperCase()}</small><b>${x?(x.up?'▲':'▼'):'—'}</b><em class="ltr ${x?cls(x.ch):''}">${x?pc(x.ch):''}</em></div>`}).join('');
+  /* key levels */
+  const rows=[['VWAP',L.vw,'#c084fc'],[t('kOrH'),L.orH,'#e9eef5'],[t('kOrM'),L.orH!=null?(L.orH+L.orL)/2:null,'#8e99a9'],[t('kOrL'),L.orL,'#e9eef5'],
+    [t('kOpen'),L.open,'#5b8cff'],[t('kDh'),L.dh,'#2fe0a0'],[t('kDl'),L.dl,'#ff5d7d'],[t('kPdh'),L.pdh,'#ffb547'],[t('kPdl'),L.pdl,'#ffb547'],[t('kPdc'),L.pdc,'#8e99a9']]
+    .filter(x=>x[1]!=null);rows.push([t('kNow'),p,null]);rows.sort((a,b)=>b[1]-a[1]);
+  $('kl').innerHTML=rows.map(([nm,v,c])=>c?`<div><span><i style="background:${c}"></i>${esc(nm)}</span><b class="ltr">${fp(v)}</b><em class="ltr ${cls(v-p)}">${sg(v,p)}</em></div>`
+    :`<div class="now"><span>▶ ${esc(nm)}</span><b class="ltr">${fp(v)}</b><em></em></div>`).join('');
+  /* setups feed */
+  const ev=scanFeed(L),fk=feedC.k+lang;
+  if(aKey!==fk){aKey=fk;$('fd').innerHTML=ev.length?ev.map(e=>`<div class="${e.d>0?'up':'dn'}"><time class="ltr">${esc(hm(e.t))}</time><span>${e.d>0?'▲':'▼'}</span><p>${esc(t(e.k,{p:e.p!=null?fp(e.p):''}))}</p></div>`).join('')
+    :`<p class="lbl">${esc(t('feedNone'))}</p>`}
+  /* price alerts */
+  const ak=S.alerts.length+':'+S.alHit.length+':'+lang;
+  if(alKey!==ak){alKey=ak;$('alList').innerHTML=(S.alerts.length?S.alerts.map(a=>`<div class="ali"><span>${esc(D[a.sym]?.m.b||a.sym)} ${a.dir==='up'?'≥':'≤'} <b class="ltr">${fp(a.p)}</b></span><button data-al="${a.id}" aria-label="${esc(t('remove'))}">✕</button></div>`).join(''):`<p class="lbl">${esc(t('alNone'))}</p>`)+
+    (S.alHit.length?`<small class="lbl" style="display:block;margin-top:8px">${esc(t('alDone'))}</small>`+S.alHit.slice(0,4).map(a=>`<div class="ali done"><span>✓ ${esc(D[a.sym]?.m.b||a.sym)} ${a.dir==='up'?'≥':'≤'} <span class="ltr">${fp(a.p)}</span></span><time class="ltr lbl">${esc(hm(a.ht))}</time></div>`).join(''):'')}
+  if(document.activeElement!==$('alP')&&!$('alP').value)$('alP').placeholder=fp(p);
+  calc();
+}
+/* position-size calculator: risk a fixed share of the account between entry and stop */
+function calc(){
+  const A=+$('rcAcc').value,R=+$('rcRisk').value,E=+$('rcEn').value,St=+$('rcSt').value,lev=Math.round(+$('rcLv').value),m=D[cur].m;
+  const out=$('rcOut'),w=$('rcW');w.hidden=true;
+  if(!(A>0&&R>0&&E>0&&St>0)||E===St){out.innerHTML=`<p class="lbl">${esc(t('rcFill'))}</p>`;$('rcUse').disabled=true;return null}
+  const L=St<E,risk=A*R/100,dist=Math.abs(E-St)/E,notional=risk/dist,margin=lev>0?notional/lev:0,qty=notional/E,
+    liq=L?E*(1-1/lev+MMR):E*(1+1/lev-MMR),r=E-St,
+    T1=L?E+Math.abs(r):E-Math.abs(r),T2=L?E+2*Math.abs(r):E-2*Math.abs(r),T3=L?E+3*Math.abs(r):E-3*Math.abs(r);
+  out.innerHTML=[[t('rcSide'),t(L?'long':'short'),L?'up':'dn'],[t('rcRiskUsd'),fu(risk),''],[t('rcSize'),fu(notional)+' · '+qty.toPrecision(4)+' '+m.b,''],
+    [t('rcMargin'),lev>0?fu(margin):'—',''],[t('liq'),lev>0?fp(liq):'—','dn'],['1R / 2R / 3R',fp(T1)+' / '+fp(T2)+' / '+fp(T3),'up']]
+    .map(([a,b,c])=>`<div><dt>${esc(a)}</dt><dd class="ltr ${c}">${esc(b)}</dd></div>`).join('');
+  const warn=[];if(!(lev>=1&&lev<=m.ml))warn.push(t('eLev'));else if(L?liq>=St:liq<=St)warn.push(t('rcLiqW'));
+  if(lev>=1&&margin+notional*FEE>S.bal)warn.push(t('rcBalW',{a:fu(S.bal)}));
+  if(warn.length){w.hidden=false;w.textContent=warn.join(' ')}
+  $('rcUse').disabled=!!warn.length;return {L,margin,lev,St,T2};
+}
+
+/* ===== Strategy lab: rank every rule x direction x risk preset ===== */
+const PRE=[{k:'pA',lev:1,tp:0,sl:0},{k:'pB',lev:5,tp:2,sl:1},{k:'pC',lev:10,tp:1.5,sl:.5}];
+let rankR=null,rankBusy=false;
+async function runRank(){
+  if(rankBusy)return;rankBusy=true;$('rkOut').innerHTML=`<div class="empty">${esc(t('btLoad'))}</div>`;
+  const d=D[cur],tf=$('rkTf').value;let cs=null,sim=false;
+  if(tf!=='chart'){if(live&&isC(d.m)){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${d.m.s}&interval=${tf}&limit=1000`),a=await r.json();
+      if(Array.isArray(a)&&a.length>60)cs=a.map(kl).filter(k=>k.o>0)}catch(e){}}if(!cs)sim=true}
+  if(!cs)cs=d.candles.slice(0,-1);
+  await new Promise(r=>setTimeout(r,20));
+  const out=[];for(const st of Object.keys(SN))for(const mode of ['both','long'])for(const pr of PRE){const lev=Math.min(pr.lev,d.m.ml);
+    out.push({st,mode,pk:pr.k,lev,tp:pr.tp,sl:pr.sl,r:backtest(cs,{st,mode,m:1000,lev,tp:pr.tp,sl:pr.sl})})}
+  out.sort((a,b)=>b.r.ret-a.r.ret);rankR={out,b:d.m.b,bars:cs.length,sim};rankBusy=false;renderRank();
+}
+function renderRank(){
+  $('sgl').innerHTML=Object.keys(SN).map(k=>`<div><b>${esc(t(SN[k]))}</b><p class="lbl">${esc(t(SND[k]))}</p></div>`).join('');
+  if(!rankR){$('rkOut').innerHTML=`<div class="empty">${esc(t('rkNone'))}</div>`;return}
+  const {out,b,bars,sim}=rankR;
+  $('rkOut').innerHTML=`<p class="lbl">${esc(t('rkNote',{n:bars,b,k:out.length}))}${sim?' '+esc(t('btSim')):''}</p>
+  <div class="scroll"><table class="rk"><thead><tr><th>#</th><th>${esc(t('rkSetup'))}</th><th class="n">${esc(t('btRet'))}</th><th class="n">${esc(t('btDd'))}</th><th class="n">${esc(t('btWin'))}</th><th class="n">${esc(t('btPf'))}</th><th class="n">${esc(t('btTrades'))}</th><th></th></tr></thead><tbody>${
+  out.slice(0,15).map((o,i)=>`<tr class="${i===0?'best':''}"><td>${i+1}</td><td>${esc(t(SN[o.st]))} · ${esc(t(o.mode==='long'?'longOnly':'both'))}<br><small class="lbl">${esc(t(o.pk,{l:o.lev}))}</small></td>
+    <td class="n ltr ${cls(o.r.ret)}">${pc(o.r.ret)}</td><td class="n ltr dn">${o.r.dd?'−'+o.r.dd.toFixed(1)+'%':'0%'}</td><td class="n ltr">${o.r.n?Math.round(o.r.win)+'%':'—'}</td>
+    <td class="n ltr">${o.r.pf==null?'—':o.r.pf.toFixed(2)}</td><td class="n ltr">${o.r.n}</td><td><button data-use="${i}">${esc(t('rkUse'))}</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function useSetup(o){
+  $('bStrat').value=o.st;bDir=o.mode;$('bLv').value=o.lev;$('bTp').value=o.tp||'';$('bSl').value=o.sl||'';$('bMg').value=1000;
+  location.hash='#trade';setTimeout(()=>{$('bot').scrollIntoView({behavior:'smooth',block:'start'});toast(t('rkUsed'))},60);
+}
+
+/* ===== Journal ===== */
+const JT=['jPlan','jGood','jFomo','jRev','jEarly','jLate','jSize','jNews'];
+let jSel=null,jF='all';
+const jOf=id=>S.jr[id]||{tags:[],r:0,n:''};
+function renderJr(){
+  const H=S.hist;
+  $('jrF').innerHTML=['all','todo',...JT].map(k=>`<button data-jf="${k}" aria-pressed="${jF===k}">${esc(t(k==='all'?'all':k==='todo'?'jTodo':k))}</button>`).join('');
+  const list=H.filter(h=>jF==='all'||(jF==='todo'?!S.jr[h.id]:jOf(h.id).tags.includes(jF)));
+  if(jSel==null||!H.some(h=>h.id===jSel))jSel=list[0]?.id??null;
+  $('jrList').innerHTML=H.length?(list.length?list.slice(0,80).map(h=>{const j=jOf(h.id);return `<button class="jc" data-j="${h.id}" aria-pressed="${h.id===jSel}">
+      <span><b>${esc(D[h.sym]?.m.b||h.sym)}</b> · <span class="${h.side==='long'?'up':'dn'}">${esc(t(h.side))} ${h.lev}×</span>${h.bot?' · '+esc(t('botTag')):''}<br><small class="lbl">${esc(new Date(h.t).toLocaleString(loc(),{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}))} · ${esc(t(h.why))}</small>
+      ${j.tags.length?`<br><small class="jtg">${j.tags.map(x=>esc(t(x))).join(' · ')}</small>`:''}</span>
+      <span class="jr"><b class="ltr ${cls(h.net)}">${fu(h.net,1)}</b><small>${j.r?'★'.repeat(j.r):S.jr[h.id]?'':esc(t('jTodo'))}</small></span></button>`}).join(''):`<p class="lbl">${esc(t('jNoMatch'))}</p>`)
+    :`<div class="empty">${esc(t('jEmpty'))}</div>`;
+  renderJrEd();
+  /* results by tag */
+  const rows=JT.map(k=>{const a=H.filter(h=>jOf(h.id).tags.includes(k));return [k,a]}).filter(x=>x[1].length);
+  $('jrTags').innerHTML=rows.length?`<table class="stack"><thead><tr><th>${esc(t('jTag'))}</th><th class="n">${esc(t('btTrades'))}</th><th class="n">${esc(t('btWin'))}</th><th class="n">P&amp;L</th><th class="n">${esc(t('jAvg'))}</th></tr></thead><tbody>${
+    rows.map(([k,a])=>{const p=sum(a);return `<tr><td>${esc(t(k))}</td><td class="n">${a.length}</td><td class="n">${Math.round(a.filter(x=>x.net>0).length/a.length*100)}%</td><td class="n ltr ${cls(p)}">${fu(p,1)}</td><td class="n ltr ${cls(p)}">${fu(p/a.length,1)}</td></tr>`}).join('')}</tbody></table>`
+    :`<p class="lbl">${esc(t('jNoTags'))}</p>`;
+}
+function renderJrEd(){
+  const h=S.hist.find(x=>x.id===jSel);
+  if(!h){$('jrEd').innerHTML=`<p class="lbl">${esc(t('jPick'))}</p>`;return}
+  const j=jOf(h.id);
+  $('jrEd').innerHTML=`<h3>${esc(D[h.sym]?.m.b||h.sym)} · <span class="${h.side==='long'?'up':'dn'}">${esc(t(h.side))} ${h.lev}×</span> <b class="ltr ${cls(h.net)}" style="float:inline-end">${fu(h.net,1)}</b></h3>
+    <p class="lbl">${esc(t('entry'))} <span class="ltr">${fp(h.entry)}</span> → ${esc(t('exit'))} <span class="ltr">${fp(h.exit)}</span> · ${esc(t(h.why))}${h.t0?' · '+esc(holdF(h.t-h.t0)):''}</p>
+    <span class="flab" style="margin-top:12px">${esc(t('jTags'))}</span><div class="tagset">${JT.map(k=>`<button data-jt="${k}" aria-pressed="${j.tags.includes(k)}">${esc(t(k))}</button>`).join('')}</div>
+    <span class="flab" style="margin-top:12px">${esc(t('jRate'))}</span><div class="stars">${[1,2,3,4,5].map(n=>`<button data-jr="${n}" aria-label="${n}" aria-pressed="${j.r>=n}">★</button>`).join('')}</div>
+    <label class="flab" for="jN" style="margin-top:12px">${esc(t('jNote'))}</label><textarea class="in" id="jN" rows="4" placeholder="${esc(t('jNoteP'))}">${esc(j.n)}</textarea>
+    <p class="lbl" id="jSaved" style="min-height:20px"></p>`;
+}
+function jSet(f){const j={...jOf(jSel)};f(j);S.jr[jSel]=j;save()}
+function csv(){
+  const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+  const head=['closed_at','market','side','leverage','entry','exit','pnl_usd','reason','bot','tags','rating','note'];
+  return [head.join(',')].concat(S.hist.map(h=>{const j=jOf(h.id);return [new Date(h.t).toISOString(),D[h.sym]?.m.b||h.sym,h.side,h.lev,h.entry,h.exit,h.net.toFixed(2),t(h.why),h.bot?'yes':'no',j.tags.map(x=>t(x)).join('; '),j.r||'',j.n].map(q).join(',')})).join('\n');
+}
+
+/* ===== Academy ===== */
+let acSel=0,acAns={};
+const acL=()=>(window.PP_ACADEMY||{})[lang]||(window.PP_ACADEMY||{}).en||[];
+function renderAca(){
+  const Ls=acL(),done=S.ac.done,nd=Ls.filter(l=>done[l.id]).length;if(acSel>=Ls.length)acSel=0;
+  $('acBar').style.width=(Ls.length?nd/Ls.length*100:0)+'%';$('acProg').textContent=t('acProg',{d:nd,n:Ls.length});
+  $('acLang').hidden=!!(window.PP_ACADEMY||{})[lang];
+  $('acList').innerHTML=Ls.map((l,i)=>`<button data-ac="${i}" aria-pressed="${i===acSel}"><span class="ltr">${i+1}</span><span>${esc(l.title)}</span>${done[l.id]?'<b class="up">✓</b>':''}</button>`).join('');
+  const l=Ls[acSel];if(!l){$('acBody').innerHTML='';return}
+  const A=acAns[l.id]||{},nq=l.quiz.length,na=Object.keys(A).length,ok=l.quiz.filter((q,i)=>A[i]===q[2]).length;
+  $('acBody').innerHTML=`<small class="lbl">${esc(t('acLesson',{i:acSel+1,n:Ls.length}))} · ${esc(t('acMin',{m:l.min}))}</small><h2 class="act">${esc(l.title)}</h2>
+    <div class="goal"><b>${esc(t('acGoal'))}</b> ${esc(l.goal)}</div>
+    ${l.body.map(b=>Array.isArray(b)?`<ul>${b.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(b)}</p>`).join('')}
+    ${l.key?`<div class="keyp"><b>${esc(t('acKey'))}</b><p>${esc(l.key)}</p></div>`:''}
+    <h3 class="qh">${esc(t('acQuiz'))}</h3>
+    ${l.quiz.map((q,qi)=>`<div class="qz"><p><b>${qi+1}.</b> ${esc(q[0])}</p><div class="qa">${q[1].map((a,ai)=>{const pick=A[qi]===ai,st=A[qi]==null?'':ai===q[2]?'ok':pick?'no':'';
+      return `<button data-q="${qi}" data-a="${ai}" class="${st}" ${A[qi]!=null?'disabled':''}>${esc(a)}</button>`}).join('')}</div>
+      ${A[qi]!=null?`<p class="why ${A[qi]===q[2]?'up':'dn'}">${esc(t(A[qi]===q[2]?'acRight':'acWrong'))} ${esc(q[3])}</p>`:''}</div>`).join('')}
+    ${na===nq?`<div class="qres ${ok>=Math.ceil(nq*2/3)?'up':'dn'}">${esc(t('acScore',{k:ok,n:nq}))} ${esc(t(ok>=Math.ceil(nq*2/3)?'acPass':'acRetry'))}</div>`:''}
+    <div class="acnav">${na===nq&&ok<Math.ceil(nq*2/3)?`<button id="acRe">${esc(t('acRetryB'))}</button>`:''}
+      ${l.try?`<a class="btn go a" href="#${l.try}">${esc(t('acTry'))}</a>`:''}
+      ${acSel<Ls.length-1?`<button class="go l" id="acNx">${esc(t('acNext'))}</button>`:''}</div>`;
+}
 
 /* ===== My stats dashboard ===== */
 let view='trade',demo=null,sbuilt='';
@@ -708,10 +1080,17 @@ function drawPnl(){
   g.fillText(fd(t0),Math.max(30,x(t0)),H-8);if(W>420)g.fillText(fd((t0+t1)/2),x((t0+t1)/2),H-8);g.fillText(fd(t1),Math.min(W-ax-30,x(t1)),H-8);g.textAlign='left';
 }
 const roP=new ResizeObserver(()=>drawPnl());
+const VIEWS={trade:'vTrade',analyze:'vAna',strategies:'vStr',academy:'vAca',journal:'vJr',stats:'vStats'};
 function setView(){
-  view=location.hash==='#stats'?'stats':'trade';$('vStats').hidden=view!=='stats';$('vTrade').hidden=view==='stats';
-  $('tabT').setAttribute('aria-current',view==='trade'?'page':'false');$('tabS').setAttribute('aria-current',view==='stats'?'page':'false');
-  sbuilt='';render();
+  const h=location.hash.slice(1);view=VIEWS[h]?h:'trade';
+  for(const k in VIEWS)$(VIEWS[k]).hidden=k!==view;
+  document.querySelectorAll('#tabs a').forEach(a=>a.setAttribute('aria-current',a.dataset.v===view?'page':'false'));
+  sbuilt='';aKey='';alKey='';
+  if(view==='strategies'){$('rkMk').value=cur;renderRank()}
+  if(view==='journal')renderJr();
+  if(view==='academy')renderAca();
+  if(view==='analyze'){$('rcEn').value=String(+D[cur].price.toPrecision(6));$('rcSt').value='';if(!$('rcAcc').value)$('rcAcc').value=Math.round(equity())}
+  render();
 }
 
 /* rendering */
@@ -737,6 +1116,8 @@ function render(){
   $('sUp').textContent=fu(up,1);$('sUp').className='ltr '+cls(up);$('sRe').textContent=fu(re,1);$('sRe').className='ltr '+cls(re);
   $('sWr').textContent=S.hist.length?t('winOf',{p:Math.round(w/S.hist.length*100),n:S.hist.length}):t('noTrades');
   if(view==='stats'){renderStats();return}
+  if(view==='analyze'){renderAna();return}
+  if(view!=='trade')return;
   renderPos();renderHist();renderRead();renderBot();drawChart();drawInd();
 }
 function renderPos(){
@@ -786,6 +1167,8 @@ function drawChart(){
   const mine=S.pos.filter(q=>q.sym===cur),I=ind(d),off=d.candles.length-cs.length,E=[[I.e20.slice(off),C.e20],[I.e50.slice(off),C.e50]];
   let hi=Math.max(...cs.map(k=>k.h),...E[0][0],...E[1][0]),lo=Math.min(...cs.map(k=>k.l),...E[0][0],...E[1][0]);
   mine.forEach(q=>{hi=Math.max(hi,q.entry);lo=Math.min(lo,q.entry)});
+  const K=S.lvOn?indK(d.candles):null,VW=K?K.vw.slice(off):null,LV=S.lvOn?levels(cur):null;
+  if(VW){hi=Math.max(hi,...VW);lo=Math.min(lo,...VW)}
   const pad=(hi-lo)*.08||hi*.001;hi+=pad;lo-=pad;
   const top=12,bot=H-24,y=v=>top+(hi-v)/(hi-lo)*(bot-top);
   g.lineWidth=1;
@@ -800,6 +1183,13 @@ function drawChart(){
   g.textAlign='left';g.lineWidth=1.6;
   E.forEach(([a,c])=>{g.strokeStyle=c;g.shadowColor=c;g.shadowBlur=10;g.beginPath();a.forEach((v,i)=>{const x=i*cw+cw/2;i?g.lineTo(x,y(v)):g.moveTo(x,y(v))});g.stroke()});
   g.shadowBlur=0;g.lineWidth=1;
+  if(LV){g.strokeStyle='#c084fc';g.lineWidth=1.4;g.setLineDash([6,4]);g.beginPath();VW.forEach((v,i)=>{const x=i*cw+cw/2;i?g.lineTo(x,y(v)):g.moveTo(x,y(v))});g.stroke();g.setLineDash([]);g.lineWidth=1;
+    const tags=[['VWAP',LV.vw,'#c084fc'],['ORB H',LV.orOk?LV.orH:null,'#e9eef5'],['ORB L',LV.orOk?LV.orL:null,'#e9eef5'],['PDH',LV.pdh,'#ffb547'],['PDL',LV.pdl,'#ffb547'],['PDC',LV.pdc,'#8e99a9']]
+      .filter(x=>x[1]!=null&&x[1]<=hi&&x[1]>=lo).sort((a,b)=>b[1]-a[1]);let last=-99;
+    g.font='11px Inter,system-ui,sans-serif';
+    tags.forEach(([nm,v,c])=>{const yy=y(v);if(nm!=='VWAP'){g.strokeStyle=c;g.globalAlpha=.55;g.beginPath();g.moveTo(0,yy);g.lineTo(W-ax,yy);g.stroke();g.globalAlpha=1}
+      const ty=Math.max(yy,last+15);last=ty;const tw=g.measureText(nm).width+10;g.fillStyle=c;g.fillRect(W-ax-tw-2,ty-7,tw,14);g.fillStyle='#070b10';g.fillText(nm,W-ax-tw+3,ty)});
+    g.font='12px Inter,"IBM Plex Sans Arabic",system-ui,sans-serif'}
   mine.forEach(q=>{const yy=y(q.entry),c=q.side==='long'?C.up:C.dn;g.setLineDash([5,4]);g.strokeStyle=c;g.beginPath();g.moveTo(0,yy);g.lineTo(W-ax,yy);g.stroke();g.setLineDash([]);
     const s=`${t(q.side)} ${q.lev}× · ${fp(q.entry)}`,tw=g.measureText(s).width+12;g.fillStyle=c;g.fillRect(4,yy-10,tw,20);g.fillStyle='#fff';g.fillText(s,10,yy)});
   const ly=y(d.price);g.setLineDash([2,3]);g.strokeStyle=C.acc;g.beginPath();g.moveTo(0,ly);g.lineTo(W-ax,ly);g.stroke();g.setLineDash([]);
@@ -831,9 +1221,20 @@ function sim(){
   if(simT)return;
   simT=setInterval(()=>{MK.forEach(m=>{if(live&&isC(m))return;tick(m.s,D[m.s].price*Math.exp(m.v*gauss()))});render()},700);
 }
+const kl=k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]});
+const BI={'5m':'5m','15m':'15m','1h':'1h','4h':'4h','1d':'1d'};
+/* full history for the market on screen: today's 1-minute session plus 5m..1D, refreshed while live */
+async function loadDeep(sym){const d=D[sym];if(!live||!isC(d.m))return;
+  try{const st=sessStart(Date.now())-90*TF,r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${sym}&interval=1m&startTime=${st}&limit=1500`),a=await r.json();
+    if(Array.isArray(a)&&a.length>50){const c=a.map(kl).filter(k=>k.o>0);const old=d.candles.filter(k=>k.t<c[0].t).slice(-Math.max(0,300-c.length));d.candles=old.concat(c)}}catch(e){}
+  for(const f in BI){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${sym}&interval=${BI[f]}&limit=120`),a=await r.json();
+    if(Array.isArray(a)&&a.length>20)d.tf[f]=a.map(kl).filter(k=>k.o>0)}catch(e){}}
+  aKey='';later();
+}
+let deepT=null;function deepLoop(){clearInterval(deepT);loadDeep(cur);deepT=setInterval(()=>loadDeep(cur),60000)}
 async function loadKlines(){
   for(const m of MK.filter(isC)){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${m.s}&interval=1m&limit=240`);const a=await r.json();
-    if(Array.isArray(a)&&a.length){const c=a.map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]})).filter(k=>k.o>0);if(c.length)D[m.s].candles=c}}catch(e){}}
+    if(Array.isArray(a)&&a.length){const c=a.map(kl).filter(k=>k.o>0);if(c.length)D[m.s].candles=c}}catch(e){}}
   later();
 }
 function goLive(){
@@ -842,7 +1243,7 @@ function goLive(){
   const to=setTimeout(()=>{if(!live){try{ws.close()}catch(e){}off()}},5000);
   ws.onmessage=e=>{let x;try{x=JSON.parse(e.data).data}catch(_){return}
     if(!x||!D[x.s])return;const p=+x.p;if(!(p>0))return;
-    if(!live){live=true;clearTimeout(to);setFeed('feedLive');loadKlines()}
+    if(!live){live=true;clearTimeout(to);setFeed('feedLive');loadKlines().then(deepLoop)}
     tick(x.s,p);later()};
   ws.onerror=()=>{if(!live){clearTimeout(to);off()}};
   ws.onclose=()=>{if(live){live=false;off()}};
@@ -855,7 +1256,8 @@ function applyLang(){
   document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
   $('lang').setAttribute('aria-label',t('lang'));
   $('proSlot').innerHTML=CHECKOUT_URL?`<a class="btn go a" href="${esc(CHECKOUT_URL)}" target="_blank" rel="noopener">${esc(t('proBtn'))}</a>`:`<button class="go" disabled>${esc(t('proSoon'))}</button>`;
-  setFeed(feedK);setDm(dm,true);built='x';hbuilt='';sbuilt='';render();renderBt();
+  setFeed(feedK);setDm(dm,true);built='x';hbuilt='';sbuilt='';aKey='';alKey='';render();renderBt();
+  if(view==='strategies')renderRank();if(view==='journal')renderJr();if(view==='academy')renderAca();
 }
 $('lang').innerHTML=LANGS.map(([c,n])=>`<option value="${c}">${esc(n)}</option>`).join('');
 $('lang').value=lang;
@@ -863,7 +1265,9 @@ $('lang').addEventListener('change',e=>{lang=TR[e.target.value]?e.target.value:'
 
 /* events */
 let tt;function toast(s){const e=$('toast');e.textContent=s;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),3200)}
-$('strip').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;cur=b.dataset.s;err('');render()});
+function setCur(sym){if(!D[sym]||sym===cur)return;cur=sym;err('');feedC.k='';aKey='';if(live)deepLoop();
+  if(view==='analyze'){$('rcEn').value=String(+D[cur].price.toPrecision(6));$('rcSt').value=''}render()}
+$('strip').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;setCur(b.dataset.s)});
 $('cats').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;cat=b.dataset.c;buildStrip();
   if(cat!=='all'&&D[cur].m.c!==cat)cur=MK.find(m=>m.c===cat).s;err('');render()});
 $('pct').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;const lev=+$('lv').value;$('mg').value=Math.max(0,Math.floor(S.bal*+b.dataset.p/(1+lev*FEE)*100)/100);ticketInfo()});
@@ -873,10 +1277,42 @@ $('bL').addEventListener('click',()=>openPos('long'));$('bS').addEventListener('
 $('plist').addEventListener('click',e=>{const b=e.target.closest('[data-close]');if(!b)return;const q=S.pos.find(x=>x.id===+b.dataset.close);if(q){closePos(q,D[q.sym].price,'rMan');render()}});
 let armed=null;$('reset').addEventListener('click',()=>{const b=$('reset');
   if(!armed){b.textContent=t('resetC');armed=setTimeout(()=>{armed=null;b.textContent=t('reset')},3000);return}
-  clearTimeout(armed);armed=null;b.textContent=t('reset');S={bal:START,pos:[],hist:[],id:1,dep:START,fund:[],bot:{on:false},botLog:[]};save();built='x';hbuilt='';toast(t('tReset'));render()});
+  clearTimeout(armed);armed=null;b.textContent=t('reset');const ac=S.ac;S={bal:START,pos:[],hist:[],id:1,dep:START,fund:[],bot:{on:false},botLog:[]};fixS();S.ac=ac;save();built='x';hbuilt='';toast(t('tReset'));render()});
 
 /* views */
 addEventListener('hashchange',setView);
+const mkOpts=MK.map(m=>`<option value="${m.s}">${esc(m.b)} · ${esc(m.n)}</option>`).join('');$('aMk').innerHTML=mkOpts;$('rkMk').innerHTML=mkOpts;
+$('aMk').addEventListener('change',e=>setCur(e.target.value));
+$('rkMk').addEventListener('change',e=>{setCur(e.target.value);rankR=null;renderRank()});
+$('rkRun').addEventListener('click',runRank);
+$('rkOut').addEventListener('click',e=>{const b=e.target.closest('[data-use]');if(b&&rankR)useSetup(rankR.out[+b.dataset.use])});
+$('lvB').addEventListener('click',()=>{S.lvOn=!S.lvOn;save();$('lvB').setAttribute('aria-pressed',S.lvOn);render()});$('lvB').setAttribute('aria-pressed',S.lvOn);
+$('orN').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(!b)return;S.ses.n=+b.dataset.n;save();feedC.k='';render()});
+$('sesA').addEventListener('change',e=>{S.ses.a=e.target.value==='utc'?'utc':'ny';save();feedC.k='';render()});
+$('alAdd').addEventListener('click',()=>{const v=+$('alP').value,p=D[cur].price;
+  if(!(v>0)||v===p){$('alErr').textContent=t('alBad');return}$('alErr').textContent='';
+  S.alerts.push({id:Date.now(),sym:cur,p:v,dir:v>p?'up':'dn',t:Date.now()});if(S.alerts.length>30)S.alerts.shift();save();$('alP').value='';alKey='';toast(t('alSet',{b:D[cur].m.b,p:fp(v)}));render()});
+$('alList').addEventListener('click',e=>{const b=e.target.closest('[data-al]');if(!b)return;S.alerts=S.alerts.filter(a=>a.id!==+b.dataset.al);save();alKey='';render()});
+['rcAcc','rcRisk','rcEn','rcSt','rcLv'].forEach(id=>$(id).addEventListener('input',calc));
+$('rcUse').addEventListener('click',()=>{const c=calc();if(!c)return;
+  $('mg').value=Math.floor(c.margin*100)/100;$('lv').value=c.lev;$('sl').value=+c.St.toPrecision(8);$('tp').value=+c.T2.toPrecision(8);
+  location.hash='#trade';setTimeout(()=>{ticketInfo();document.querySelector('.ticket').scrollIntoView({behavior:'smooth',block:'start'});toast(t('rcDone'))},60)});
+$('jrF').addEventListener('click',e=>{const b=e.target.closest('[data-jf]');if(!b)return;jF=b.dataset.jf;renderJr()});
+$('jrList').addEventListener('click',e=>{const b=e.target.closest('[data-j]');if(!b)return;jSel=+b.dataset.j;renderJr();if(innerWidth<860)$('jrEd').scrollIntoView({behavior:'smooth'})});
+$('jrEd').addEventListener('click',e=>{const a=e.target.closest('[data-jt]'),r=e.target.closest('[data-jr]');
+  if(a){const k=a.dataset.jt;jSet(j=>{j.tags=j.tags.includes(k)?j.tags.filter(x=>x!==k):j.tags.concat(k)});renderJr()}
+  if(r){const n=+r.dataset.jr;jSet(j=>{j.r=j.r===n?0:n});renderJr()}});
+let jT=null;$('jrEd').addEventListener('input',e=>{if(e.target.id!=='jN')return;const v=e.target.value.slice(0,2000);jSet(j=>{j.n=v});
+  clearTimeout(jT);jT=setTimeout(()=>{const x=$('jSaved');if(x)x.textContent=t('jSavedT')},400)});
+$('jrCsv').addEventListener('click',async()=>{const c=csv();try{await navigator.clipboard.writeText(c);toast(t('jCopied',{n:S.hist.length}))}
+  catch(e){const b=$('csvBox');b.hidden=false;b.value=c;b.focus();b.select();toast(t('jCopyMan'))}});
+$('acList').addEventListener('click',e=>{const b=e.target.closest('[data-ac]');if(!b)return;acSel=+b.dataset.ac;renderAca();$('acBody').scrollIntoView({behavior:'smooth',block:'start'})});
+$('acBody').addEventListener('click',e=>{const Ls=acL(),l=Ls[acSel];if(!l)return;
+  const q=e.target.closest('[data-q]');if(q){const A=acAns[l.id]=acAns[l.id]||{};A[+q.dataset.q]=+q.dataset.a;
+    if(Object.keys(A).length===l.quiz.length){const ok=l.quiz.filter((x,i)=>A[i]===x[2]).length;S.ac.sc[l.id]=Math.max(S.ac.sc[l.id]||0,ok);if(ok>=Math.ceil(l.quiz.length*2/3))S.ac.done[l.id]=true;save()}
+    renderAca();return}
+  if(e.target.closest('#acRe')){delete acAns[l.id];renderAca()}
+  if(e.target.closest('#acNx')){acSel++;renderAca();$('acBody').scrollIntoView({behavior:'smooth',block:'start'})}});
 $('demoB').addEventListener('click',()=>{demo=demo?null:mkDemo();sbuilt='';render()});
 
 /* auto-trader controls */
