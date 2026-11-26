@@ -200,6 +200,13 @@ button:hover{background:rgba(255,255,255,.09)}
 .demo-note{color:var(--e50);font-size:13px}
 @media(max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sgrid,.sgrid2,.sgrid3{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:480px){.kpi b{font-size:22px}.kpi.hero b{font-size:34px}}
+/* ===== Accounts and Pro ===== */
+.accb{gap:8px;min-height:44px;max-width:180px}.accb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pro-badge{font-size:11px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:6px;color:#03160e;background:linear-gradient(180deg,#ffd27a,#f5a524)}
+.lock{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:16px;border-radius:14px;border:1px solid rgba(245,165,36,.35);background:linear-gradient(135deg,rgba(245,165,36,.14),rgba(91,140,255,.08))}
+.lock svg{color:#ffb547;flex:none}.lock>div{flex:1;min-width:200px}.lock p{margin:2px 0 0;color:var(--mute);font-size:14px}
+.accmsg{padding:10px 12px;border-radius:10px;background:rgba(91,140,255,.12);border:1px solid rgba(91,140,255,.3);font-size:14px}
+.linkb{background:none;border:0;color:#9cb8ff;min-height:36px;padding:0;margin-top:6px;font-weight:500;text-decoration:underline}
 /* ===== Six-section app ===== */
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:4px;width:100%}
@@ -286,6 +293,7 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 <script src="i18n.js"></script>
 <script src="academy.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -294,6 +302,7 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
     <span class="feed" id="feed"><i></i><span id="feedT">Connecting…</span></span>
     <select class="lang" id="lang" aria-label="Language"></select>
     <div class="eqbox"><small data-t="equity">Practice equity</small><b id="eq" class="ltr">$10,000.00</b> <span id="ret" class="ltr" style="font-size:13px"></span> <span id="retd" style="font-size:13px;color:var(--mute)"></span></div>
+    <button id="accB" class="accb"><span id="accBT">Sign in</span><b id="accPro" class="pro-badge" hidden>PRO</b></button>
     <button class="go l" id="fundB" data-t="addFunds">Add funds</button>
   </header>
   <nav class="tabs" id="tabs" aria-label="Sections">
@@ -527,13 +536,22 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
   <div id="dLog"></div>
   <p class="lbl" data-t="walletNote"></p>
 </div></div>
+<div class="ov" id="accOv" hidden><div class="card dlg" role="dialog" aria-modal="true" aria-labelledby="accT">
+  <div class="dh"><h2 id="accT" data-t="accTitle">Your account</h2><button id="accX" aria-label="Close">✕</button></div>
+  <div id="accBody"></div>
+</div></div>
 <div class="toast" id="toast" role="status"></div>
 <div hidden><i id="cUp" style="color:var(--up)"></i><i id="cDn" style="color:var(--dn)"></i><i id="cAc" style="color:var(--acc)"></i><i id="cLn" style="color:var(--line)"></i><i id="cMu" style="color:var(--mute)"></i><i id="cE2" style="color:var(--e20)"></i><i id="cE5" style="color:var(--e50)"></i></div>
 
 <script>
 {
 /* Paste your Lemon Squeezy / Paddle checkout link here to turn on the Pro button. Empty = "Coming soon". */
-const CHECKOUT_URL='';
+/* ===== PaperPerp Pro configuration =====
+   SUPA_*: the Supabase project that stores accounts and plans (public keys, safe to ship).
+   POLAR_CHECKOUT: the Polar checkout link for "PaperPerp Pro" (sandbox while testing, live later).
+   POLAR_PORTAL: the Polar customer portal, where Pro members manage or cancel their subscription. */
+const SUPA_URL='https://alaritwfzhhpxpihusss.supabase.co',SUPA_KEY='sb_publishable_pym-fChKLUWXhwf4XctPOQ_kaqL-Wc9';
+const POLAR_CHECKOUT='',POLAR_PORTAL='';
 
 const TR=window.PP_T||{en:{}},LANGS=window.PP_LANGS||[['en','English']];
 const MK=[
@@ -579,7 +597,7 @@ if(!S||typeof S.bal!=='number'||!Array.isArray(S.pos))S={bal:START,pos:[],hist:[
 function fixS(){if(typeof S.dep!=='number')S.dep=START;if(!Array.isArray(S.fund))S.fund=[];if(!S.bot)S.bot={on:false};if(!Array.isArray(S.botLog))S.botLog=[];
   if(!S.ses||!S.ses.a)S.ses={a:'ny',n:15};if(!Array.isArray(S.alerts))S.alerts=[];if(!Array.isArray(S.alHit))S.alHit=[];if(!S.jr)S.jr={};if(!S.ac||!S.ac.done)S.ac={done:{},sc:{}};if(S.lvOn===undefined)S.lvOn=true}
 fixS();
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const save=()=>{S.upd=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}queuePush()};
 
 const D={};MK.forEach(m=>D[m.s]={m,price:m.p,candles:[]});
 let cur='BTCUSDT',cat='all',live=false,simT=null,ws=null,feedK='feedConn';
@@ -732,7 +750,7 @@ function backtest(cs,cfg){
 }
 let lastBt=null,btBusy=false;
 async function runBacktest(){
-  if(btBusy)return;const b=readBot();if(typeof b==='string')return $('bErr').textContent=t(b);
+  if(btBusy)return;if($('bTf').value!=='chart'&&!isPro()){$('btOut').innerHTML=lockCard('lkTf');return}const b=readBot();if(typeof b==='string')return $('bErr').textContent=t(b);
   $('bErr').textContent='';btBusy=true;$('btOut').innerHTML=`<div class="empty">${esc(t('btLoad'))}</div>`;
   const d=D[cur],tf=$('bTf').value;let cs=null,sim=false;
   if(tf!=='chart'){if(live&&isC(d.m)){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${d.m.s}&interval=${tf}&limit=1000`);const a=await r.json();
@@ -789,7 +807,7 @@ function botStep(sym){
   later();
 }
 function toggleBot(){
-  const B=S.bot;
+  const B=S.bot;if(!B.on&&!isPro()){$('btOut').innerHTML=lockCard('lkBot');$('btOut').scrollIntoView({behavior:'smooth',block:'nearest'});return}
   if(B.on){B.on=false;save();botLog('bStopped',{});renderBot();return}
   const b=readBot();if(typeof b==='string')return $('bErr').textContent=t(b);
   $('bErr').textContent='';Object.assign(B,b,{on:true,sym:cur,state:0});save();botLog('bStarted',{b:D[cur].m.b,s:b.st});
@@ -911,7 +929,7 @@ function calc(){
 const PRE=[{k:'pA',lev:1,tp:0,sl:0},{k:'pB',lev:5,tp:2,sl:1},{k:'pC',lev:10,tp:1.5,sl:.5}];
 let rankR=null,rankBusy=false;
 async function runRank(){
-  if(rankBusy)return;rankBusy=true;$('rkOut').innerHTML=`<div class="empty">${esc(t('btLoad'))}</div>`;
+  if(rankBusy)return;if(!isPro()){$('rkOut').innerHTML=lockCard('lkStr');return}rankBusy=true;$('rkOut').innerHTML=`<div class="empty">${esc(t('btLoad'))}</div>`;
   const d=D[cur],tf=$('rkTf').value;let cs=null,sim=false;
   if(tf!=='chart'){if(live&&isC(d.m)){try{const r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${d.m.s}&interval=${tf}&limit=1000`),a=await r.json();
       if(Array.isArray(a)&&a.length>60)cs=a.map(kl).filter(k=>k.o>0)}catch(e){}}if(!cs)sim=true}
@@ -923,7 +941,7 @@ async function runRank(){
 }
 function renderRank(){
   $('sgl').innerHTML=Object.keys(SN).map(k=>`<div><b>${esc(t(SN[k]))}</b><p class="lbl">${esc(t(SND[k]))}</p></div>`).join('');
-  if(!rankR){$('rkOut').innerHTML=`<div class="empty">${esc(t('rkNone'))}</div>`;return}
+  if(!rankR){$('rkOut').innerHTML=isPro()?`<div class="empty">${esc(t('rkNone'))}</div>`:lockCard('lkStr');return}
   const {out,b,bars,sim}=rankR;
   $('rkOut').innerHTML=`<p class="lbl">${esc(t('rkNote',{n:bars,b,k:out.length}))}${sim?' '+esc(t('btSim')):''}</p>
   <div class="scroll"><table class="rk"><thead><tr><th>#</th><th>${esc(t('rkSetup'))}</th><th class="n">${esc(t('btRet'))}</th><th class="n">${esc(t('btDd'))}</th><th class="n">${esc(t('btWin'))}</th><th class="n">${esc(t('btPf'))}</th><th class="n">${esc(t('btTrades'))}</th><th></th></tr></thead><tbody>${
@@ -952,6 +970,7 @@ function renderJr(){
     :`<div class="empty">${esc(t('jEmpty'))}</div>`;
   renderJrEd();
   /* results by tag */
+  if(!isPro()){$('jrTags').innerHTML=lockCard('lkJr');return}
   const rows=JT.map(k=>{const a=H.filter(h=>jOf(h.id).tags.includes(k));return [k,a]}).filter(x=>x[1].length);
   $('jrTags').innerHTML=rows.length?`<table class="stack"><thead><tr><th>${esc(t('jTag'))}</th><th class="n">${esc(t('btTrades'))}</th><th class="n">${esc(t('btWin'))}</th><th class="n">P&amp;L</th><th class="n">${esc(t('jAvg'))}</th></tr></thead><tbody>${
     rows.map(([k,a])=>{const p=sum(a);return `<tr><td>${esc(t(k))}</td><td class="n">${a.length}</td><td class="n">${Math.round(a.filter(x=>x.net>0).length/a.length*100)}%</td><td class="n ltr ${cls(p)}">${fu(p,1)}</td><td class="n ltr ${cls(p)}">${fu(p/a.length,1)}</td></tr>`}).join('')}</tbody></table>`
@@ -984,6 +1003,7 @@ function renderAca(){
   $('acLang').hidden=!!(window.PP_ACADEMY||{})[lang];
   $('acList').innerHTML=Ls.map((l,i)=>`<button data-ac="${i}" aria-pressed="${i===acSel}"><span class="ltr">${i+1}</span><span>${esc(l.title)}</span>${done[l.id]?'<b class="up">✓</b>':''}</button>`).join('');
   const l=Ls[acSel];if(!l){$('acBody').innerHTML='';return}
+  if(acSel>=3&&!isPro()){$('acBody').innerHTML=`<small class="lbl">${esc(t('acLesson',{i:acSel+1,n:Ls.length}))}</small><h2 class="act">${esc(l.title)}</h2><div class="goal"><b>${esc(t('acGoal'))}</b> ${esc(l.goal)}</div>${lockCard('lkAca')}`;return}
   const A=acAns[l.id]||{},nq=l.quiz.length,na=Object.keys(A).length,ok=l.quiz.filter((q,i)=>A[i]===q[2]).length;
   $('acBody').innerHTML=`<small class="lbl">${esc(t('acLesson',{i:acSel+1,n:Ls.length}))} · ${esc(t('acMin',{m:l.min}))}</small><h2 class="act">${esc(l.title)}</h2>
     <div class="goal"><b>${esc(t('acGoal'))}</b> ${esc(l.goal)}</div>
@@ -997,6 +1017,81 @@ function renderAca(){
     <div class="acnav">${na===nq&&ok<Math.ceil(nq*2/3)?`<button id="acRe">${esc(t('acRetryB'))}</button>`:''}
       ${l.try?`<a class="btn go a" href="#${l.try}">${esc(t('acTry'))}</a>`:''}
       ${acSel<Ls.length-1?`<button class="go l" id="acNx">${esc(t('acNext'))}</button>`:''}</div>`;
+}
+
+/* ===== Accounts, Pro plan and cloud save (Supabase + Polar) ===== */
+let sb=null,user=null,me=null,accMode='in',accMsg='',accEV='',pushT=null,lastSync=0,pullDone=false;
+const isPro=()=>!!(me&&me.is_pro);
+const LOCK='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+function lockCard(k){return `<div class="lock">${LOCK}<div><b>${esc(t('proOnly'))}</b><p>${esc(t(k))}</p></div><button class="go a" data-up>${esc(t(isPro()?'proYou':'proGet'))}</button></div>`}
+function checkoutUrl(){const u=new URL(POLAR_CHECKOUT);u.searchParams.set('reference_id',user.id);if(user.email)u.searchParams.set('customer_email',user.email);u.searchParams.set('locale',lang);return u.toString()}
+function upgrade(){
+  if(isPro()){openAcc();return}
+  if(!sb){toast(t('accLive'));return}
+  if(!user){accMode='up';accMsg=t('accNeed');openAcc();return}
+  if(!POLAR_CHECKOUT){toast(t('proSoon'));return}
+  location.href=checkoutUrl();
+}
+function initAuth(){
+  if(!window.supabase||!SUPA_URL||!/^https?:$/.test(location.protocol)){renderAcc();return}
+  try{sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){sb=null;renderAcc();return}
+  sb.auth.onAuthStateChange((ev,ses)=>{if(ev==='PASSWORD_RECOVERY'){accMode='recover';openAcc()}const u=ses?.user||null;if((u&&u.id)!==(user&&user.id))setUser(u)});
+  sb.auth.getSession().then(({data})=>setUser(data?.session?.user||null)).catch(()=>renderAcc());
+  const q=new URLSearchParams(location.search);if(q.get('checkout_id'))waitForPro();
+}
+async function loadMe(){if(!sb||!user){me=null;return}try{const {data,error}=await sb.rpc('pp_me');if(!error&&data&&data[0])me=data[0]}catch(e){}}
+async function setUser(u){user=u;if(!u){me=null;pullDone=false}else await loadMe();refreshPro();if(isPro()&&!pullDone)pullState()}
+function refreshPro(){renderAcc();rankR=rankR&&isPro()?rankR:null;if(view==='strategies')renderRank();if(view==='academy')renderAca();if(view==='journal')renderJr()}
+async function waitForPro(){toast(t('proAct'));for(let i=0;i<30;i++){await new Promise(r=>setTimeout(r,3000));if(!user)continue;await loadMe();if(isPro()){refreshPro();toast(t('proOn'));pullState();break}}
+  if(!isPro())toast(t('proLate'));try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}}
+/* cloud save: newest copy wins; Pro only (enforced by the database too) */
+async function pullState(){
+  if(!sb||!user||!isPro())return;pullDone=true;
+  try{const {data,error}=await sb.from('pp_state').select('data,updated_at').eq('user_id',user.id).maybeSingle();if(error)throw error;
+    if(data&&data.data&&(data.data.upd||0)>(S.upd||0)+1000){const keep=S.ac;try{localStorage.setItem(KEY,JSON.stringify(data.data))}catch(e){}toast(t('syncLoaded'));setTimeout(()=>location.reload(),900);return}
+    await pushState()}catch(e){}
+}
+async function pushState(){
+  if(!sb||!user||!isPro())return;
+  try{const {error}=await sb.from('pp_state').upsert({user_id:user.id,data:S,updated_at:new Date().toISOString()});if(!error){lastSync=Date.now();if(!$('accOv').hidden)renderAcc()}}catch(e){}
+}
+function queuePush(){try{if(!user||!isPro())return}catch(e){return}clearTimeout(pushT);pushT=setTimeout(pushState,4000)}
+function openAcc(){$('accOv').hidden=false;renderAcc();setTimeout(()=>{const f=$('accOv').querySelector('input,button.go');if(f)f.focus()},30)}
+function closeAcc(){$('accOv').hidden=true;accMsg='';$('accB').focus()}
+function renderAcc(){
+  $('accBT').textContent=user?(user.email||'').split('@')[0]:t('accSignIn');$('accPro').hidden=!isPro();
+  const slot=$('proSlot');if(slot)slot.innerHTML=isPro()?`<button class="go" disabled>${esc(t('proYou'))}</button>`:`<button class="go a" data-up>${esc(t('proGet'))}</button>`;
+  const B=$('accBody');if(!B||$('accOv').hidden)return;
+  const msg=accMsg?`<p class="accmsg">${esc(accMsg)}</p>`:'';
+  if(!sb){B.innerHTML=`<p>${esc(t('accLive'))}</p><a class="btn go a" href="https://karawene112.github.io/paperperp/" target="_blank" rel="noopener">karawene112.github.io/paperperp</a>`;return}
+  if(accMode==='recover'){B.innerHTML=`${msg}<form id="accF" data-m="recover"><label class="flab" for="accP2">${esc(t('accPassNew'))}</label><input class="in" id="accP2" type="password" autocomplete="new-password" minlength="8" required><button class="go l" style="width:100%;margin-top:12px">${esc(t('accReset'))}</button></form>`;return}
+  if(!user){const up=accMode==='up',fg=accMode==='forgot';
+    B.innerHTML=`<div class="cats" id="accTabs"><button data-am="in" aria-pressed="${accMode==='in'}">${esc(t('accSignIn'))}</button><button data-am="up" aria-pressed="${up}">${esc(t('accSignUp'))}</button></div>${msg}
+      <form id="accF" data-m="${accMode}"><label class="flab" for="accE">${esc(t('accEmail'))}</label><input class="in" id="accE" type="email" autocomplete="email" required value="${esc(accEV)}">
+      ${fg?'':`<label class="flab" for="accP" style="margin-top:10px">${esc(t('accPass'))}</label><input class="in" id="accP" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="${up?8:1}" required>`}
+      <button class="go ${up?'l':'a'}" style="width:100%;margin-top:14px">${esc(t(fg?'accSend':up?'accSignUp':'accSignIn'))}</button></form>
+      ${up||fg?'':`<button class="linkb" data-am="forgot">${esc(t('accForgot'))}</button>`}
+      <p class="lbl" style="margin-top:12px">${esc(t('accWhy'))}</p>`;return}
+  const until=me&&me.pro_until?new Date(me.pro_until).toLocaleDateString(loc(),{year:'numeric',month:'short',day:'numeric'}):'';
+  B.innerHTML=`${msg}<p>${esc(t('accWelcome',{e:user.email||''}))}</p>
+    <div class="plan ${isPro()?'hl':''}" style="margin:12px 0"><h3>${esc(isPro()?t('pro'):t('accFree'))}</h3>${isPro()&&until?`<small class="lbl">${esc(t('accUntil',{d:until}))}</small>`:''}
+      <ul>${(isPro()?['pro1','pro2','pro3','pro4']:['free1','free2','free3']).map(k=>`<li>${esc(t(k))}</li>`).join('')}</ul></div>
+    ${isPro()?`${POLAR_PORTAL?`<a class="btn" style="width:100%" href="${esc(POLAR_PORTAL)}" target="_blank" rel="noopener">${esc(t('accManage'))}</a>`:''}
+      <button id="accSync" style="width:100%;margin-top:8px">${esc(t('accSync'))}</button><p class="lbl">${lastSync?esc(t('accSynced',{t:hm(lastSync)})):''}</p>`
+      :`<button class="go a" data-up style="width:100%">${esc(t('proGet'))}</button>`}
+    <button id="accOut" style="width:100%;margin-top:8px">${esc(t('accOut'))}</button>`;
+}
+async function accSubmit(f){
+  const m=f.dataset.m,E=($('accE')?.value||'').trim();accEV=E;const P=$('accP')?.value||'',back=location.origin+location.pathname;
+  accMsg='';const btn=f.querySelector('button');btn.disabled=true;
+  try{
+    if(m==='in'){const {error}=await sb.auth.signInWithPassword({email:E,password:P});if(error)throw error;closeAcc();toast(t('accWelcome',{e:E}))}
+    else if(m==='up'){if(P.length<8)throw new Error(t('accShort'));const {data,error}=await sb.auth.signUp({email:E,password:P,options:{emailRedirectTo:back}});if(error)throw error;
+      if(data.session){closeAcc();toast(t('accWelcome',{e:E}))}else{accMode='in';accMsg=t('accCheck')}}
+    else if(m==='forgot'){const {error}=await sb.auth.resetPasswordForEmail(E,{redirectTo:back});if(error)throw error;accMode='in';accMsg=t('accResetSent')}
+    else if(m==='recover'){const P2=$('accP2').value;if(P2.length<8)throw new Error(t('accShort'));const {error}=await sb.auth.updateUser({password:P2});if(error)throw error;accMode='in';accMsg='';closeAcc();toast(t('accPassSet'))}
+  }catch(e){accMsg=t('accErr',{e:String(e.message||e).slice(0,160)})}
+  btn.disabled=false;renderAcc();
 }
 
 /* ===== My stats dashboard ===== */
@@ -1255,7 +1350,7 @@ function applyLang(){
   document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));
   document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
   $('lang').setAttribute('aria-label',t('lang'));
-  $('proSlot').innerHTML=CHECKOUT_URL?`<a class="btn go a" href="${esc(CHECKOUT_URL)}" target="_blank" rel="noopener">${esc(t('proBtn'))}</a>`:`<button class="go" disabled>${esc(t('proSoon'))}</button>`;
+  renderAcc();
   setFeed(feedK);setDm(dm,true);built='x';hbuilt='';sbuilt='';aKey='';alKey='';render();renderBt();
   if(view==='strategies')renderRank();if(view==='journal')renderJr();if(view==='academy')renderAca();
 }
@@ -1281,6 +1376,15 @@ let armed=null;$('reset').addEventListener('click',()=>{const b=$('reset');
 
 /* views */
 addEventListener('hashchange',setView);
+document.addEventListener('click',e=>{if(e.target.closest('[data-up]')){e.preventDefault();upgrade()}});
+$('accB').addEventListener('click',()=>{if(!user&&accMode!=='up')accMode='in';openAcc()});
+$('accX').addEventListener('click',closeAcc);
+$('accOv').addEventListener('click',e=>{if(e.target.id==='accOv')closeAcc()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('accOv').hidden)closeAcc()});
+$('accBody').addEventListener('click',async e=>{const a=e.target.closest('[data-am]');if(a){accMode=a.dataset.am;accMsg='';renderAcc();return}
+  if(e.target.closest('#accOut')){await sb.auth.signOut();user=null;me=null;closeAcc();refreshPro();toast(t('accBye'))}
+  if(e.target.closest('#accSync')){await pushState();renderAcc()}});
+$('accBody').addEventListener('submit',e=>{e.preventDefault();accSubmit(e.target)});
 const mkOpts=MK.map(m=>`<option value="${m.s}">${esc(m.b)} · ${esc(m.n)}</option>`).join('');$('aMk').innerHTML=mkOpts;$('rkMk').innerHTML=mkOpts;
 $('aMk').addEventListener('change',e=>setCur(e.target.value));
 $('rkMk').addEventListener('change',e=>{setCur(e.target.value);rankR=null;renderRank()});
@@ -1304,7 +1408,7 @@ $('jrEd').addEventListener('click',e=>{const a=e.target.closest('[data-jt]'),r=e
   if(r){const n=+r.dataset.jr;jSet(j=>{j.r=j.r===n?0:n});renderJr()}});
 let jT=null;$('jrEd').addEventListener('input',e=>{if(e.target.id!=='jN')return;const v=e.target.value.slice(0,2000);jSet(j=>{j.n=v});
   clearTimeout(jT);jT=setTimeout(()=>{const x=$('jSaved');if(x)x.textContent=t('jSavedT')},400)});
-$('jrCsv').addEventListener('click',async()=>{const c=csv();try{await navigator.clipboard.writeText(c);toast(t('jCopied',{n:S.hist.length}))}
+$('jrCsv').addEventListener('click',async()=>{if(!isPro()){$('jrTags').innerHTML=lockCard('lkJr');$('jrTags').scrollIntoView({behavior:'smooth',block:'center'});return}const c=csv();try{await navigator.clipboard.writeText(c);toast(t('jCopied',{n:S.hist.length}))}
   catch(e){const b=$('csvBox');b.hidden=false;b.value=c;b.focus();b.select();toast(t('jCopyMan'))}});
 $('acList').addEventListener('click',e=>{const b=e.target.closest('[data-ac]');if(!b)return;acSel=+b.dataset.ac;renderAca();$('acBody').scrollIntoView({behavior:'smooth',block:'start'})});
 $('acBody').addEventListener('click',e=>{const Ls=acL(),l=Ls[acSel];if(!l)return;
@@ -1344,7 +1448,7 @@ $('dGo').addEventListener('click',()=>{const a=Math.round(+$('dAmt').value*100)/
 MK.forEach(m=>seed(D[m.s]));
 if(S.bot.st){$('bStrat').value=S.bot.st;bDir=S.bot.mode||'both';$('bMg').value=S.bot.m;$('bLv').value=S.bot.lev;$('bTp').value=S.bot.tp||'';$('bSl').value=S.bot.sl||''}
 if(S.bot.on&&D[S.bot.sym])cur=S.bot.sym;
-buildStrip();applyLang();setView();sim();goLive();loadFng();
+buildStrip();applyLang();setView();sim();goLive();loadFng();initAuth();
 }
 </script>
 <script src="/analytics.js" defer></script>
